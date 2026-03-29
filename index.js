@@ -6,7 +6,6 @@ themeBtn.addEventListener('click', () => {
 });
 
 
-// SEU CÓDIGO ORIGINAL DE CÁLCULO DE HORAS MANTIDO ABAIXO:
 const hrInputs = document.querySelectorAll('.horasv');
 
 // Função para salvar todos os inputs no localStorage
