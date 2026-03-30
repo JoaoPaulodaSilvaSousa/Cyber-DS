@@ -169,7 +169,7 @@ setInterval(() => {
 
             if (!respGS) return; // Pula a linha de cabeçalho
 
-            const horariosDaLinha = [respGS.value, respGB.value, respBS.value, respBB.value];
+            const horariosDaLinha = [respGB.value, respBB.value];
 
             if (horariosDaLinha.includes(horarioAtualFormatado) && horarioAtualFormatado !== "00:00:00") {
                 tr.classList.add('alarme-ativo');
