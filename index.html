@@ -11,73 +11,100 @@
 
 <h1>BIG ALLY AM5</h1>
 
-<div class="topo-container">
+<div class="relogio-container">
+    <span>Horário Atual: </span>
     <div id="relogio">00:00:00</div>
+</div>
+
+<div class="topo-container">
+    <input type="text" id="buscarFuso" placeholder="🔎 Buscar país ou região...">
+    
+    <div class="custom-select-container">
+        <div id="fusoSelect" class="select-gatilho">Selecione país ou região</div>
+        <ul id="fusoOpcoes" class="select-opcoes">
+            </ul>
+    </div>
+    
     <button id="toggle-alarm">🔔 Alarme: LIGADO</button>
     <button id="toggle-theme">Alternar Tema</button>
 </div>
 
-<table border="1" cellspacing="0" cellpadding="5">
-    <tr>
-        <th>MAPA</th>
-        <th>MORTE GIGANTE (SERVER)</th>
-        <th>MORTE BANDIDO (SERVER)</th>
-        <th>RESPAWN GIGANTE (SERVER)</th>
-        <th>RESPAWN GIGANTE (BR)</th>
-        <th>RESPAWN BANDIDO (SERVER)</th>
-        <th>RESPAWN BANDIDO (BR)</th>
-    </tr>
+<div class="tabela-wrapper">
+    <table border="1" cellspacing="0" cellpadding="5">
+        <tr>
+            <th>MAPA</th>
+            <th>MORTE GIGANTE (SERVER)</th>
+            <th>MORTE BANDIDO (SERVER)</th>
+            <th>RESPAWN GIGANTE (SERVER)</th>
+            <th>RESPAWN GIGANTE (LOCAL)</th>
+            <th>RESPAWN BANDIDO (SERVER)</th>
+            <th>RESPAWN BANDIDO (LOCAL)</th>
+        </tr>
 
-    <tr>
-        <td>GF</td>
-        <td><input type="text" class="morteGigante" data-mapa="GF" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="morteBandido" data-mapa="GF" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="respGiganteServer" data-mapa="GF" readonly></td>
-        <td><input type="text" class="respGiganteBR" data-mapa="GF" readonly></td>
-        <td><input type="text" class="respBandidoServer" data-mapa="GF" readonly></td>
-        <td><input type="text" class="respBandidoBR" data-mapa="GF" readonly></td>
-    </tr>
+        <tr>
+            <td>GF</td>
+            <td><input type="text" class="morteGigante" data-mapa="GF" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="morteBandido" data-mapa="GF" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="respGiganteServer" readonly></td>
+            <td><input type="text" class="respGiganteLocal" readonly></td>
+            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td><input type="text" class="respBandidoLocal" readonly></td>
+        </tr>
 
-    <tr>
-        <td>MW</td>
-        <td><input type="text" class="morteGigante" data-mapa="MW" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="morteBandido" data-mapa="MW" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="respGiganteServer" data-mapa="MW" readonly></td>
-        <td><input type="text" class="respGiganteBR" data-mapa="MW" readonly></td>
-        <td><input type="text" class="respBandidoServer" data-mapa="MW" readonly></td>
-        <td><input type="text" class="respBandidoBR" data-mapa="MW" readonly></td>
-    </tr>
+        <tr>
+            <td>MW</td>
+            <td><input type="text" class="morteGigante" data-mapa="MW" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="morteBandido" data-mapa="MW" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="respGiganteServer" readonly></td>
+            <td><input type="text" class="respGiganteLocal" readonly></td>
+            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td><input type="text" class="respBandidoLocal" readonly></td>
+        </tr>
 
-    <tr>
-        <td>GV</td>
-        <td><input type="text" class="morteGigante" data-mapa="GV" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="morteBandido" data-mapa="GV" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="respGiganteServer" data-mapa="GV" readonly></td>
-        <td><input type="text" class="respGiganteBR" data-mapa="GV" readonly></td>
-        <td><input type="text" class="respBandidoServer" data-mapa="GV" readonly></td>
-        <td><input type="text" class="respBandidoBR" data-mapa="GV" readonly></td>
-    </tr>
+        <tr>
+            <td>GV</td>
+            <td><input type="text" class="morteGigante" data-mapa="GV" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="morteBandido" data-mapa="GV" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="respGiganteServer" readonly></td>
+            <td><input type="text" class="respGiganteLocal" readonly></td>
+            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td><input type="text" class="respBandidoLocal" readonly></td>
+        </tr>
 
-    <tr>
-        <td>CCV</td>
-        <td><input type="text" class="morteGigante" data-mapa="CCV" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="morteBandido" data-mapa="CCV" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="respGiganteServer" data-mapa="CCV" readonly></td>
-        <td><input type="text" class="respGiganteBR" data-mapa="CCV" readonly></td>
-        <td><input type="text" class="respBandidoServer" data-mapa="CCV" readonly></td>
-        <td><input type="text" class="respBandidoBR" data-mapa="CCV" readonly></td>
-    </tr>
+        <tr>
+            <td>CCV</td>
+            <td><input type="text" class="morteGigante" data-mapa="CCV" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="morteBandido" data-mapa="CCV" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="respGiganteServer" readonly></td>
+            <td><input type="text" class="respGiganteLocal" readonly></td>
+            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td><input type="text" class="respBandidoLocal" readonly></td>
+        </tr>
 
-    <tr>
-        <td>MM</td>
-        <td><input type="text" class="morteGigante" data-mapa="MM" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="morteBandido" data-mapa="MM" placeholder="HH:MM:SS"></td>
-        <td><input type="text" class="respGiganteServer" data-mapa="MM" readonly></td>
-        <td><input type="text" class="respGiganteBR" data-mapa="MM" readonly></td>
-        <td><input type="text" class="respBandidoServer" data-mapa="MM" readonly></td>
-        <td><input type="text" class="respBandidoBR" data-mapa="MM" readonly></td>
-    </tr>
-</table>
+        <tr>
+            <td>MM</td>
+            <td><input type="text" class="morteGigante" data-mapa="MM" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="morteBandido" data-mapa="MM" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td><input type="text" class="respGiganteServer" readonly></td>
+            <td><input type="text" class="respGiganteLocal" readonly></td>
+            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td><input type="text" class="respBandidoLocal" readonly></td>
+        </tr>
+    </table>
+
+    <button id="limpar-dados">🗑️ Limpar Horários</button>
+</div>
+
+<div id="modal-container" class="modal-oculto">
+    <div class="modal-conteudo">
+        <h3>🗑️ Limpar Horários?</h3>
+        <p>Tem certeza que quer limpar todos os horários da tabela?</p>
+        <div class="modal-botoes">
+            <button id="modal-confirmar" class="btn-confirmar">Sim, Limpar</button>
+            <button id="modal-cancelar" class="btn-cancelar">Cancelar</button>
+        </div>
+    </div>
+</div>
 
 <script src="index.js"></script>
 </body>

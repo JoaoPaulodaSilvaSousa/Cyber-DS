@@ -6,13 +6,13 @@ html, body {
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #121212; /* Fundo escuro */
+    background-color: #121212; 
     display: flex;
     flex-direction: column;
     align-items: center; 
-    padding: 40px 20px;
+    padding: 15px 20px; 
     color: #e0e0e0;
-    min-height: 100vh;
+    min-height: 91vh; 
     transition: background-color 0.3s, color 0.3s;
 }
 
@@ -26,19 +26,6 @@ body {
     justify-content: center;
 }
 
-/* RELÓGIO DIGITAL */
-#relogio {
-    background-color: #1a1a1a;
-    color: #4CAF50;
-    padding: 10px 20px;
-    border-radius: 20px; /* Arredondado igual aos botões */
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 14px; /* Tamanho igual aos botões */
-    font-weight: bold;
-    border: 1px solid #4CAF50; /* Borda verde igual aos botões */
-    transition: all 0.3s ease;
-}
-
 /* ESTILO PADRÃO PARA OS BOTÕES DO TOPO */
 #toggle-theme, #toggle-alarm {
     padding: 10px 20px;
@@ -50,6 +37,10 @@ body {
     background-color: #1e1e1e;
     color: #4CAF50;
     border: 1px solid #4CAF50;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
 }
 
 #toggle-theme:hover, #toggle-alarm:hover {
@@ -60,8 +51,8 @@ body {
 /* Estilo para quando o Alarme estiver DESATIVADO no Modo Escuro */
 #toggle-alarm.desativado {
     background-color: #1e1e1e;
-    color: #ff5252; /* Texto vermelho */
-    border: 1px solid #ff5252; /* Borda vermelha */
+    color: #ff5252; 
+    border: 1px solid #ff5252; 
 }
 
 #toggle-alarm.desativado:hover {
@@ -69,15 +60,74 @@ body {
     color: #121212;
 }
 
+/* CONTAINER PARA ENVOLVER A TABELA E ALINHAR O BOTÃO ABAIXO DELA */
+.tabela-wrapper {
+    width: 80%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    gap: 10px; 
+}
+
+/* BOTÃO DE LIMPAR HORÁRIOS (MODO ESCURO) */
+#limpar-dados {
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    background-color: #1e1e1e;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+#limpar-dados:hover {
+    background-color: #4CAF50;
+    color: #121212;
+}
+
+/* 🌍 ESTILO PARA OS CAMPOS DE FUSO (MODO ESCURO) */
+#buscarFuso {
+    background-color: #1e1e1e;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    border-radius: 20px;
+    padding: 0 15px;
+    font-size: 14px;
+    font-weight: bold;
+    outline: none;
+    transition: all 0.3s ease;
+    height: 38px;
+    box-sizing: border-box;
+    width: 220px;
+    text-align: left;
+    font-family: Arial, sans-serif;
+}
+
+#buscarFuso:focus {
+    border-color: #81C784;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.4);
+}
+
+#buscarFuso::placeholder {
+    color: rgba(76, 175, 80, 0.5);
+}
+
 /* TÍTULO */
 h1 {
     text-align: center;
-    font-size: 48px;
+    font-size: 36px; 
     font-weight: 900;
     color: black;
     text-transform: uppercase;
     letter-spacing: 4px;
-    margin-bottom: 10px;
+    margin-bottom: 5px; 
     background: linear-gradient(90deg, #4CAF50, #81C784);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -91,11 +141,37 @@ h1:hover {
     cursor: default;
 }
 
+/* CONTAINER DO RELÓGIO ABAIXO DO TÍTULO */
+.relogio-container {
+    display: flex;
+    justify-content: center; 
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px; 
+    font-weight: bold;
+    color: #4CAF50;
+    width: 100%;
+}
+
+/* ESTILO DO RELÓGIO EM SI */
+#relogio {
+    background-color: #1a1a1a;
+    color: #4CAF50;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    border: 1px solid #4CAF50;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
 /* TABELA MODO ESCURO */
 table {
     border-collapse: collapse;
-    width: 80%;
-    max-width: 900px;
+    width: 100%; 
     background-color: #1e1e1e;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     border-radius: 8px;
@@ -125,10 +201,28 @@ tr:hover {
     background-color: #2a2a2a;
 }
 
-/* EFEITO DE ALARME DISPARANDO */
-tr.alarme-ativo {
-    background-color: #b71c1c !important; /* Vermelho escuro */
+/* ==========================================================
+   🚨 NOVO: SISTEMA DE ALARME COM FOCO INDIVIDUAL
+   ========================================================== */
+
+/* 1. A linha inteira acende em vermelho escuro */
+tr.alarme-linha {
+    background-color: #b71c1c !important; 
     animation: piscar 1s infinite alternate;
+}
+
+/* 2. O input do Gigante acende em Verde */
+.respGiganteLocal.alarme-foco {
+    background-color: #00E676 !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+}
+
+/* 3. O input do Bandido acende em Azul/Ciano */
+.respBandidoLocal.alarme-foco {
+    background-color: #00B0FF !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
 }
 
 @keyframes piscar {
@@ -147,28 +241,28 @@ input {
     transition: all 0.2s;
 }
 
-/* ⚪ COLUNAS DE MORTE */
+/* COLUNAS DE MORTE */
 .morteGigante, .morteBandido {
     background-color: #1a1a1a;
     color: #ffffff;
     border: 1px solid #555555;
 }
 
-/* 🟢 RESPAWNS DO SERVER */
+/* RESPAWNS DO SERVER */
 .respGiganteServer, .respBandidoServer {
     background-color: #0a1f10;
     color: #81C784;
     border: 1px solid #2e7d32;
 }
 
-/* 🟠 RESPAWNS DO BRASIL */
-.respGiganteBR, .respBandidoBR {
+/* RESPAWNS LOCAIS */
+.respGiganteLocal, .respBandidoLocal {
     background-color: #241400;
     color: #ffb74d;
     border: 1px solid #b56a00;
 }
 
-/* Efeito de foco */
+/* Efeito de foco padrão */
 .morteGigante:focus, .morteBandido:focus {
     outline: none;
     border-color: #ffffff;
@@ -185,12 +279,6 @@ body.light-mode {
     color: #333333;
 }
 
-body.light-mode #relogio {
-    background-color: #ffffff;
-    color: #4CAF50;
-    border: 1px solid #4CAF50;
-}
-
 body.light-mode #toggle-theme, 
 body.light-mode #toggle-alarm {
     background-color: #ffffff;
@@ -204,7 +292,6 @@ body.light-mode #toggle-alarm:hover {
     color: #ffffff;
 }
 
-/* Estilo para quando o Alarme estiver DESATIVADO no Modo Claro */
 body.light-mode #toggle-alarm.desativado {
     background-color: #ffffff;
     color: #ff5252;
@@ -214,6 +301,26 @@ body.light-mode #toggle-alarm.desativado {
 body.light-mode #toggle-alarm.desativado:hover {
     background-color: #ff5252;
     color: #ffffff;
+}
+
+body.light-mode #buscarFuso {
+    background-color: #ffffff;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+body.light-mode #buscarFuso::placeholder {
+    color: rgba(76, 175, 80, 0.5);
+}
+
+body.light-mode .relogio-container {
+    color: #2e7d32; 
+}
+
+body.light-mode #relogio {
+    background-color: #ffffff;
+    color: #2e7d32;
+    border-color: #2e7d32;
 }
 
 body.light-mode table {
@@ -254,8 +361,13 @@ body.light-mode .respBandidoServer {
     border: 1px solid #a5d6a7;
 }
 
-body.light-mode .respGiganteBR, 
-body.light-mode .respBandidoBR {
+body.light-mode .respGiganteLocal {
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffcc80;
+}
+
+body.light-mode .respBandidoLocal {
     background-color: #fff3e0;
     color: #e65100;
     border: 1px solid #ffcc80;
@@ -264,4 +376,246 @@ body.light-mode .respBandidoBR {
 body.light-mode input:focus {
     border-color: #4CAF50;
     color: #333333;
+}
+
+body.light-mode #limpar-dados {
+    background-color: #ffffff;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+body.light-mode #limpar-dados:hover {
+    background-color: #4CAF50;
+    color: #ffffff;
+}
+
+/* MODO CLARO PARA O MENU CUSTOMIZADO */
+body.light-mode .select-gatilho {
+    background-color: #ffffff;
+    color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+body.light-mode .select-gatilho::after {
+    color: rgba(76, 175, 80, 0.7);
+}
+
+body.light-mode .select-opcoes {
+    background-color: #ffffff;
+    border-color: #4CAF50;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+body.light-mode .select-opcoes li {
+    color: #333333;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .select-opcoes li:hover {
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    .tabela-wrapper {
+        width: 100%;
+        align-items: center; 
+    }
+    
+    table {
+        font-size: 12px;
+    }
+
+    input {
+        width: 95%;
+    }
+
+    .topo-container {
+        flex-direction: column;
+    }
+
+    #buscarFuso, .custom-select-container {
+        width: 95%;
+        max-width: none;
+    }
+}
+
+/* ESTRUTURA DO SELECT CUSTOMIZADO */
+.custom-select-container {
+    position: relative;
+    width: 250px;
+}
+
+.select-gatilho {
+    background-color: #1e1e1e;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    border-radius: 20px;
+    padding: 0 15px;
+    font-size: 14px;
+    font-weight: bold;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.select-gatilho::after {
+    content: '▼';
+    font-size: 10px;
+    margin-left: 10px;
+    transition: transform 0.3s ease;
+}
+
+.select-gatilho.aberto::after {
+    transform: rotate(180deg);
+}
+
+.select-opcoes {
+    position: absolute;
+    top: 42px;
+    left: 0;
+    width: 100%;
+    background-color: #1a1a1a;
+    border: 1px solid #4CAF50;
+    border-radius: 8px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+    z-index: 100;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.select-opcoes.ativo {
+    display: block;
+}
+
+.select-opcoes li {
+    padding: 10px 15px;
+    color: #4CAF50;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    border-bottom: 1px solid rgba(76, 175, 80, 0.2); 
+    transition: background 0.2s;
+}
+
+.select-opcoes li:hover {
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* ==========================================================
+   🚨 ESTILO DO MODAL (MENSAGEM DE AVISO)
+   ========================================================== */
+#modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75); 
+    backdrop-filter: blur(5px); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+/* Classe para sumir o modal */
+#modal-container.modal-oculto {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.modal-conteudo {
+    background-color: #1a1a1a;
+    border: 2px solid #4CAF50;
+    border-radius: 12px;
+    padding: 25px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+    color: #ffffff;
+}
+
+.modal-conteudo h3 {
+    color: #4CAF50;
+    margin-top: 0;
+    font-size: 20px;
+}
+
+.modal-conteudo p {
+    color: #cccccc;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.modal-botoes {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn-confirmar, .btn-cancelar {
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-confirmar {
+    background-color: #4CAF50;
+    color: #121212;
+}
+
+.btn-confirmar:hover {
+    background-color: #81C784;
+}
+
+.btn-cancelar {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid #555555;
+}
+
+.btn-cancelar:hover {
+    background-color: #444444;
+}
+
+/* MODO CLARO PARA O MODAL */
+body.light-mode #modal-container {
+    background-color: rgba(255, 255, 255, 0.75);
+}
+
+body.light-mode .modal-conteudo {
+    background-color: #ffffff;
+    border-color: #2e7d32;
+    color: #333333;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+body.light-mode .modal-conteudo p {
+    color: #666666;
+}
+
+body.light-mode .btn-cancelar {
+    background-color: #f5f5f5;
+    color: #333333;
+    border-color: #cccccc;
+}
+
+body.light-mode .btn-cancelar:hover {
+    background-color: #e0e0e0;
 }
