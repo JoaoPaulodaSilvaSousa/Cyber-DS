@@ -62,6 +62,48 @@ fusos.forEach(f => {
     listaComPaises.push({ valorOriginal: f, textoExibicao: nomeExibicao });
 });
 
+// Funções para controlar a escuta do teclado (Garante que não quebre outros botões)
+let ultimaLetra = "";
+let indiceBusca = 0;
+
+function escutarTecladoNoSelect(e) {
+    // Ignora se for tecla de comando (como Enter, Tab, Setas)
+    if (e.key.length !== 1) return;
+
+    // Evita que a página role para baixo ao apertar Espaço com o select aberto
+    e.preventDefault();
+
+    const letraAtual = e.key.toLowerCase();
+    const todosOsLi = fusoOpcoes.querySelectorAll('li');
+    
+    // Filtra os itens visíveis que começam com a letra digitada
+    const itensCorrespondentes = [];
+    todosOsLi.forEach((li, index) => {
+        if (li.textContent.trim().toLowerCase().startsWith(letraAtual)) {
+            itensCorrespondentes.push({ elemento: li, indexOriginal: index });
+        }
+    });
+
+    if (itensCorrespondentes.length === 0) return;
+
+    // Se apertar a mesma letra, pula pro próximo país. Se mudar de letra, zera o índice.
+    if (letraAtual === ultimaLetra) {
+        indiceBusca = (indiceBusca + 1) % itensCorrespondentes.length;
+    } else {
+        indiceBusca = 0;
+        ultimaLetra = letraAtual;
+    }
+
+    const itemAlvo = itensCorrespondentes[indiceBusca].elemento;
+
+    // Rola a lista até o país encontrado
+    itemAlvo.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+    // Aplica um pequeno destaque visual
+    todosOsLi.forEach(item => item.style.backgroundColor = "");
+    itemAlvo.style.backgroundColor = "rgba(76, 175, 80, 0.2)";
+}
+
 if (fusoSelect) {
     fusoSelect.onclick = (e) => {
         e.stopPropagation();
@@ -69,16 +111,28 @@ if (fusoSelect) {
         
         if (fusoOpcoes.classList.contains('ativo')) {
             fusoSelect.classList.add('aberto');
+            
+            // Ativa o tabindex e foca para poder ler o teclado
+            fusoSelect.setAttribute('tabindex', '0');
+            fusoSelect.focus();
+
+            // Começa a ouvir o teclado
+            fusoSelect.addEventListener('keydown', escutarTecladoNoSelect);
         } else {
             fusoSelect.classList.remove('aberto');
+            // Para de ouvir o teclado quando fecha
+            fusoSelect.removeEventListener('keydown', escutarTecladoNoSelect);
         }
     };
 }
 
+// Fechar ao clicar fora
 document.addEventListener('click', () => {
     if (fusoOpcoes) {
         fusoOpcoes.classList.remove('ativo');
         fusoSelect.classList.remove('aberto');
+        // Para de ouvir o teclado ao fechar clicando fora
+        fusoSelect.removeEventListener('keydown', escutarTecladoNoSelect);
     }
 });
 
@@ -105,6 +159,7 @@ function selecionarFuso(valor, texto) {
     localStorage.setItem("fuso", valor);
     fusoOpcoes.classList.remove('ativo');
     fusoSelect.classList.remove('aberto');
+    fusoSelect.removeEventListener('keydown', escutarTecladoNoSelect);
     calcular();
 }
 
@@ -140,14 +195,6 @@ if (buscarFuso) {
         
         fusoOpcoes.classList.add('ativo');
         fusoSelect.classList.add('aberto');
-        
-        const primeiroLi = fusoOpcoes.querySelector('li');
-        if (buscarFuso.value.trim() !== "" && primeiroLi) {
-            fusoSelect.innerText = primeiroLi.textContent;
-            fusoSelect.dataset.valor = primeiroLi.dataset.valor;
-            localStorage.setItem("fuso", primeiroLi.dataset.valor);
-            calcular();
-        }
     });
 }
 
@@ -328,38 +375,32 @@ setInterval(() => {
 
         let acenderLinha = false;
 
-        // Se o horário for o do Gigante
         if (respGL.value === horario && horario !== "00:00:00") {
             acenderLinha = true;
-            respGL.classList.add('alarme-foco'); // Foco verde
+            respGL.classList.add('alarme-foco'); 
             setTimeout(() => { respGL.classList.remove('alarme-foco'); }, 10000);
         }
 
-        // Se o horário for o do Bandido
         if (respBL.value === horario && horario !== "00:00:00") {
             acenderLinha = true;
-            respBL.classList.add('alarme-foco'); // Foco azul
+            respBL.classList.add('alarme-foco'); 
             setTimeout(() => { respBL.classList.remove('alarme-foco'); }, 10000);
         }
 
-        // Se algum dos dois nasceu, a linha inteira pisca em vermelho
         if (acenderLinha) {
             tr.classList.add('alarme-linha');
-            
-            // Toca o som só se estiver ligado
             if (alarmeAtivo) {
                 tocarBip();
             }
-            
             setTimeout(() => { tr.classList.remove('alarme-linha'); }, 10000);
         }
     });
 }, 1000);
 
 
-// ==========================================
+// ==========================
 // 🌟 8. INPUT INTELIGENTE
-// ==========================================
+// ==========================
 document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     input.addEventListener('input', (e) => {
         let el = e.target;
