@@ -16,43 +16,54 @@ body {
     transition: background-color 0.3s, color 0.3s;
 }
 
-/* CONTAINER DO TOPO (BOTÃO E RELÓGIO) */
+/* CONTAINER DO TOPO (BOTOES, RELOGIO E INPUTS) */
 .topo-container {
     display: flex;
     gap: 15px;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     flex-wrap: wrap;
     justify-content: center;
 }
 
 /* ESTILO PADRÃO PARA OS BOTÕES DO TOPO */
-#toggle-theme, #toggle-alarm {
+#toggle-alarm, #toggle-tema {
     padding: 10px 20px;
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
     font-size: 14px;
-    background-color: #1e1e1e;
-    color: #4CAF50;
-    border: 1px solid #4CAF50;
     height: 38px;
     display: flex;
     align-items: center;
+    justify-content: center; 
     box-sizing: border-box;
+    background-color: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
 }
 
-#toggle-theme:hover, #toggle-alarm:hover {
+#toggle-tema {
+    width: 170px; 
+}
+
+#toggle-alarm:hover, #toggle-tema:hover {
     background-color: #4CAF50;
     color: #121212;
 }
 
 /* Estilo para quando o Alarme estiver DESATIVADO no Modo Escuro */
 #toggle-alarm.desativado {
-    background-color: #1e1e1e;
+    background-color: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     color: #ff5252; 
     border: 1px solid #ff5252; 
+    box-shadow: 0 0 5px rgba(255, 82, 82, 0.3);
 }
 
 #toggle-alarm.desativado:hover {
@@ -60,7 +71,14 @@ body {
     color: #121212;
 }
 
-/* CONTAINER PARA ENVOLVER A TABELA E ALINHAR O BOTÃO ABAIXO DELA */
+/* Força os emojis a manterem suas cores nativas */
+#toggle-tema span {
+    color: initial !important;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+/* CONTAINER PARA ENVOLVER A TABELA */
 .tabela-wrapper {
     width: 80%;
     max-width: 900px;
@@ -70,7 +88,7 @@ body {
     gap: 10px; 
 }
 
-/* BOTÃO DE LIMPAR HORÁRIOS (MODO ESCURO) */
+/* BOTÃO DE LIMPAR HORÁRIOS */
 #limpar-dados {
     padding: 10px 20px;
     border-radius: 20px;
@@ -78,13 +96,16 @@ body {
     font-weight: bold;
     transition: all 0.3s ease;
     font-size: 14px;
-    background-color: #1e1e1e;
-    color: #4CAF50;
-    border: 1px solid #4CAF50;
     height: 38px;
     display: flex;
     align-items: center;
     box-sizing: border-box;
+    background-color: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
 }
 
 #limpar-dados:hover {
@@ -92,31 +113,48 @@ body {
     color: #121212;
 }
 
-/* 🌍 ESTILO PARA OS CAMPOS DE FUSO (MODO ESCURO) */
+/* FUSO (MODO ESCURO) */
 #buscarFuso {
-    background-color: #1e1e1e;
-    color: #4CAF50;
-    border: 1px solid #4CAF50;
+    background-color: #121212 !important; 
+    color: #4CAF50 !important;
+    border: 1px solid #4CAF50 !important;
     border-radius: 20px;
-    padding: 0 15px;
+    padding: 0 15px 0 35px !important;
     font-size: 14px;
     font-weight: bold;
     outline: none;
     transition: all 0.3s ease;
     height: 38px;
     box-sizing: border-box;
-    width: 220px;
+    width: 300px; 
     text-align: left;
     font-family: Arial, sans-serif;
 }
 
-#buscarFuso:focus {
-    border-color: #81C784;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.4);
+#buscarFuso:hover, #buscarFuso:focus {
+    background-color: #121212 !important;
+    color: #4CAF50 !important;
+    border-color: #81C784 !important;
 }
 
 #buscarFuso::placeholder {
     color: rgba(76, 175, 80, 0.5);
+}
+
+/* BUG DE PREENCHIMENTO AUTOMÁTICO */
+#buscarFuso:-webkit-autofill,
+#buscarFuso:-webkit-autofill:hover, 
+#buscarFuso:-webkit-autofill:focus,
+#buscarFuso:autofill {
+    -webkit-text-fill-color: #4CAF50 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #121212 inset !important; 
+    box-shadow: 0 0 0px 1000px #121212 inset !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+#buscarFuso::selection {
+    background-color: rgba(76, 175, 80, 0.3);
+    color: #4CAF50;
 }
 
 /* TÍTULO */
@@ -130,6 +168,7 @@ h1 {
     margin-bottom: 5px; 
     background: linear-gradient(90deg, #4CAF50, #81C784);
     -webkit-background-clip: text;
+    background-clip: text; 
     -webkit-text-fill-color: transparent;
     text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
     transition: all 0.3s ease;
@@ -141,26 +180,29 @@ h1:hover {
     cursor: default;
 }
 
-/* CONTAINER DO RELÓGIO ABAIXO DO TÍTULO */
+/* RELÓGIO */
 .relogio-container {
+    width: 100%;
     display: flex;
     justify-content: center; 
     align-items: center;
-    gap: 10px;
-    margin-bottom: 25px; 
+    gap: 15px;
     font-weight: bold;
     color: #4CAF50;
-    width: 100%;
+    margin-bottom: 10px;
 }
 
-/* ESTILO DO RELÓGIO EM SI */
+.relogio-container span {
+    font-size: 18px; 
+}
+
 #relogio {
     background-color: #1a1a1a;
     color: #4CAF50;
-    padding: 5px 15px;
+    padding: 8px 20px;
     border-radius: 15px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
+    font-size: 22px; 
     border: 1px solid #4CAF50;
     display: flex;
     align-items: center;
@@ -188,8 +230,8 @@ th, td {
 }
 
 th {
-    background-color: #0a0a0a;
-    color: #4CAF50;
+    background-color: #0a0a0a !important; /* Forçado no modo escuro */
+    color: #4CAF50 !important;
     font-weight: bold;
 }
 
@@ -201,24 +243,18 @@ tr:hover {
     background-color: #2a2a2a;
 }
 
-/* ==========================================================
-   🚨 NOVO: SISTEMA DE ALARME COM FOCO INDIVIDUAL
-   ========================================================== */
-
-/* 1. A linha inteira acende em vermelho escuro */
+/* SISTEMA DE ALARME */
 tr.alarme-linha {
     background-color: #b71c1c !important; 
     animation: piscar 1s infinite alternate;
 }
 
-/* 2. O input do Gigante acende em Verde */
 .respGiganteLocal.alarme-foco {
     background-color: #00E676 !important;
     color: #000000 !important;
     border: 2px solid #ffffff !important;
 }
 
-/* 3. O input do Bandido acende em Azul/Ciano */
 .respBandidoLocal.alarme-foco {
     background-color: #00B0FF !important;
     color: #000000 !important;
@@ -244,7 +280,7 @@ input {
 /* COLUNAS DE MORTE */
 .morteGigante, .morteBandido {
     background-color: #1a1a1a;
-    color: #ffffff;
+    color: #ffffff !important; /* Força letra branca no modo escuro */
     border: 1px solid #555555;
 }
 
@@ -262,7 +298,6 @@ input {
     border: 1px solid #b56a00;
 }
 
-/* Efeito de foco padrão */
 .morteGigante:focus, .morteBandido:focus {
     outline: none;
     border-color: #ffffff;
@@ -270,24 +305,28 @@ input {
     background-color: #262626;
 }
 
+/* FORÇA CORES DA SELEÇÃO */
+body:not(.light-mode) input::selection {
+    background-color: rgba(76, 175, 80, 0.3);
+    color: #ffffff !important;
+}
+
 /* ==========================================================
    CONFIGURAÇÃO DO MODO CLARO
    ========================================================== */
-
 body.light-mode {
     background-color: #f5f5f5;
     color: #333333;
 }
 
-body.light-mode #toggle-theme, 
-body.light-mode #toggle-alarm {
+body.light-mode #toggle-alarm, body.light-mode #toggle-tema {
     background-color: #ffffff;
     color: #4CAF50;
     border: 1px solid #4CAF50;
+    box-shadow: none;
 }
 
-body.light-mode #toggle-theme:hover, 
-body.light-mode #toggle-alarm:hover {
+body.light-mode #toggle-alarm:hover, body.light-mode #toggle-tema:hover {
     background-color: #4CAF50;
     color: #ffffff;
 }
@@ -304,13 +343,21 @@ body.light-mode #toggle-alarm.desativado:hover {
 }
 
 body.light-mode #buscarFuso {
-    background-color: #ffffff;
-    color: #4CAF50;
-    border: 1px solid #4CAF50;
+    background-color: #ffffff !important;
+    color: #4CAF50 !important;
+    border: 1px solid #4CAF50 !important;
 }
 
 body.light-mode #buscarFuso::placeholder {
     color: rgba(76, 175, 80, 0.5);
+}
+
+body.light-mode #buscarFuso:-webkit-autofill,
+body.light-mode #buscarFuso:-webkit-autofill:hover, 
+body.light-mode #buscarFuso:-webkit-autofill:focus {
+    -webkit-text-fill-color: #4CAF50 !important;
+    -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+    transition: background-color 5000s ease-in-out 0s;
 }
 
 body.light-mode .relogio-container {
@@ -331,8 +378,8 @@ body.light-mode table {
 }
 
 body.light-mode th {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #4CAF50 !important;
+    color: white !important;
 }
 
 body.light-mode th, body.light-mode td {
@@ -350,7 +397,7 @@ body.light-mode tr:hover {
 body.light-mode .morteGigante, 
 body.light-mode .morteBandido {
     background-color: #ffffff;
-    color: #333333;
+    color: #333333 !important;
     border: 1px solid #ccc;
 }
 
@@ -361,12 +408,7 @@ body.light-mode .respBandidoServer {
     border: 1px solid #a5d6a7;
 }
 
-body.light-mode .respGiganteLocal {
-    background-color: #fff3e0;
-    color: #e65100;
-    border: 1px solid #ffcc80;
-}
-
+body.light-mode .respGiganteLocal, 
 body.light-mode .respBandidoLocal {
     background-color: #fff3e0;
     color: #e65100;
@@ -382,62 +424,12 @@ body.light-mode #limpar-dados {
     background-color: #ffffff;
     color: #4CAF50;
     border: 1px solid #4CAF50;
+    box-shadow: none;
 }
 
 body.light-mode #limpar-dados:hover {
     background-color: #4CAF50;
     color: #ffffff;
-}
-
-/* MODO CLARO PARA O MENU CUSTOMIZADO */
-body.light-mode .select-gatilho {
-    background-color: #ffffff;
-    color: #4CAF50;
-    border-color: #4CAF50;
-}
-
-body.light-mode .select-gatilho::after {
-    color: rgba(76, 175, 80, 0.7);
-}
-
-body.light-mode .select-opcoes {
-    background-color: #ffffff;
-    border-color: #4CAF50;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-body.light-mode .select-opcoes li {
-    color: #333333;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-body.light-mode .select-opcoes li:hover {
-    background-color: rgba(76, 175, 80, 0.1);
-}
-
-/* MOBILE */
-@media (max-width: 600px) {
-    .tabela-wrapper {
-        width: 100%;
-        align-items: center; 
-    }
-    
-    table {
-        font-size: 12px;
-    }
-
-    input {
-        width: 95%;
-    }
-
-    .topo-container {
-        flex-direction: column;
-    }
-
-    #buscarFuso, .custom-select-container {
-        width: 95%;
-        max-width: none;
-    }
 }
 
 /* ESTRUTURA DO SELECT CUSTOMIZADO */
@@ -510,9 +502,7 @@ body.light-mode .select-opcoes li:hover {
     background-color: rgba(76, 175, 80, 0.1);
 }
 
-/* ==========================================================
-   🚨 ESTILO DO MODAL (MENSAGEM DE AVISO)
-   ========================================================== */
+/* ESTILO DO MODAL */
 #modal-container {
     position: fixed;
     top: 0;
@@ -522,14 +512,13 @@ body.light-mode .select-opcoes li:hover {
     background-color: rgba(0, 0, 0, 0.75); 
     backdrop-filter: blur(5px); 
     display: flex;
-    justify-content: center;
+    justify-content: center; 
     align-items: center;
     z-index: 999;
     opacity: 1;
     transition: all 0.3s ease;
 }
 
-/* Classe para sumir o modal */
 #modal-container.modal-oculto {
     opacity: 0;
     pointer-events: none;
@@ -561,61 +550,48 @@ body.light-mode .select-opcoes li:hover {
 
 .modal-botoes {
     display: flex;
-    justify-content: center;
-    gap: 15px;
+    justify-content: center; 
+    gap: 10px;
 }
 
-.btn-confirmar, .btn-cancelar {
+.modal-botoes button {
     padding: 10px 20px;
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
     font-size: 14px;
-    transition: all 0.2s ease;
-    border: none;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
 }
 
-.btn-confirmar {
+#modal-confirmar {
+    background-color: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+#modal-confirmar:hover {
     background-color: #4CAF50;
     color: #121212;
 }
 
-.btn-confirmar:hover {
-    background-color: #81C784;
+#modal-cancelar {
+    background-color: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #ff5252;
+    border: 1px solid #ff5252;
+    box-shadow: 0 0 5px rgba(255, 82, 82, 0.3);
 }
 
-.btn-cancelar {
-    background-color: #333333;
-    color: #ffffff;
-    border: 1px solid #555555;
-}
-
-.btn-cancelar:hover {
-    background-color: #444444;
-}
-
-/* MODO CLARO PARA O MODAL */
-body.light-mode #modal-container {
-    background-color: rgba(255, 255, 255, 0.75);
-}
-
-body.light-mode .modal-conteudo {
-    background-color: #ffffff;
-    border-color: #2e7d32;
-    color: #333333;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-}
-
-body.light-mode .modal-conteudo p {
-    color: #666666;
-}
-
-body.light-mode .btn-cancelar {
-    background-color: #f5f5f5;
-    color: #333333;
-    border-color: #cccccc;
-}
-
-body.light-mode .btn-cancelar:hover {
-    background-color: #e0e0e0;
+#modal-cancelar:hover {
+    background-color: #ff5252;
+    color: #121212;
 }

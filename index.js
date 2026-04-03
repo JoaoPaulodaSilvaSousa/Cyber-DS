@@ -1,18 +1,29 @@
 // ==========================================
-// 1. TEMA
+// 1. TEMA (BOTÃO ALTERNAR TEMA) - EMOJIS CUSTOMIZADOS
 // ==========================================
-const btnTema = document.getElementById('toggle-theme');
+const btnTema = document.getElementById('toggle-tema');
 
+// Verifica salvamento e bota os emojis e spans corretos ao carregar
 if (localStorage.getItem('tema') === 'light') {
     document.body.classList.add('light-mode');
+    if (btnTema) btnTema.innerHTML = "<span>🌗</span> Modo Claro";
+} else {
+    if (btnTema) btnTema.innerHTML = "<span>🌓</span> Modo Escuro";
 }
 
-btnTema.onclick = () => {
-    document.body.classList.toggle('light-mode');
-    localStorage.setItem('tema',
-        document.body.classList.contains('light-mode') ? 'light' : 'dark'
-    );
-};
+if (btnTema) {
+    btnTema.onclick = () => {
+        document.body.classList.toggle('light-mode');
+
+        if (document.body.classList.contains('light-mode')) {
+            localStorage.setItem('tema', 'light');
+            btnTema.innerHTML = "<span>🌗</span> Modo Claro";
+        } else {
+            localStorage.setItem('tema', 'dark');
+            btnTema.innerHTML = "<span>🌓</span> Modo Escuro";
+        }
+    };
+}
 
 
 // ==========================================
@@ -62,22 +73,17 @@ fusos.forEach(f => {
     listaComPaises.push({ valorOriginal: f, textoExibicao: nomeExibicao });
 });
 
-// Funções para controlar a escuta do teclado (Garante que não quebre outros botões)
 let ultimaLetra = "";
 let indiceBusca = 0;
 
 function escutarTecladoNoSelect(e) {
-    // Ignora se for tecla de comando (como Enter, Tab, Setas)
     if (e.key.length !== 1) return;
-
-    // Evita que a página role para baixo ao apertar Espaço com o select aberto
     e.preventDefault();
 
     const letraAtual = e.key.toLowerCase();
     const todosOsLi = fusoOpcoes.querySelectorAll('li');
-    
-    // Filtra os itens visíveis que começam com a letra digitada
     const itensCorrespondentes = [];
+    
     todosOsLi.forEach((li, index) => {
         if (li.textContent.trim().toLowerCase().startsWith(letraAtual)) {
             itensCorrespondentes.push({ elemento: li, indexOriginal: index });
@@ -86,7 +92,6 @@ function escutarTecladoNoSelect(e) {
 
     if (itensCorrespondentes.length === 0) return;
 
-    // Se apertar a mesma letra, pula pro próximo país. Se mudar de letra, zera o índice.
     if (letraAtual === ultimaLetra) {
         indiceBusca = (indiceBusca + 1) % itensCorrespondentes.length;
     } else {
@@ -95,11 +100,8 @@ function escutarTecladoNoSelect(e) {
     }
 
     const itemAlvo = itensCorrespondentes[indiceBusca].elemento;
-
-    // Rola a lista até o país encontrado
     itemAlvo.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 
-    // Aplica um pequeno destaque visual
     todosOsLi.forEach(item => item.style.backgroundColor = "");
     itemAlvo.style.backgroundColor = "rgba(76, 175, 80, 0.2)";
 }
@@ -111,27 +113,20 @@ if (fusoSelect) {
         
         if (fusoOpcoes.classList.contains('ativo')) {
             fusoSelect.classList.add('aberto');
-            
-            // Ativa o tabindex e foca para poder ler o teclado
             fusoSelect.setAttribute('tabindex', '0');
             fusoSelect.focus();
-
-            // Começa a ouvir o teclado
             fusoSelect.addEventListener('keydown', escutarTecladoNoSelect);
         } else {
             fusoSelect.classList.remove('aberto');
-            // Para de ouvir o teclado quando fecha
             fusoSelect.removeEventListener('keydown', escutarTecladoNoSelect);
         }
     };
 }
 
-// Fechar ao clicar fora
 document.addEventListener('click', () => {
     if (fusoOpcoes) {
         fusoOpcoes.classList.remove('ativo');
         fusoSelect.classList.remove('aberto');
-        // Para de ouvir o teclado ao fechar clicando fora
         fusoSelect.removeEventListener('keydown', escutarTecladoNoSelect);
     }
 });
@@ -192,7 +187,6 @@ if (buscarFuso) {
     buscarFuso.addEventListener("input", () => {
         localStorage.setItem("buscaFuso", buscarFuso.value);
         aplicarFiltro();
-        
         fusoOpcoes.classList.add('ativo');
         fusoSelect.classList.add('aberto');
     });
@@ -210,15 +204,13 @@ function formatar(h, m, s) {
 
 
 // ==========================================
-// 🌟 CONVERTER SERVER → LOCAL
+// 🌍 CONVERTER SERVER → LOCAL
 // ==========================================
 function converterParaLocal(h, m, s) {
     const fuso = fusoSelect ? fusoSelect.dataset.valor : "America/Sao_Paulo";
-    
     if (!fuso) return { h: 0, m: 0, s: 0 };
 
     const dataBase = new Date();
-    
     const formatterCompleto = new Intl.DateTimeFormat('en-US', {
         timeZone: fuso,
         hour: 'numeric',
@@ -229,12 +221,10 @@ function converterParaLocal(h, m, s) {
     const horaNoServer = dataBase.getUTCHours();
     
     let diferencaHoras = horaNoFuso - horaNoServer;
-    
     if (diferencaHoras > 12) diferencaHoras -= 24;
     if (diferencaHoras < -12) diferencaHoras += 24;
 
     let horaFinal = h + (diferencaHoras + 4);
-    
     if (horaFinal < 0) horaFinal += 24;
     horaFinal = horaFinal % 24;
 
@@ -277,7 +267,6 @@ function completarHora(valor) {
 // ==========================================
 function calcular() {
     document.querySelectorAll('tr').forEach(tr => {
-
         const morteGigante = tr.querySelector('.morteGigante');
         const morteBandido = tr.querySelector('.morteBandido');
 
@@ -301,6 +290,10 @@ function calcular() {
             if (respGL) respGL.value = formatar(tempoLocal.h, tempoLocal.m, tempoLocal.s);
 
             localStorage.setItem(`morte-${morteGigante.dataset.mapa}-Gigante`, valorG);
+        } else {
+            if (respGS) respGS.value = "";
+            if (respGL) respGL.value = "";
+            localStorage.removeItem(`morte-${morteGigante.dataset.mapa}-Gigante`);
         }
 
         // ===== BANDIDO =====
@@ -316,6 +309,10 @@ function calcular() {
             if (respBL) respBL.value = formatar(tempoLocal.h, tempoLocal.m, tempoLocal.s);
 
             localStorage.setItem(`morte-${morteBandido.dataset.mapa}-Bandido`, valorB);
+        } else {
+            if (respBS) respBS.value = "";
+            if (respBL) respBL.value = "";
+            localStorage.removeItem(`morte-${morteBandido.dataset.mapa}-Bandido`);
         }
     });
 }
@@ -359,7 +356,7 @@ function tocarBip() {
 
 
 // ==========================================
-// 🌟 7. RELÓGIO + ALARME (Super Inteligente!)
+// 🌟 7. RELÓGIO + ALARME
 // ==========================================
 setInterval(() => {
     const agora = new Date();
@@ -375,13 +372,13 @@ setInterval(() => {
 
         let acenderLinha = false;
 
-        if (respGL.value === horario && horario !== "00:00:00") {
+        if (respGL.value === horario && horario !== "00:00:00" && respGL.value !== "") {
             acenderLinha = true;
             respGL.classList.add('alarme-foco'); 
             setTimeout(() => { respGL.classList.remove('alarme-foco'); }, 10000);
         }
 
-        if (respBL.value === horario && horario !== "00:00:00") {
+        if (respBL.value === horario && horario !== "00:00:00" && respBL.value !== "") {
             acenderLinha = true;
             respBL.classList.add('alarme-foco'); 
             setTimeout(() => { respBL.classList.remove('alarme-foco'); }, 10000);
@@ -399,10 +396,24 @@ setInterval(() => {
 
 
 // ==========================
-// 🌟 8. INPUT INTELIGENTE
+// 🌟 8. INPUT INTELIGENTE (COM CTRL+Z E CTRL+Y FUNCIONANDO)
 // ==========================
 document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
+    
+    input.addEventListener('beforeinput', (e) => {
+        // Se o usuário apertar Ctrl+Z ou Ctrl+Y, deixamos o navegador agir normalmente!
+        if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') {
+            return;
+        }
+    });
+
     input.addEventListener('input', (e) => {
+        // Se a mudança veio de um desfazer/refazer, não forçamos a máscara agressiva
+        if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') {
+            calcular();
+            return;
+        }
+
         let el = e.target;
         let posicaoCursor = el.selectionStart;
         let valorAntigo = el.value;
@@ -410,20 +421,23 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
         let numeros = el.value.replace(/\D/g, '').slice(0, 6);
         let formatado = formatarInputHora(numeros);
         
-        el.value = formatado;
+        // Só atualiza o valor se ele realmente mudou (evita quebrar o histórico à toa)
+        if (el.value !== formatado) {
+            el.value = formatado;
 
-        if (valorAntigo.length > formatado.length && valorAntigo[posicaoCursor] === ':') {
-             posicaoCursor--;
-        } else if (valorAntigo.length < formatado.length && formatado[posicaoCursor - 1] === ':') {
-             posicaoCursor++;
+            if (valorAntigo.length > formatado.length && valorAntigo[posicaoCursor] === ':') {
+                 posicaoCursor--;
+            } else if (valorAntigo.length < formatado.length && formatado[posicaoCursor - 1] === ':') {
+                 posicaoCursor++;
+            }
+            el.setSelectionRange(posicaoCursor, posicaoCursor);
         }
 
-        el.setSelectionRange(posicaoCursor, posicaoCursor);
         calcular();
     });
 
     input.addEventListener('blur', (e) => {
-        if (e.target.value) {
+        if (e.target.value.trim() !== "") {
             e.target.value = completarHora(e.target.value);
             calcular();
         }
@@ -436,7 +450,7 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
 
 
 // ==========================================
-// 🌟 10. BOTÃO LIMPAR HORÁRIOS (MODAL CUSTOMIZADO)
+// 🌟 10. BOTÃO LIMPAR HORÁRIOS
 // ==========================================
 const btnLimpar = document.getElementById('limpar-dados');
 const modalContainer = document.getElementById('modal-container');
@@ -457,10 +471,14 @@ if (btnLimpar && modalContainer) {
             input.value = "";
         });
 
-        const mapas = ["GF", "MW", "GV", "CCV", "MM"];
-        mapas.forEach(mapa => {
-            localStorage.removeItem(`morte-${mapa}-Gigante`);
-            localStorage.removeItem(`morte-${mapa}-Bandido`);
+        // Loop inteligente: busca o mapa diretamente pela linha da tabela
+        document.querySelectorAll('tr').forEach(tr => {
+            const morteGigante = tr.querySelector('.morteGigante');
+            if (morteGigante) {
+                const mapa = morteGigante.getAttribute('data-mapa');
+                localStorage.removeItem(`morte-${mapa}-Gigante`);
+                localStorage.removeItem(`morte-${mapa}-Bandido`);
+            }
         });
 
         modalContainer.classList.add('modal-oculto');
