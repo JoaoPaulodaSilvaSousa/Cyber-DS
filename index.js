@@ -115,8 +115,8 @@ function selecionarFuso(valor, texto) {
 }
 
 function fecharMenu() {
-    fusoOpcoes.classList.remove('ativo');
-    fusoSelect.classList.remove('aberto');
+    if (fusoOpcoes) fusoOpcoes.classList.remove('ativo');
+    if (fusoSelect) fusoSelect.classList.remove('aberto');
 }
 
 if (fusoSelect) {
@@ -245,7 +245,6 @@ function obterHoraServerAtual() {
     };
 }
 
-
 function obterDiferencaFuso() {
     const fusoUsuario = fusoSelect && fusoSelect.dataset.valor ? fusoSelect.dataset.valor : "America/Sao_Paulo";
     const agora = new Date();
@@ -307,10 +306,8 @@ function calcular() {
             let m = parseInt(valorCompleto.slice(2, 4)) || 0;
             let s = parseInt(valorCompleto.slice(4, 6)) || 0;
 
-            // 1. O jogo SEMPRE soma 3 horas no Server em relação ao que você digitou
             let respawnServerH = (hDigitada + 3) % 24;
 
-            // 2. A hora local apenas pega esse resultado do Server e soma o fuso do usuário
             let respawnLocalH = respawnServerH + diferencaFuso;
             if (respawnLocalH < 0) respawnLocalH += 24;
             respawnLocalH = respawnLocalH % 24;
@@ -499,7 +496,7 @@ if (btnDuracaoMais) {
 
 
 // ==========================================
-// 🌟 12. RELÓGIO + ALARME (Loop de 10ms)
+// ⏱️ 12. RELÓGIO + ALARME (Loop de 10ms)
 // ==========================================
 let testeAtivo = false; 
 let respawnAtivo = false; 
@@ -508,78 +505,76 @@ let ultimosAlarmesDisparados = {};
 setInterval(() => {
     const infoTempo = obterHoraServerAtual();
     const horarioLocal = formatar(infoTempo.hLocal, infoTempo.m, infoTempo.s);
+    const horarioServer = infoTempo.textoFormatado; 
     
     const relogioEl = document.getElementById('relogio');
-    
     if (relogioEl) {
-        relogioEl.innerText = `${horarioLocal} (Server: ${infoTempo.textoFormatado})`;
+        relogioEl.innerText = `${horarioLocal} (Server: ${horarioServer})`;
     }
 
     document.querySelectorAll('tr').forEach(tr => {
         const morteGigante = tr.querySelector('.morteGigante');
         const morteBandido = tr.querySelector('.morteBandido');
         
+        const respGS = tr.querySelector('.respGiganteServer');
         const respGL = tr.querySelector('.respGiganteLocal');
+        const respBS = tr.querySelector('.respBandidoServer');
         const respBL = tr.querySelector('.respBandidoLocal');
         
         if (!morteGigante || !morteBandido) return;
 
-        function verificarInicioAlarme(inputElement, chaveUnica, ignorarRecente = false) {
-            if (!inputElement.value || inputElement.value === "00:00:00") return false;
+        const mapa = morteGigante.getAttribute('data-mapa');
 
-            const [hI, mI, sI] = inputElement.value.split(":").map(Number);
-            const tempoInputSegundos = hI * 3600 + mI * 60 + sI;
-            const tempoAtualSegundos = infoTempo.hLocal * 3600 + infoTempo.m * 60 + infoTempo.s;
-
-            const diferenca = tempoAtualSegundos - tempoInputSegundos;
+        // FUNÇÃO ATUALIZADA: Agora ela lê <input> E TAMBÉM texto puro nas células!
+        function checarEAtivarAlarme(element, horarioComparacao, chaveUnica) {
+            if (!element) return false;
             
-            if (ignorarRecente && diferenca >= 0 && diferenca < 60) {
-                return false; 
+            // Pega o valor do input OU o texto direto da célula
+            let valor = element.value !== undefined ? element.value : element.innerText;
+            valor = valor ? valor.trim() : "";
+
+            if (!valor || valor === "00:00:00" || valor === "HH:MM:SS" || valor === "--:--:--") return false;
+
+            const tempoAtualSegundos = infoTempo.hLocal * 3600 + infoTempo.m * 60 + infoTempo.s;
+            if (ultimosAlarmesDisparados[chaveUnica] === tempoAtualSegundos) {
+                return false;
             }
 
-            if (diferenca === 0) {
-                if (ultimosAlarmesDisparados[chaveUnica] === tempoAtualSegundos) {
-                    return false;
-                }
-                switch (chaveUnica.split("-")[1]) {
-                    case "MG": case "MB": return false; 
-                    case "RG": case "RB": return true; 
-                }
+            if (valor === horarioComparacao) {
+                ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
+                return true;
             }
             return false;
         }
 
-        const mapa = morteGigante.getAttribute('data-mapa');
+        // 🔍 TESTE DAS 6 COLUNAS (Lê inputs e textos)
+        const comecouMorteG = checarEAtivarAlarme(morteGigante, horarioLocal, `${mapa}-MG`);
+        const comecouMorteB = checarEAtivarAlarme(morteBandido, horarioLocal, `${mapa}-MB`);
+        const comecouRespGL = checarEAtivarAlarme(respGL, horarioLocal, `${mapa}-RGL`);
+        const comecouRespBL = checarEAtivarAlarme(respBL, horarioLocal, `${mapa}-RBL`);
+        
+        const comecouRespGS = checarEAtivarAlarme(respGS, horarioServer, `${mapa}-RGS`);
+        const comecouRespBS = checarEAtivarAlarme(respBS, horarioServer, `${mapa}-RBS`);
 
-        const comecouMorteG = verificarInicioAlarme(morteGigante, `${mapa}-MG`, true);
-        const comecouMorteB = verificarInicioAlarme(morteBandido, `${mapa}-MB`, true);
-
-        const comecouRespG = verificarInicioAlarme(respGL, `${mapa}-RG`);
-        const comecouRespB = verificarInicioAlarme(respBL, `${mapa}-RB`);
-
-        if (comecouMorteG || comecouMorteB || comecouRespG || comecouRespB) {
+        if (comecouMorteG || comecouMorteB || comecouRespGL || comecouRespBL || comecouRespGS || comecouRespBS) {
             
             tr.classList.add('alarme-linha');
             
             let celulaAlvo = null;
-            if (comecouMorteG || comecouRespG) celulaAlvo = respGL;
-            if (comecouMorteB || comecouRespB) celulaAlvo = respBL;
+            if (comecouMorteG || comecouRespGL || comecouRespGS) celulaAlvo = respGL;
+            if (comecouMorteB || comecouRespBL || comecouRespBS) celulaAlvo = respBL;
 
-            const ehRespawn = comecouRespG || comecouRespB;
-            if (ehRespawn) {
+            if (celulaAlvo) celulaAlvo.classList.add('alarme-foco');
+
+            if (alarmeAtivo) {
                 respawnAtivo = true;
-                if (alarmeAtivo) {
-                    tocarBip(duracaoAlarme); 
-                }
+                tocarBip(duracaoAlarme); 
             }
 
             setTimeout(() => {
                 tr.classList.remove('alarme-linha');
                 if (celulaAlvo) celulaAlvo.classList.remove('alarme-foco');
-                
-                if (ehRespawn) {
-                    respawnAtivo = false;
-                }
+                respawnAtivo = false;
             }, duracaoAlarme * 1000); 
         }
     });
@@ -728,7 +723,11 @@ if (btnLimpar && modalContainer) {
 
     modalConfirmar.onclick = () => {
         document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
-            input.value = "";
+            if (input.value !== undefined) {
+                input.value = "";
+            } else {
+                input.innerText = "--:--:--";
+            }
             delete input.dataset.colado;
         });
 
