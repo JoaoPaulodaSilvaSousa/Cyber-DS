@@ -392,7 +392,7 @@ function carregarDadosSalvos() {
 
 
 // ==========================================
-// 9. SOM
+// 9. SOM (BIP LIMPO E SEM CHIADOS)
 // ==========================================
 let volumeAtual = parseFloat(localStorage.getItem('volumeAlarme')) || 0.1;
 
@@ -403,12 +403,22 @@ function tocarBip(duracaoSegundos = 1) {
     
     osc.connect(gain);
     gain.connect(ctx.destination);
-    osc.frequency.value = 600;
     
-    gain.gain.value = volumeAtual; 
+    // Tipo de onda mais suave que a padrão (reduz a agressividade do som)
+    osc.type = 'triangle'; 
+    osc.frequency.value = 600; // Tom do bip
     
-    osc.start();
-    setTimeout(() => osc.stop(), duracaoSegundos * 1000);
+    const agora = ctx.currentTime;
+    
+    // 🛡️ MÁGICA ANTICHIADO: Suaviza o início e o fim do áudio
+    gain.gain.setValueAtTime(0, agora);
+    // Faz um leve "fade-in" de 0.02 segundos para o volume escolhido
+    gain.gain.linearRampToValueAtTime(volumeAtual, agora + 0.02);
+    // Mantém o som limpo e faz um "fade-out" de 0.05 segundos no final
+    gain.gain.linearRampToValueAtTime(0, agora + duracaoSegundos - 0.05);
+    
+    osc.start(agora);
+    osc.stop(agora + duracaoSegundos);
 }
 
 
@@ -496,13 +506,26 @@ if (btnDuracaoMais) {
 
 
 // ==========================================
-// ⏱️ 12. RELÓGIO + ALARME (Loop de 10ms)
+// ⏱️ 12. RELÓGIO + ALARME (Blindado com Web Worker)
 // ==========================================
 let testeAtivo = false; 
 let respawnAtivo = false; 
 let ultimosAlarmesDisparados = {}; 
 
-setInterval(() => {
+// Criamos o código do Worker como se fosse um arquivo separado, mas dentro de um texto
+const workerCode = `
+    setInterval(() => {
+        postMessage('tick');
+    }, 10);
+`;
+
+// Transformamos esse texto em um script rodando em segundo plano
+const blob = new Blob([workerCode], { type: 'application/javascript' });
+const worker = new Worker(URL.createObjectURL(blob));
+
+// Toda vez que o Worker mandar um 'tick' (a cada 10ms), o navegador executa a lógica, 
+// mesmo com a aba minimizada!
+worker.onmessage = function() {
     const infoTempo = obterHoraServerAtual();
     const horarioLocal = formatar(infoTempo.hLocal, infoTempo.m, infoTempo.s);
     const horarioServer = infoTempo.textoFormatado; 
@@ -525,11 +548,9 @@ setInterval(() => {
 
         const mapa = morteGigante.getAttribute('data-mapa');
 
-        // FUNÇÃO ATUALIZADA: Agora ela lê <input> E TAMBÉM texto puro nas células!
         function checarEAtivarAlarme(element, horarioComparacao, chaveUnica) {
             if (!element) return false;
             
-            // Pega o valor do input OU o texto direto da célula
             let valor = element.value !== undefined ? element.value : element.innerText;
             valor = valor ? valor.trim() : "";
 
@@ -547,7 +568,6 @@ setInterval(() => {
             return false;
         }
 
-        // 🔍 TESTE DAS 6 COLUNAS (Lê inputs e textos)
         const comecouMorteG = checarEAtivarAlarme(morteGigante, horarioLocal, `${mapa}-MG`);
         const comecouMorteB = checarEAtivarAlarme(morteBandido, horarioLocal, `${mapa}-MB`);
         const comecouRespGL = checarEAtivarAlarme(respGL, horarioLocal, `${mapa}-RGL`);
@@ -588,9 +608,7 @@ setInterval(() => {
             relogioEl.style.color = "#4CAF50";
         }
     }
-
-}, 10); 
-
+};
 
 // ==========================================
 // 🚀 13. BOTÃO DE TESTAR ALARME
