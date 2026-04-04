@@ -15,7 +15,7 @@
 <div class="topo-container">
     <div class="relogio-container">
         <span>Horário Atual: </span>
-        <div id="relogio">00:00:00</div>
+        <div id="relogio">00:00:00 (Server: 00:00:00)</div>
     </div>
 
     <input type="text" id="buscarFuso" placeholder="🔎 Buscar país ou região...">
@@ -27,6 +27,23 @@
     </div>
     
     <button id="toggle-alarm">🔔 Alarme: LIGADO</button>
+    
+    <button id="testar-alarm">🔊 Testar Alarme</button>
+
+    <div class="controle-volume">
+        <span>🔈</span>
+        <input type="range" id="volume-alarme" min="0" max="1" step="0.01" value="0.1">
+        <span>🔊</span>
+        <input type="number" id="valor-volume" min="0" max="100" value="10">%
+    </div>
+
+    <div class="duracao-alarme-container">
+        <button id="duracao-menos" class="btn-vol">−</button>
+        <span>⏱️</span>
+        <input type="number" id="duracao-alarme" min="1" max="60" value="10" inputmode="numeric" readonly>
+        <span>S</span>
+        <button id="duracao-mais" class="btn-vol">+</button>
+    </div>
     
     <button id="toggle-tema">🌓 Alternar Tema</button>
 </div>
@@ -45,8 +62,18 @@
 
         <tr>
             <td>GF</td>
-            <td><input type="text" class="morteGigante" data-mapa="GF" placeholder="HH:MM:SS" inputmode="numeric"></td>
-            <td><input type="text" class="morteBandido" data-mapa="GF" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteGigante" data-mapa="GF" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteBandido" data-mapa="GF" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
             <td><input type="text" class="respBandidoServer" readonly></td>
@@ -55,8 +82,18 @@
 
         <tr>
             <td>MW</td>
-            <td><input type="text" class="morteGigante" data-mapa="MW" placeholder="HH:MM:SS" inputmode="numeric"></td>
-            <td><input type="text" class="morteBandido" data-mapa="MW" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteGigante" data-mapa="MW" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteBandido" data-mapa="MW" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
             <td><input type="text" class="respBandidoServer" readonly></td>
@@ -65,8 +102,18 @@
 
         <tr>
             <td>GV</td>
-            <td><input type="text" class="morteGigante" data-mapa="GV" placeholder="HH:MM:SS" inputmode="numeric"></td>
-            <td><input type="text" class="morteBandido" data-mapa="GV" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteGigante" data-mapa="GV" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteBandido" data-mapa="GV" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
             <td><input type="text" class="respBandidoServer" readonly></td>
@@ -75,8 +122,18 @@
 
         <tr>
             <td>CCV</td>
-            <td><input type="text" class="morteGigante" data-mapa="CCV" placeholder="HH:MM:SS" inputmode="numeric"></td>
-            <td><input type="text" class="morteBandido" data-mapa="CCV" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteGigante" data-mapa="CCV" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteBandido" data-mapa="CCV" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
             <td><input type="text" class="respBandidoServer" readonly></td>
@@ -85,8 +142,18 @@
 
         <tr>
             <td>MM</td>
-            <td><input type="text" class="morteGigante" data-mapa="MM" placeholder="HH:MM:SS" inputmode="numeric"></td>
-            <td><input type="text" class="morteBandido" data-mapa="MM" placeholder="HH:MM:SS" inputmode="numeric"></td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteGigante" data-mapa="MM" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
+            <td>
+                <div class="container-morto">
+                    <input type="text" class="morteBandido" data-mapa="MM" placeholder="HH:MM:SS" inputmode="numeric">
+                    <button class="btn-morto" onclick="marcarMorteInstantanea(this)">💀 Morto</button>
+                </div>
+            </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
             <td><input type="text" class="respBandidoServer" readonly></td>
