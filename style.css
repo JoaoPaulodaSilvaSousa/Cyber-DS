@@ -771,9 +771,10 @@ body.light-mode .btn-morto:hover {
     margin: 0;
 }
 
-/* Ajuste para o Firefox remover as setas */
+/* Ajuste para o Firefox e navegadores modernos removerem as setas */
 .duracao-alarme-container input[type="number"] {
-    -moz-appearance: textfield;
+    -moz-appearance: textfield; /* Para o Firefox */
+    appearance: textfield;      /* Propriedade padrão para compatibilidade */
 }
 
 /* Mantendo as cores no Modo Claro */
