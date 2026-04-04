@@ -391,30 +391,27 @@ function carregarDadosSalvos() {
 }
 
 
-// ==========================================
-// 9. SOM (BIP LIMPO E SEM CHIADOS)
-// ==========================================
-let volumeAtual = parseFloat(localStorage.getItem('volumeAlarme')) || 0.1;
-
 function tocarBip(duracaoSegundos = 1) {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // CORREÇÃO: Se o contexto estiver suspenso por falta de clique, tentamos acordar ele
+    if (ctx.state === 'suspended') {
+        ctx.resume();
+    }
+
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     
     osc.connect(gain);
     gain.connect(ctx.destination);
     
-    // Tipo de onda mais suave que a padrão (reduz a agressividade do som)
     osc.type = 'triangle'; 
-    osc.frequency.value = 600; // Tom do bip
+    osc.frequency.value = 600; 
     
     const agora = ctx.currentTime;
     
-    // 🛡️ MÁGICA ANTICHIADO: Suaviza o início e o fim do áudio
     gain.gain.setValueAtTime(0, agora);
-    // Faz um leve "fade-in" de 0.02 segundos para o volume escolhido
     gain.gain.linearRampToValueAtTime(volumeAtual, agora + 0.02);
-    // Mantém o som limpo e faz um "fade-out" de 0.05 segundos no final
     gain.gain.linearRampToValueAtTime(0, agora + duracaoSegundos - 0.05);
     
     osc.start(agora);
