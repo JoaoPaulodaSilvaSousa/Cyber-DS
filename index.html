@@ -54,13 +54,13 @@
     <table border="1" cellspacing="0" cellpadding="5">
         <tr>
             <th>MAPA</th>
-            <th>MORTE GIGANTE (SERVER)</th>
-            <th>MORTE BANDIDO (SERVER)</th>
+            <th>MORTE GIGANTE <br>(SERVER)</th>
+            <th>MORTE BANDIDO <br>(SERVER)</th>
             <th>RESPAWN GIGANTE (SERVER)</th>
             <th>RESPAWN GIGANTE (LOCAL)</th>
-            <th>RESPAWN BANDIDO (SERVER)</th>
+            <th>TEMPO RESTANTE GIGANTE</th> <th>RESPAWN BANDIDO (SERVER)</th>
             <th>RESPAWN BANDIDO (LOCAL)</th>
-        </tr>
+            <th>TEMPO RESTANTE BANDIDO</th> </tr>
 
         <tr>
             <td>GF</td>
@@ -78,9 +78,9 @@
             </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
-            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td class="tempo-restante-gigante">--:--:--</td> <td><input type="text" class="respBandidoServer" readonly></td>
             <td><input type="text" class="respBandidoLocal" readonly></td>
-        </tr>
+            <td class="tempo-restante-bandido">--:--:--</td> </tr>
 
         <tr>
             <td>MW</td>
@@ -98,9 +98,9 @@
             </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
-            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td class="tempo-restante-gigante">--:--:--</td> <td><input type="text" class="respBandidoServer" readonly></td>
             <td><input type="text" class="respBandidoLocal" readonly></td>
-        </tr>
+            <td class="tempo-restante-bandido">--:--:--</td> </tr>
 
         <tr>
             <td>GV</td>
@@ -118,9 +118,9 @@
             </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
-            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td class="tempo-restante-gigante">--:--:--</td> <td><input type="text" class="respBandidoServer" readonly></td>
             <td><input type="text" class="respBandidoLocal" readonly></td>
-        </tr>
+            <td class="tempo-restante-bandido">--:--:--</td> </tr>
 
         <tr>
             <td>CCV</td>
@@ -138,9 +138,9 @@
             </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
-            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td class="tempo-restante-gigante">--:--:--</td> <td><input type="text" class="respBandidoServer" readonly></td>
             <td><input type="text" class="respBandidoLocal" readonly></td>
-        </tr>
+            <td class="tempo-restante-bandido">--:--:--</td> </tr>
 
         <tr>
             <td>MM</td>
@@ -158,12 +158,13 @@
             </td>
             <td><input type="text" class="respGiganteServer" readonly></td>
             <td><input type="text" class="respGiganteLocal" readonly></td>
-            <td><input type="text" class="respBandidoServer" readonly></td>
+            <td class="tempo-restante-gigante">--:--:--</td> <td><input type="text" class="respBandidoServer" readonly></td>
             <td><input type="text" class="respBandidoLocal" readonly></td>
-        </tr>
+            <td class="tempo-restante-bandido">--:--:--</td> </tr>
     </table>
 
     <button id="limpar-dados">🗑️ Limpar Horários</button>
+    <button id="toggle-restante" style="margin-left: 10px;"> Ocultar Tempo Restante</button>
 </div>
 
 <div id="modal-container" class="modal-oculto">

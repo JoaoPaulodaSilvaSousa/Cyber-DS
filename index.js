@@ -1,4 +1,10 @@
 // ==========================================
+// 0. DECLARAÇÕES GLOBAIS INICIAIS
+// ==========================================
+let volumeAtual = parseFloat(localStorage.getItem('volumeAlarme')) || 0.1;
+let ultimoSpawnado = null; 
+
+// ==========================================
 // 1. TEMA (BOTÃO ALTERNAR TEMA) - EMOJIS CUSTOMIZADOS
 // ==========================================
 const btnTema = document.getElementById('toggle-tema');
@@ -282,13 +288,23 @@ function calcular() {
         const respBS = tr.querySelector('.respBandidoServer');
         const respBL = tr.querySelector('.respBandidoLocal');
 
-        function processarCalculo(valorInput, campoServer, campoLocal, storageKey) {
+        const campoTempoG = tr.querySelector('.tempo-restante-gigante');
+        const campoTempoB = tr.querySelector('.tempo-restante-bandido');
+
+        function processarCalculo(valorInput, campoServer, campoLocal, storageKey, celulaRegressiva) {
             let valorNumerico = valorInput.replace(/\D/g, "");
 
             if (valorNumerico.length === 0) {
                 if (campoServer && !campoServer.dataset.colado) campoServer.value = "";
                 if (campoLocal && !campoLocal.dataset.colado) campoLocal.value = "";
                 localStorage.removeItem(storageKey);
+                
+                if (celulaRegressiva) {
+                    delete celulaRegressiva.dataset.spawnado;
+                    celulaRegressiva.innerText = "--:--:--";
+                    celulaRegressiva.style.color = "";
+                    celulaRegressiva.classList.remove('ultimo-spawn'); 
+                }
                 return;
             }
 
@@ -317,17 +333,22 @@ function calcular() {
 
             if (valorNumerico.length === 6) {
                 localStorage.setItem(storageKey, formatar(hDigitada, m, s));
+                
+                if (celulaRegressiva) {
+                    delete celulaRegressiva.dataset.spawnado;
+                    celulaRegressiva.classList.remove('ultimo-spawn'); 
+                }
             }
         }
 
-        processarCalculo(morteGigante.value, respGS, respGL, `morte-${morteGigante.dataset.mapa}-Gigante`);
-        processarCalculo(morteBandido.value, respBS, respBL, `morte-${morteBandido.dataset.mapa}-Bandido`);
+        processarCalculo(morteGigante.value, respGS, respGL, `morte-${morteGigante.dataset.mapa}-Gigante`, campoTempoG);
+        processarCalculo(morteBandido.value, respBS, respBL, `morte-${morteBandido.dataset.mapa}-Bandido`, campoTempoB);
     });
 }
 
 
 // ==========================================
-// 🚀 7. SISTEMA DE COLAR TEXTO DA IMAGEM
+// 7. SISTEMA DE COLAR TEXTO DA IMAGEM
 // ==========================================
 const campoColar = document.getElementById('campo-colar');
 if (campoColar) {
@@ -351,14 +372,25 @@ if (campoColar) {
                     if (celulaMapa && celulaMapa.innerText.trim() === mapaNome) {
                         const respGL = tr.querySelector('.respGiganteLocal');
                         const respBL = tr.querySelector('.respBandidoLocal');
+                        
+                        const campoTempoG = tr.querySelector('.tempo-restante-gigante');
+                        const campoTempoB = tr.querySelector('.tempo-restante-bandido');
 
                         if (respGL && horaGigante) {
                             respGL.value = horaGigante;
                             respGL.dataset.colado = "true"; 
+                            if (campoTempoG) {
+                                delete campoTempoG.dataset.spawnado;
+                                campoTempoG.classList.remove('ultimo-spawn'); 
+                            }
                         }
                         if (respBL && horaBandido) {
                             respBL.value = horaBandido;
                             respBL.dataset.colado = "true";
+                            if (campoTempoB) {
+                                delete campoTempoB.dataset.spawnado;
+                                campoTempoB.classList.remove('ultimo-spawn'); 
+                            }
                         }
                     }
                 });
@@ -391,10 +423,12 @@ function carregarDadosSalvos() {
 }
 
 
+// ==========================================
+// 9. SISTEMA DE AUDIO (SEM DELAY)
+// ==========================================
 function tocarBip(duracaoSegundos = 1) {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     
-    // CORREÇÃO: Se o contexto estiver suspenso por falta de clique, tentamos acordar ele
     if (ctx.state === 'suspended') {
         ctx.resume();
     }
@@ -420,7 +454,7 @@ function tocarBip(duracaoSegundos = 1) {
 
 
 // ==========================================
-// 🚀 10. CONTROLE DE VOLUME
+// 10. CONTROLE DE VOLUME
 // ==========================================
 const sliderVolume = document.getElementById('volume-alarme');
 const campoVolumeTxt = document.getElementById('valor-volume'); 
@@ -469,7 +503,7 @@ if (sliderVolume && campoVolumeTxt) {
 
 
 // ==========================================
-// ⏱️ 11. CONTROLE DA DURACAO DO ALARME
+// 11. CONTROLE DA DURACAO DO ALARME
 // ==========================================
 const campoDuracao = document.getElementById('duracao-alarme');
 const btnDuracaoMenos = document.getElementById('duracao-menos'); 
@@ -502,26 +536,22 @@ if (btnDuracaoMais) {
 }
 
 
-// ==========================================
-// ⏱️ 12. RELÓGIO + ALARME (Blindado com Web Worker)
-// ==========================================
+// ==========================================================
+// 12. RELÓGIO + ALARME + REGRESSIVA (Blindado com Web Worker)
+// ==========================================================
 let testeAtivo = false; 
 let respawnAtivo = false; 
 let ultimosAlarmesDisparados = {}; 
 
-// Criamos o código do Worker como se fosse um arquivo separado, mas dentro de um texto
 const workerCode = `
     setInterval(() => {
         postMessage('tick');
     }, 10);
 `;
 
-// Transformamos esse texto em um script rodando em segundo plano
 const blob = new Blob([workerCode], { type: 'application/javascript' });
 const worker = new Worker(URL.createObjectURL(blob));
 
-// Toda vez que o Worker mandar um 'tick' (a cada 10ms), o navegador executa a lógica, 
-// mesmo com a aba minimizada!
 worker.onmessage = function() {
     const infoTempo = obterHoraServerAtual();
     const horarioLocal = formatar(infoTempo.hLocal, infoTempo.m, infoTempo.s);
@@ -532,6 +562,8 @@ worker.onmessage = function() {
         relogioEl.innerText = `${horarioLocal} (Server: ${horarioServer})`;
     }
 
+    const tempoAtualServidorSegundos = infoTempo.h * 3600 + infoTempo.m * 60 + infoTempo.s;
+
     document.querySelectorAll('tr').forEach(tr => {
         const morteGigante = tr.querySelector('.morteGigante');
         const morteBandido = tr.querySelector('.morteBandido');
@@ -540,60 +572,91 @@ worker.onmessage = function() {
         const respGL = tr.querySelector('.respGiganteLocal');
         const respBS = tr.querySelector('.respBandidoServer');
         const respBL = tr.querySelector('.respBandidoLocal');
+
+        const campoTempoG = tr.querySelector('.tempo-restante-gigante');
+        const campoTempoB = tr.querySelector('.tempo-restante-bandido');
         
         if (!morteGigante || !morteBandido) return;
 
         const mapa = morteGigante.getAttribute('data-mapa');
 
-        function checarEAtivarAlarme(element, horarioComparacao, chaveUnica) {
-            if (!element) return false;
+        // SISTEMA UNIFICADO DE CÁLCULO E DISPARO DE ALARME
+        function atualizarLinha(inputHoraRespawn, celulaExibicao, celulaFoco, chaveUnica) {
+            if (!celulaExibicao) return;
             
-            let valor = element.value !== undefined ? element.value : element.innerText;
-            valor = valor ? valor.trim() : "";
-
-            if (!valor || valor === "00:00:00" || valor === "HH:MM:SS" || valor === "--:--:--") return false;
-
-            const tempoAtualSegundos = infoTempo.hLocal * 3600 + infoTempo.m * 60 + infoTempo.s;
-            if (ultimosAlarmesDisparados[chaveUnica] === tempoAtualSegundos) {
-                return false;
+            if (celulaExibicao.dataset.spawnado === "true") {
+                celulaExibicao.innerText = "SPAWNOU!";
+                celulaExibicao.style.color = "#ff5252"; 
+                return;
             }
 
-            if (valor === horarioComparacao) {
-                ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
-                return true;
+            const horaTexto = inputHoraRespawn ? inputHoraRespawn.value : "";
+            if (!horaTexto || horaTexto === "" || horaTexto === "--:--:--" || horaTexto === "HH:MM:SS") {
+                celulaExibicao.innerText = "--:--:--";
+                celulaExibicao.style.color = ""; 
+                return;
             }
-            return false;
+
+            const partes = horaTexto.split(':');
+            const hResp = parseInt(partes[0]);
+            const mResp = parseInt(partes[1]);
+            const sResp = parseInt(partes[2]);
+
+            const tempoRespawnSegundos = hResp * 3600 + mResp * 60 + sResp;
+            
+            let diferencaSegundos = tempoRespawnSegundos - tempoAtualServidorSegundos;
+
+            if (diferencaSegundos < 0) {
+                diferencaSegundos += 24 * 3600; 
+            }
+
+            // Se o tempo bater zerado (momento do spawn)
+            if (diferencaSegundos <= 0) { 
+                celulaExibicao.dataset.spawnado = "true";
+                celulaExibicao.innerText = "💥 SPAWNOU!";
+                celulaExibicao.style.color = "#ff5252"; 
+
+                // Ajuste de cores da célula em destaque
+                if (ultimoSpawnado) {
+                    ultimoSpawnado.classList.remove('ultimo-spawn');
+                }
+                celulaExibicao.classList.add('ultimo-spawn');
+                ultimoSpawnado = celulaExibicao;
+
+                // 🌟 EXECUÇÃO DO ALARME SINCRONIZADA AQUI:
+                const tempoAtualSegundos = infoTempo.hLocal * 3600 + infoTempo.m * 60 + infoTempo.s;
+                
+                // Evita disparar múltiplos alarmes no mesmo segundo
+                if (ultimosAlarmesDisparados[chaveUnica] !== tempoAtualSegundos) {
+                    ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
+
+                    tr.classList.add('alarme-linha');
+                    if (celulaFoco) celulaFoco.classList.add('alarme-foco');
+
+                    if (alarmeAtivo) {
+                        respawnAtivo = true;
+                        tocarBip(duracaoAlarme); 
+                    }
+
+                    setTimeout(() => {
+                        tr.classList.remove('alarme-linha');
+                        if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
+                        respawnAtivo = false;
+                    }, duracaoAlarme * 1000); 
+                }
+            } else {
+                const hrs = Math.floor(diferencaSegundos / 3600);
+                const mins = Math.floor((diferencaSegundos % 3600) / 60);
+                const segs = diferencaSegundos % 60;
+
+                celulaExibicao.innerText = formatar(hrs, mins, segs);
+                celulaExibicao.style.color = ""; 
+            }
         }
 
-        const comecouMorteG = checarEAtivarAlarme(morteGigante, horarioLocal, `${mapa}-MG`);
-        const comecouMorteB = checarEAtivarAlarme(morteBandido, horarioLocal, `${mapa}-MB`);
-        const comecouRespGL = checarEAtivarAlarme(respGL, horarioLocal, `${mapa}-RGL`);
-        const comecouRespBL = checarEAtivarAlarme(respBL, horarioLocal, `${mapa}-RBL`);
-        
-        const comecouRespGS = checarEAtivarAlarme(respGS, horarioServer, `${mapa}-RGS`);
-        const comecouRespBS = checarEAtivarAlarme(respBS, horarioServer, `${mapa}-RBS`);
-
-        if (comecouMorteG || comecouMorteB || comecouRespGL || comecouRespBL || comecouRespGS || comecouRespBS) {
-            
-            tr.classList.add('alarme-linha');
-            
-            let celulaAlvo = null;
-            if (comecouMorteG || comecouRespGL || comecouRespGS) celulaAlvo = respGL;
-            if (comecouMorteB || comecouRespBL || comecouRespBS) celulaAlvo = respBL;
-
-            if (celulaAlvo) celulaAlvo.classList.add('alarme-foco');
-
-            if (alarmeAtivo) {
-                respawnAtivo = true;
-                tocarBip(duracaoAlarme); 
-            }
-
-            setTimeout(() => {
-                tr.classList.remove('alarme-linha');
-                if (celulaAlvo) celulaAlvo.classList.remove('alarme-foco');
-                respawnAtivo = false;
-            }, duracaoAlarme * 1000); 
-        }
+        // Rodando a função unificada
+        atualizarLinha(respGS, campoTempoG, respGL, `${mapa}-G`);
+        atualizarLinha(respBS, campoTempoB, respBL, `${mapa}-B`);
     });
 
     if (relogioEl) {
@@ -608,7 +671,7 @@ worker.onmessage = function() {
 };
 
 // ==========================================
-// 🚀 13. BOTÃO DE TESTAR ALARME
+// 13. BOTÃO DE TESTAR ALARME
 // ==========================================
 const btnTestarAlarm = document.getElementById('testar-alarm');
 if (btnTestarAlarm) {
@@ -621,7 +684,7 @@ if (btnTestarAlarm) {
 
 
 // ==========================================
-// ⌨️ 14. MÁSCARA DE TEMPO + CTRL + Z (BLINDADO)
+// 14. MÁSCARA DE TEMPO + CTRL + Z (BLINDADO)
 // ==========================================
 const historicoCampos = {};
 
@@ -696,7 +759,11 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
         let valorNumerico = e.target.value.replace(/\D/g, "");
         if (valorNumerico.length > 0 && valorNumerico.length < 6) {
             let completo = valorNumerico;
-            if (valorNumerico.length === 1) completo = valorNumerico + "00000";
+            
+            // Se digitou só 1 número (ex: 9), adiciona o zero na frente e preenche
+            if (valorNumerico.length === 1) {
+                completo = "0" + valorNumerico + "0000";
+            } 
             else if (valorNumerico.length === 2) completo = valorNumerico + "0000";
             else if (valorNumerico.length === 3) completo = valorNumerico.slice(0,2) + "0" + valorNumerico.slice(2) + "00";
             else if (valorNumerico.length === 4) completo = valorNumerico + "00";
@@ -705,6 +772,11 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
             let h = parseInt(completo.slice(0, 2));
             let m = parseInt(completo.slice(2, 4));
             let s = parseInt(completo.slice(4, 6));
+
+            // Bloqueia horas inválidas acima de 23:59:59
+            if (h > 23) h = 23;
+            if (m > 59) m = 59;
+            if (s > 59) s = 59;
 
             e.target.value = formatar(h, m, s);
             calcular();
@@ -718,9 +790,8 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     });
 });
 
-
 // ==========================================
-// 🌟 15. BOTÃO LIMPAR HORÁRIOS (Atualizado)
+// 15. BOTÃO LIMPAR HORÁRIOS
 // ==========================================
 const btnLimpar = document.getElementById('limpar-dados');
 const modalContainer = document.getElementById('modal-container');
@@ -769,7 +840,7 @@ if (btnLimpar && modalContainer) {
 
 
 // ==========================================
-// 🚀 16. BOTÃO MORTE INSTANTÂNEA (CORRIGIDO)
+// 16. BOTÃO MORTE INSTANTÂNEA
 // ==========================================
 function marcarMorteInstantanea(botao) {
     const container = botao.closest('.container-morto');
@@ -782,6 +853,122 @@ function marcarMorteInstantanea(botao) {
     }
 }
 
+// ==========================================
+// 18. OCULTAR / EXIBIR TEMPO RESTANTE
+// ==========================================
+const btnToggleRestante = document.getElementById('toggle-restante');
+
+if (btnToggleRestante) {
+    btnToggleRestante.onclick = () => {
+        const colunasG = document.querySelectorAll('.tempo-restante-gigante');
+        const colunasB = document.querySelectorAll('.tempo-restante-bandido');
+        
+        const ths = document.querySelectorAll('th');
+        let thGigante, thBandido;
+        
+        ths.forEach(th => {
+            if (th.innerText.includes('RESTANTE GIGANTE')) thGigante = th;
+            if (th.innerText.includes('RESTANTE BANDIDO')) thBandido = th;
+        });
+
+        const escondido = colunasG[0].style.display === 'none';
+
+        const alternarVisibilidade = (elemento) => {
+            if (elemento) {
+                elemento.style.display = escondido ? '' : 'none';
+            }
+        };
+
+        alternarVisibilidade(thGigante);
+        colunasG.forEach(alternarVisibilidade);
+
+        alternarVisibilidade(thBandido);
+        colunasB.forEach(alternarVisibilidade);
+
+        btnToggleRestante.innerText = escondido 
+            ? "  Ocultar Tempo Restante - " 
+            : " Mostrar Tempo Restante + ";
+    };
+}
+
+// ==========================================
+// 18. BOTÕES PARA OCULTAR/EXIBIR COLUNAS
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const headerRow = document.querySelector('thead tr');
+    if (!headerRow) return;
+
+    // Acha a posição das colunas pelos nomes
+    const ths = headerRow.querySelectorAll('th');
+    let indexGigante = [];
+    let indexBandido = [];
+
+    ths.forEach((th, index) => {
+        const texto = th.innerText.toUpperCase();
+        if (texto.includes('GIGANTE') && texto.includes('RESTANTE')) {
+            indexGigante.push(index);
+        }
+        if (texto.includes('BANDIDO') && texto.includes('RESTANTE')) {
+            indexBandido.push(index);
+        }
+    });
+
+    function alternarColuna(indices, visivel) {
+        const linhas = document.querySelectorAll('tr');
+        linhas.forEach(linha => {
+            const celulas = linha.querySelectorAll('th, td');
+            indices.forEach(idx => {
+                if (celulas[idx]) {
+                    if (visivel) {
+                        celulas[idx].classList.remove('coluna-oculta');
+                    } else {
+                        celulas[idx].classList.add('coluna-oculta');
+                    }
+                }
+            });
+        });
+    }
+
+    // Cria os botões na tela
+    const containerBotoes = document.createElement('div');
+    containerBotoes.style.margin = "15px 0";
+    containerBotoes.style.display = "flex";
+    containerBotoes.style.gap = "10px";
+
+    const btnGigante = document.createElement('button');
+    btnGigante.innerText = "Ocultar Tempo Gigante";
+    btnGigante.style.padding = "8px 12px";
+    btnGigante.style.cursor = "pointer";
+
+    const btnBandido = document.createElement('button');
+    btnBandido.innerText = "Ocultar Tempo Bandido";
+    btnBandido.style.padding = "8px 12px";
+    btnBandido.style.cursor = "pointer";
+
+    let giganteVisivel = true;
+    let bandidoVisivel = true;
+
+    btnGigante.onclick = () => {
+        giganteVisivel = !giganteVisivel;
+        alternarColuna(indexGigante, giganteVisivel);
+        btnGigante.innerText = giganteVisivel ? "Ocultar Tempo Gigante" : "Exibir Tempo Gigante";
+    };
+
+    btnBandido.onclick = () => {
+        bandidoVisivel = !bandidoVisivel;
+        alternarColuna(indexBandido, bandidoVisivel);
+        btnBandido.innerText = bandidoVisivel ? "Ocultar Tempo Bandido" : "Exibir Tempo Bandido";
+    };
+
+    containerBotoes.appendChild(btnGigante);
+    containerBotoes.appendChild(btnBandido);
+
+    // Insere os botões antes da tabela
+    const tabela = document.querySelector('table');
+    if (tabela) {
+        tabela.parentNode.insertBefore(containerBotoes, tabela);
+    }
+});
 
 // ==========================================
 // 17. INIT

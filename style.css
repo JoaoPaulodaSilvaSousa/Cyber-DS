@@ -28,12 +28,12 @@ body {
 
 /* ESTILO PADRÃO PARA OS BOTÕES DO TOPO E O NOVO CONTROLE DE VOLUME */
 #toggle-alarm, #toggle-tema, #testar-alarm, .controle-volume {
-    padding: 10px 20px;
+    padding: 12px 24px; /* Aumentado */
     border-radius: 20px !important; /* Forçado para manter o padrão arredondado */
     font-weight: bold;
     transition: all 0.3s ease;
-    font-size: 14px;
-    height: 38px;
+    font-size: 16px; /* Aumentado de 14px para 16px */
+    height: 44px; /* Aumentado de 38px para 44px */
     display: flex;
     align-items: center;
     justify-content: center; 
@@ -51,7 +51,7 @@ body {
 }
 
 #toggle-tema {
-    width: 170px; 
+    width: 190px; /* Aumentado de 170px para 190px */
 }
 
 #toggle-alarm:hover, #toggle-tema:hover, #testar-alarm:hover {
@@ -83,37 +83,37 @@ body {
 
 /* DESIGN DO CONTROLE DE VOLUME ENCAIXADO NO SEU TOPO */
 .controle-volume {
-    gap: 10px;
-    padding: 0 15px;
+    gap: 12px; /* Aumentado */
+    padding: 0 18px; /* Aumentado */
 }
 
 .controle-volume span {
-    font-size: 14px;
+    font-size: 16px; /* Aumentado de 14px para 16px */
 }
 
 .controle-volume input[type="range"] {
     cursor: pointer;
     accent-color: #4CAF50;
-    width: 60px !important;
-    height: 4px !important;
+    width: 80px !important; /* Aumentado de 60px para 80px */
+    height: 6px !important; /* Aumentado de 4px para 6px */
     padding: 0 !important;
     background: rgba(76, 175, 80, 0.2);
     border: none !important;
-    border-radius: 2px;
+    border-radius: 3px;
 }
 
 /* Caixa editável para digitar o volume */
 #valor-volume {
-    width: 32px !important;
-    height: 24px !important;
-    padding: 2px !important;
+    width: 38px !important; /* Aumentado de 32px para 38px */
+    height: 30px !important; /* Aumentado de 24px para 30px */
+    padding: 4px !important; /* Aumentado de 2px para 4px */
     text-align: center;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(76, 175, 80, 0.4);
     color: #4CAF50;
     border-radius: 4px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 13px;
+    font-size: 15px; /* Aumentado de 13px para 15px */
     font-weight: bold;
     outline: none;
     cursor: text !important;
@@ -149,13 +149,13 @@ body.light-mode #valor-volume {
 
 /* BOTÃO DE LIMPAR HORÁRIOS */
 #limpar-dados {
-    padding: 10px 20px;
+    padding: 12px 24px; /* Aumentado */
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
-    font-size: 14px;
-    height: 38px;
+    font-size: 16px; /* Aumentado de 14px para 16px */
+    height: 44px; /* Aumentado de 38px para 44px */
     display: flex;
     align-items: center;
     box-sizing: border-box;
@@ -178,14 +178,14 @@ input#buscarFuso {
     color: #4CAF50 !important;
     border: 1px solid #4CAF50 !important;
     border-radius: 20px !important;
-    padding: 0 15px 0 35px !important;
-    font-size: 14px !important;
+    padding: 0 15px 0 40px !important; /* Ajustado */
+    font-size: 16px !important; /* Aumentado de 14px para 16px */
     font-weight: bold !important;
     outline: none !important;
     transition: all 0.3s ease !important;
-    height: 38px !important;
+    height: 44px !important; /* Aumentado de 38px para 44px */
     box-sizing: border-box !important;
-    width: 240px !important; 
+    width: 280px !important; /* Aumentado de 240px para 280px */
     flex-shrink: 0 !important; 
     text-align: left !important;
     font-family: Arial, sans-serif !important;
@@ -223,7 +223,7 @@ input#buscarFuso::placeholder {
 /* TÍTULO */
 h1 {
     text-align: center;
-    font-size: 36px; 
+    font-size: 44px; /* Aumentado de 36px para 44px */
     font-weight: 900;
     color: black;
     text-transform: uppercase;
@@ -256,16 +256,16 @@ h1:hover {
 }
 
 .relogio-container span {
-    font-size: 18px; 
+    font-size: 20px; /* Aumentado de 18px para 20px */
 }
 
 #relogio {
     background-color: #1a1a1a;
     color: #4CAF50;
-    padding: 8px 20px;
+    padding: 10px 25px; /* Aumentado */
     border-radius: 15px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 22px; 
+    font-size: 26px; /* Aumentado de 22px para 26px */
     border: 1px solid #4CAF50;
     display: flex;
     align-items: center;
@@ -288,7 +288,7 @@ table {
 
 th, td {
     border: 1px solid #333333;
-    padding: 12px;
+    padding: 14px 10px; /* Aumentado padding para dar mais respiro com as letras maiores */
     text-align: center;
     vertical-align: middle; 
 }
@@ -297,6 +297,7 @@ th {
     background-color: #0a0a0a !important; 
     color: #4CAF50 !important;
     font-weight: bold;
+    font-size: 14px !important; /* Aumentado de 12px para 14px para facilitar leitura */
 }
 
 tr:nth-child(even) {
@@ -332,13 +333,14 @@ tr.alarme-linha {
 
 /* INPUTS DA TABELA */
 input {
-    width: 95px !important;
-    height: 32px !important;
+    width: 110px !important; /* Aumentado de 95px para 110px */
+    height: 40px !important; /* Aumentado de 32px para 40px */
     padding: 4px;
     text-align: center;
     border-radius: 4px;
     font-weight: bold;
     font-family: 'Courier New', Courier, monospace;
+    font-size: 16px !important; /* Aumentado para melhorar leitura */
     transition: all 0.2s;
     cursor: text !important; 
     box-sizing: border-box;
@@ -497,7 +499,7 @@ body.light-mode #limpar-dados:hover {
 /* ESTRUTURA DO SELECT CUSTOMIZADO */
 .custom-select-container {
     position: relative;
-    width: 250px;
+    width: 280px; /* Aumentado de 250px para 280px */
 }
 
 .select-gatilho {
@@ -505,10 +507,10 @@ body.light-mode #limpar-dados:hover {
     color: #4CAF50;
     border: 1px solid #4CAF50;
     border-radius: 20px;
-    padding: 0 15px;
-    font-size: 14px;
+    padding: 0 18px; /* Ajustado */
+    font-size: 16px; /* Aumentado de 14px para 16px */
     font-weight: bold;
-    height: 38px;
+    height: 44px; /* Aumentado de 38px para 44px */
     display: flex;
     align-items: center;
     justify-content: space-between; 
@@ -542,7 +544,7 @@ body.light-mode .select-opcoes li:hover {
 
 .select-gatilho::after {
     content: '▼';
-    font-size: 10px;
+    font-size: 12px; /* Aumentado */
     margin-left: 10px;
     transition: transform 0.3s ease;
 }
@@ -553,7 +555,7 @@ body.light-mode .select-opcoes li:hover {
 
 .select-opcoes {
     position: absolute;
-    top: 42px;
+    top: 48px; /* Ajustado para acompanhar a nova altura */
     left: 0;
     width: 100%;
     background-color: #1a1a1a;
@@ -562,7 +564,7 @@ body.light-mode .select-opcoes li:hover {
     list-style: none;
     padding: 0;
     margin: 0;
-    max-height: 200px;
+    max-height: 250px; /* Aumentado */
     overflow-y: auto;
     display: none;
     z-index: 100;
@@ -574,9 +576,9 @@ body.light-mode .select-opcoes li:hover {
 }
 
 .select-opcoes li {
-    padding: 10px 15px;
+    padding: 12px 18px; /* Ajustado */
     color: #4CAF50;
-    font-size: 13px;
+    font-size: 15px; /* Aumentado de 13px para 15px */
     cursor: pointer;
     text-align: left;
     border-bottom: 1px solid rgba(76, 175, 80, 0.2); 
@@ -613,9 +615,9 @@ body.light-mode .select-opcoes li:hover {
     background-color: #1a1a1a;
     border: 2px solid #4CAF50;
     border-radius: 12px;
-    padding: 25px;
+    padding: 30px; /* Ajustado */
     text-align: center;
-    max-width: 400px;
+    max-width: 450px; /* Aumentado */
     width: 90%;
     box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
     color: #ffffff;
@@ -624,28 +626,28 @@ body.light-mode .select-opcoes li:hover {
 .modal-conteudo h3 {
     color: #4CAF50;
     margin-top: 0;
-    font-size: 20px;
+    font-size: 24px; /* Aumentado de 20px para 24px */
 }
 
 .modal-conteudo p {
     color: #cccccc;
-    font-size: 14px;
-    margin-bottom: 25px;
+    font-size: 16px; /* Aumentado de 14px para 16px */
+    margin-bottom: 30px; /* Ajustado */
 }
 
 .modal-botoes {
     display: flex;
     justify-content: center; 
-    gap: 10px;
+    gap: 12px; /* Ajustado */
 }
 
 .modal-botoes button {
-    padding: 10px 20px;
+    padding: 12px 24px; /* Ajustado */
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 14px;
-    height: 38px;
+    font-size: 16px; /* Aumentado de 14px para 16px */
+    height: 44px; /* Aumentado de 38px para 44px */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -687,18 +689,18 @@ body.light-mode .select-opcoes li:hover {
     flex-direction: row-reverse !important; 
     align-items: center !important; 
     justify-content: center !important; 
-    gap: 8px !important; 
+    gap: 10px !important; /* Ajustado */
     width: 100%;
 }
 
 .btn-morto {
-    padding: 0 12px !important;
+    padding: 0 15px !important; /* Ajustado */
     border-radius: 12px;
     cursor: pointer;
     font-weight: bold;
     transition: all 0.3s ease;
-    font-size: 11px;
-    height: 32px !important; 
+    font-size: 13px; /* Aumentado de 11px para 13px */
+    height: 40px !important; /* Aumentado de 32px para 40px para alinhar com o input maior */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -730,11 +732,11 @@ body.light-mode .btn-morto:hover {
 
 /* DESIGN DO CONTROLE DE DURACAO ENCAIXADO NO SEU TOPO */
 .duracao-alarme-container {
-    padding: 10px 15px;
+    padding: 12px 18px; /* Ajustado */
     border-radius: 20px !important;
     font-weight: bold;
-    font-size: 14px;
-    height: 38px;
+    font-size: 16px; /* Aumentado de 14px para 16px */
+    height: 44px; /* Aumentado de 38px para 44px */
     display: flex;
     align-items: center;
     justify-content: center; 
@@ -745,7 +747,7 @@ body.light-mode .btn-morto:hover {
     color: #4CAF50;
     border: 1px solid #4CAF50 !important;
     box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
-    gap: 8px;
+    gap: 10px; /* Ajustado */
     cursor: default !important; /* Mostra que o bloco não é clicável */
 }
 
@@ -754,9 +756,9 @@ body.light-mode .btn-morto:hover {
     background: none !important;
     border: none !important;
     color: #4CAF50 !important;
-    font-size: 14px !important;
+    font-size: 16px !important; /* Aumentado de 14px para 16px */
     font-weight: bold !important;
-    width: 25px !important;
+    width: 30px !important; /* Aumentado de 25px para 30px */
     height: auto !important;
     text-align: center !important;
     outline: none !important;
@@ -798,8 +800,8 @@ body.light-mode .duracao-alarme-container input {
     color: #4CAF50 !important;
     cursor: pointer !important;
     font-weight: bold !important;
-    font-size: 16px !important;
-    padding: 0 5px !important;
+    font-size: 18px !important; /* Aumentado de 16px para 18px */
+    padding: 0 6px !important;
     transition: color 0.3s ease, transform 0.2s ease !important;
     display: flex;
     align-items: center;
@@ -815,4 +817,100 @@ body.light-mode .duracao-alarme-container input {
 body.light-mode .controle-volume .btn-vol:hover,
 body.light-mode .duracao-alarme-container .btn-vol:hover {
     color: #2e7d32 !important; /* Um verde mais escuro no modo claro */
+}
+
+/* ==========================================
+    👁️ BOTÃO OCULTAR/MOSTRAR TEMPO RESTANTE
+   ========================================== */
+#toggle-restante {
+    padding: 12px 24px; /* Ajustado */
+    border-radius: 20px; /* Borda redondinha igual aos outros */
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    font-size: 16px; /* Aumentado de 14px para 16px */
+    height: 44px; /* Aumentado de 38px para 44px */
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    background-color: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+#toggle-restante:hover {
+    background-color: #4CAF50;
+    color: #121212; /* Inverte a cor no hover igual aos outros */
+}
+
+/* REGRA PARA O MODO CLARO */
+body.light-mode #toggle-restante {
+    background-color: #ffffff;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    box-shadow: none;
+}
+
+body.light-mode #toggle-restante:hover {
+    background-color: #4CAF50;
+    color: #ffffff;
+}
+
+.ultimo-spawn {
+    background-color: #ffebee !important;
+    color: #c62828 !important;
+    font-weight: bold;
+    border-bottom: 2px solid #e53935 !important;
+}
+
+/* ===================================================
+   IMPLEMENTAÇÃO: TRAVAMENTO, CENTRALIZAÇÃO E QUEBRA DE TEXTO
+   =================================================== */
+
+/* Centraliza o container que envolve a tabela */
+.tabela-wrapper {
+    align-items: center !important; 
+    margin: 0 auto !important;
+}
+
+/* Removi as regras duplicadas de largura de colunas (width fixado em pixels) que estavam fazendo o texto maior quebrar e amassar tudo! */
+table {
+    table-layout: auto !important; /* Deixei em auto para o navegador calcular o espaço com base nas letras maiores */
+    width: 100% !important;
+    border-collapse: collapse;
+}
+
+th {
+    white-space: normal !important; 
+    word-wrap: break-word !important;
+    padding: 12px 6px !important; /* Respiro extra */
+    vertical-align: middle !important;
+}
+
+td {
+    white-space: nowrap !important;
+    padding: 10px 6px !important; /* Respiro extra */
+    font-size: 14px !important; /* Aumentado de 13px para 14px */
+}
+
+.coluna-oculta {
+    display: none !important;
+}
+
+/* AUMENTA O NOME DOS MAPAS (1ª COLUNA) */
+td:nth-child(1) {
+    font-size: 18px !important;
+    font-weight: bold !important;
+    color: #4CAF50 !important; /* Mantém o padrão verde brilhante */
+}
+
+/* AUMENTA O TEMPO RESTANTE GIGANTE E BANDIDO (6ª E 9ª COLUNAS) */
+td:nth-child(6), 
+td:nth-child(9) {
+    font-size: 16px !important;
+    font-weight: bold !important;
+    font-family: 'Courier New', Courier, monospace !important; /* Fonte estilo relógio */
 }
