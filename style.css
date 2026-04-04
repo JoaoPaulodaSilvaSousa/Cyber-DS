@@ -789,6 +789,8 @@ body.light-mode .duracao-alarme-container input {
 }
 
 /* AJUSTE ESPECÍFICO PARA OS BOTÕES DE + e - DENTRO DO SEU CONTAINER */
+/* Aplica-se tanto aos botões do volume quanto aos botões de duração */
+.controle-volume .btn-vol,
 .duracao-alarme-container .btn-vol {
     background: none !important;
     border: none !important;
@@ -798,13 +800,18 @@ body.light-mode .duracao-alarme-container input {
     font-size: 16px !important;
     padding: 0 5px !important;
     transition: color 0.3s ease, transform 0.2s ease !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+.controle-volume .btn-vol:hover,
 .duracao-alarme-container .btn-vol:hover {
     color: #81C784 !important; /* Um verde mais claro no modo escuro */
     transform: scale(1.2);
 }
 
+body.light-mode .controle-volume .btn-vol:hover,
 body.light-mode .duracao-alarme-container .btn-vol:hover {
     color: #2e7d32 !important; /* Um verde mais escuro no modo claro */
 }

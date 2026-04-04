@@ -54,11 +54,15 @@ if (btnAlarme) {
 
 
 // ==========================================
-// 🌍 FUSO HORÁRIO
+// 🌍 3. FUSO HORÁRIO (Busca Inteligente e Limpa)
 // ==========================================
 const fusoSelect = document.getElementById("fusoSelect");
 const fusoOpcoes = document.getElementById("fusoOpcoes");
 const buscarFuso = document.getElementById("buscarFuso");
+
+if (buscarFuso) {
+    buscarFuso.setAttribute('autocomplete', 'off');
+}
 
 const fusos = Intl.supportedValuesOf('timeZone');
 const listaComPaises = [];
@@ -76,68 +80,19 @@ fusos.forEach(f => {
     listaComPaises.push({ valorOriginal: f, textoExibicao: nomeExibicao });
 });
 
-let ultimaLetra = "";
-let indiceBusca = 0;
-
-function escutarTecladoNoSelect(e) {
-    if (e.key.length !== 1) return;
-    e.preventDefault();
-
-    const letraAtual = e.key.toLowerCase();
-    const todosOsLi = fusoOpcoes.querySelectorAll('li');
-    const itensCorrespondentes = [];
-    
-    todosOsLi.forEach((li, index) => {
-        if (li.textContent.trim().toLowerCase().startsWith(letraAtual)) {
-            itensCorrespondentes.push({ elemento: li, indexOriginal: index });
-        }
-    });
-
-    if (itensCorrespondentes.length === 0) return;
-
-    if (letraAtual === ultimaLetra) {
-        indiceBusca = (indiceBusca + 1) % itensCorrespondentes.length;
-    } else {
-        indiceBusca = 0;
-        ultimaLetra = letraAtual;
-    }
-
-    const itemAlvo = itensCorrespondentes[indiceBusca].elemento;
-    itemAlvo.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-
-    todosOsLi.forEach(item => item.style.backgroundColor = "");
-    itemAlvo.style.backgroundColor = "rgba(76, 175, 80, 0.2)";
-}
-
-if (fusoSelect) {
-    fusoSelect.onclick = (e) => {
-        e.stopPropagation();
-        fusoOpcoes.classList.toggle('ativo');
-        
-        if (fusoOpcoes.classList.contains('ativo')) {
-            fusoSelect.classList.add('aberto');
-            fusoSelect.setAttribute('tabindex', '0');
-            fusoSelect.focus();
-            fusoSelect.addEventListener('keydown', escutarTecladoNoSelect);
-        } else {
-            fusoSelect.classList.remove('aberto');
-            fusoSelect.removeEventListener('keydown', escutarTecladoNoSelect);
-        }
-    };
-}
-
-document.addEventListener('click', () => {
-    if (fusoOpcoes) {
-        fusoOpcoes.classList.remove('ativo');
-        fusoSelect.classList.remove('aberto');
-        fusoSelect.removeEventListener('keydown', escutarTecladoNoSelect);
-    }
-});
-
 function renderizarOpcoes(lista) {
     if (!fusoOpcoes) return;
     fusoOpcoes.innerHTML = "";
     
+    if (lista.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "Nenhum fuso encontrado";
+        li.style.color = "#888";
+        li.style.fontStyle = "italic";
+        fusoOpcoes.appendChild(li);
+        return;
+    }
+
     lista.forEach(item => {
         const li = document.createElement("li");
         li.textContent = item.textoExibicao;
@@ -152,14 +107,35 @@ function renderizarOpcoes(lista) {
 }
 
 function selecionarFuso(valor, texto) {
-    fusoSelect.innerText = texto;
+    fusoSelect.innerHTML = `<span>🌍</span> ${texto}`;
     fusoSelect.dataset.valor = valor;
     localStorage.setItem("fuso", valor);
-    fusoOpcoes.classList.remove('ativo');
-    fusoSelect.classList.remove('aberto');
-    fusoSelect.removeEventListener('keydown', escutarTecladoNoSelect);
+    fecharMenu();
     calcular();
 }
+
+function fecharMenu() {
+    fusoOpcoes.classList.remove('ativo');
+    fusoSelect.classList.remove('aberto');
+}
+
+if (fusoSelect) {
+    fusoSelect.onclick = (e) => {
+        e.stopPropagation();
+        
+        const termo = buscarFuso ? buscarFuso.value.trim() : "";
+        if (termo.length > 0) {
+            fusoOpcoes.classList.toggle('ativo');
+            fusoSelect.classList.toggle('aberto');
+        }
+    };
+}
+
+document.addEventListener('click', (e) => {
+    if (buscarFuso && !buscarFuso.contains(e.target) && fusoOpcoes && !fusoOpcoes.contains(e.target)) {
+        fecharMenu();
+    }
+});
 
 const buscaSalva = localStorage.getItem("buscaFuso") || "";
 if (buscarFuso) {
@@ -167,54 +143,87 @@ if (buscarFuso) {
 }
 
 function aplicarFiltro() {
-    const termo = buscarFuso ? buscarFuso.value.toLowerCase() : "";
+    const termo = buscarFuso ? buscarFuso.value.toLowerCase().trim() : "";
+    
+    if (termo.length === 0) {
+        fecharMenu();
+        if (fusoOpcoes) fusoOpcoes.innerHTML = "";
+        return;
+    }
+
     const filtrados = listaComPaises.filter(item =>
         item.textoExibicao.toLowerCase().includes(termo) || 
         item.valorOriginal.toLowerCase().includes(termo)
     );
+    
     renderizarOpcoes(filtrados);
+    fusoOpcoes.classList.add('ativo');
+    fusoSelect.classList.add('aberto');
 }
 
-aplicarFiltro();
-
-const fusoSalvo = localStorage.getItem("fuso") || "America/Sao_Paulo";
+const fusoSalvo = localStorage.getItem("fuso");
 if (fusoSalvo) {
     const encontrado = listaComPaises.find(p => p.valorOriginal === fusoSalvo);
     if (encontrado) {
-        fusoSelect.innerText = encontrado.textoExibicao;
+        fusoSelect.innerHTML = `<span>🌍</span> ${encontrado.textoExibicao}`;
         fusoSelect.dataset.valor = fusoSalvo;
     }
+} else {
+    fusoSelect.innerHTML = "<span>🌍</span> Selecione sua região";
+    fusoSelect.dataset.valor = "";
 }
 
 if (buscarFuso) {
     buscarFuso.addEventListener("input", () => {
         localStorage.setItem("buscaFuso", buscarFuso.value);
         aplicarFiltro();
-        fusoOpcoes.classList.add('ativo');
-        fusoSelect.classList.add('aberto');
+        
+        const termoDigitado = buscarFuso.value.toLowerCase().trim();
+        if (termoDigitado.length > 0) {
+            const correspondenciaPerfeita = listaComPaises.find(item => 
+                item.textoExibicao.toLowerCase().includes(termoDigitado) ||
+                item.valorOriginal.toLowerCase().includes(termoDigitado)
+            );
+
+            if (correspondenciaPerfeita) {
+                fusoSelect.innerHTML = `<span>🌍</span> ${correspondenciaPerfeita.textoExibicao}`;
+                fusoSelect.dataset.valor = correspondenciaPerfeita.valorOriginal;
+                localStorage.setItem("fuso", correspondenciaPerfeita.valorOriginal);
+                calcular();
+            }
+        } else {
+            fusoSelect.innerHTML = "<span>🌍</span> Selecione sua região";
+            fusoSelect.dataset.valor = "";
+            localStorage.removeItem("fuso");
+            calcular();
+        }
+    });
+    
+    buscarFuso.addEventListener("focus", () => {
+        if (buscarFuso.value.trim().length > 0) {
+            aplicarFiltro();
+        }
     });
 }
 
 
 // ==========================================
-// 3. CONFIG
+// 4. CONFIG
 // ==========================================
-const tempoServer = 3;
-
 function formatar(h, m, s) {
     return `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}:${s.toString().padStart(2,"0")}`;
 }
 
 
 // ==========================================
-// 🌍 CALCULAR HORA DO SERVER BASEADO NO FUSO ESCOLHIDO
+// 🌍 5. CALCULAR HORA DO SERVER
 // ==========================================
 function obterHoraServerAtual() {
-    const fusoUsuario = fusoSelect ? fusoSelect.dataset.valor : "America/Sao_Paulo";
+    const fusoUsuario = fusoSelect && fusoSelect.dataset.valor ? fusoSelect.dataset.valor : "America/Sao_Paulo";
     const agora = new Date();
 
     const formatterUsuario = new Intl.DateTimeFormat('en-US', {
-        timeZone: fusoUsuario || "America/Sao_Paulo",
+        timeZone: fusoUsuario,
         hour: 'numeric', minute: 'numeric', second: 'numeric',
         hour12: false
     });
@@ -237,15 +246,12 @@ function obterHoraServerAtual() {
 }
 
 
-// ==========================================
-// 🌍 FUNÇÕES DE DIFERENÇA DE FUSO
-// ==========================================
 function obterDiferencaFuso() {
-    const fusoUsuario = fusoSelect ? fusoSelect.dataset.valor : "America/Sao_Paulo";
+    const fusoUsuario = fusoSelect && fusoSelect.dataset.valor ? fusoSelect.dataset.valor : "America/Sao_Paulo";
     const agora = new Date();
 
     const formatterUsu = new Intl.DateTimeFormat('en-US', {
-        timeZone: fusoUsuario || "America/Sao_Paulo",
+        timeZone: fusoUsuario,
         hour: 'numeric', hour12: false
     });
     const formatterServ = new Intl.DateTimeFormat('en-US', {
@@ -256,13 +262,12 @@ function obterDiferencaFuso() {
     const hUsuarioAgora = parseInt(formatterUsu.format(agora)) % 24;
     const hServerAgora = parseInt(formatterServ.format(agora)) % 24;
 
-    let diferenca = hUsuarioAgora - hServerAgora;
-    return diferenca;
+    return hUsuarioAgora - hServerAgora;
 }
 
 
 // =======================================================
-// 🌟 4. CALCULAR
+// 🌟 6. CALCULAR (FIXADO EM EXATAMENTE 3 HORAS NO SERVER)
 // =======================================================
 function calcular() {
     const diferencaFuso = obterDiferencaFuso();
@@ -282,11 +287,13 @@ function calcular() {
             let valorNumerico = valorInput.replace(/\D/g, "");
 
             if (valorNumerico.length === 0) {
-                if (campoServer) campoServer.value = "";
-                if (campoLocal) campoLocal.value = "";
+                if (campoServer && !campoServer.dataset.colado) campoServer.value = "";
+                if (campoLocal && !campoLocal.dataset.colado) campoLocal.value = "";
                 localStorage.removeItem(storageKey);
                 return;
             }
+
+            if (campoLocal && campoLocal.dataset.colado) return;
 
             let valorCompleto = valorNumerico;
             if (valorNumerico.length === 1) valorCompleto = valorNumerico + "00000";
@@ -296,16 +303,14 @@ function calcular() {
             else if (valorNumerico.length === 5) valorCompleto = valorNumerico.slice(0,4) + "0" + valorNumerico.slice(4);
             else if (valorNumerico.length > 6) valorCompleto = valorNumerico.slice(0, 6);
 
-            let hLocalDigitada = parseInt(valorCompleto.slice(0, 2)) || 0;
+            let hDigitada = parseInt(valorCompleto.slice(0, 2)) || 0;
             let m = parseInt(valorCompleto.slice(2, 4)) || 0;
             let s = parseInt(valorCompleto.slice(4, 6)) || 0;
 
-            let hServerCalculada = hLocalDigitada - diferencaFuso;
-            if (hServerCalculada < 0) hServerCalculada += 24;
-            hServerCalculada = hServerCalculada % 24;
+            // 1. O jogo SEMPRE soma 3 horas no Server em relação ao que você digitou
+            let respawnServerH = (hDigitada + 3) % 24;
 
-            let respawnServerH = (hServerCalculada + tempoServer) % 24;
-
+            // 2. A hora local apenas pega esse resultado do Server e soma o fuso do usuário
             let respawnLocalH = respawnServerH + diferencaFuso;
             if (respawnLocalH < 0) respawnLocalH += 24;
             respawnLocalH = respawnLocalH % 24;
@@ -314,7 +319,7 @@ function calcular() {
             if (campoLocal) campoLocal.value = formatar(respawnLocalH, m, s);
 
             if (valorNumerico.length === 6) {
-                localStorage.setItem(storageKey, formatar(hLocalDigitada, m, s));
+                localStorage.setItem(storageKey, formatar(hDigitada, m, s));
             }
         }
 
@@ -325,7 +330,51 @@ function calcular() {
 
 
 // ==========================================
-// 5. CARREGAR
+// 🚀 7. SISTEMA DE COLAR TEXTO DA IMAGEM
+// ==========================================
+const campoColar = document.getElementById('campo-colar');
+if (campoColar) {
+    campoColar.addEventListener('input', (e) => {
+        const texto = e.target.value.trim();
+        if (!texto) return;
+
+        const linhas = texto.split('\n');
+
+        linhas.forEach(linha => {
+            const regex = /([A-Z]{2})\s+(\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2}:\d{2})/;
+            const match = linha.match(regex);
+
+            if (match) {
+                const mapaNome = match[1];      
+                const horaGigante = match[2];   
+                const horaBandido = match[3];   
+
+                document.querySelectorAll('tr').forEach(tr => {
+                    const celulaMapa = tr.querySelector('td:first-child');
+                    if (celulaMapa && celulaMapa.innerText.trim() === mapaNome) {
+                        const respGL = tr.querySelector('.respGiganteLocal');
+                        const respBL = tr.querySelector('.respBandidoLocal');
+
+                        if (respGL && horaGigante) {
+                            respGL.value = horaGigante;
+                            respGL.dataset.colado = "true"; 
+                        }
+                        if (respBL && horaBandido) {
+                            respBL.value = horaBandido;
+                            respBL.dataset.colado = "true";
+                        }
+                    }
+                });
+            }
+        });
+
+        setTimeout(() => { campoColar.value = ""; }, 1000);
+    });
+}
+
+
+// ==========================================
+// 8. CARREGAR DADOS SALVOS
 // ==========================================
 function carregarDadosSalvos() {
     document.querySelectorAll('tr').forEach(tr => {
@@ -346,7 +395,7 @@ function carregarDadosSalvos() {
 
 
 // ==========================================
-// 6. SOM
+// 9. SOM
 // ==========================================
 let volumeAtual = parseFloat(localStorage.getItem('volumeAlarme')) || 0.1;
 
@@ -367,12 +416,12 @@ function tocarBip(duracaoSegundos = 1) {
 
 
 // ==========================================
-// 🚀 6.1 CONTROLE DE VOLUME (COM DIGITAÇÃO MANUAL)
+// 🚀 10. CONTROLE DE VOLUME
 // ==========================================
 const sliderVolume = document.getElementById('volume-alarme');
 const campoVolumeTxt = document.getElementById('valor-volume'); 
-const btnVolMenos = document.getElementById('vol-menos');
-const btnVolMais = document.getElementById('vol-mais');
+const btnVolMenos = document.getElementById('vol-menos') || document.getElementById('diminuir-vol');
+const btnVolMais = document.getElementById('vol-mais') || document.getElementById('aumentar-vol');
 
 function atualizarInterfaceVolume(valor) {
     if (sliderVolume) sliderVolume.value = valor;
@@ -391,9 +440,7 @@ if (sliderVolume && campoVolumeTxt) {
 
     campoVolumeTxt.oninput = (e) => {
         let valorDigitado = parseInt(e.target.value);
-        
         if (isNaN(valorDigitado)) return;
-
         if (valorDigitado > 100) valorDigitado = 100;
         if (valorDigitado < 0) valorDigitado = 0;
 
@@ -418,13 +465,13 @@ if (sliderVolume && campoVolumeTxt) {
 
 
 // ==========================================
-// ⏱️ 6.2 CONTROLE DA DURACAO DO ALARME (Apenas botões - 0.1s)
+// ⏱️ 11. CONTROLE DA DURACAO DO ALARME
 // ==========================================
 const campoDuracao = document.getElementById('duracao-alarme');
 const btnDuracaoMenos = document.getElementById('duracao-menos'); 
 const btnDuracaoMais = document.getElementById('duracao-mais');   
 
-let duracaoAlarme = parseFloat(localStorage.getItem('duracaoAlarme')) || 10; 
+let duracaoAlarme = parseFloat(localStorage.getItem('duracaoAlarme')) || 1; 
 
 function atualizarInterfaceDuracao(valor) {
     if (campoDuracao) campoDuracao.value = valor.toFixed(1);
@@ -452,13 +499,12 @@ if (btnDuracaoMais) {
 
 
 // ==========================================
-// 🌟 7. RELÓGIO + ALARME (Loop de 10ms - Sem delay)
+// 🌟 12. RELÓGIO + ALARME (Loop de 10ms)
 // ==========================================
 let testeAtivo = false; 
 let respawnAtivo = false; 
-let ultimosAlarmesDisparados = {}; // Evita disparar som várias vezes no mesmo segundo
+let ultimosAlarmesDisparados = {}; 
 
-// ⏱️ REDUZIDO DE 1000ms PARA 10ms PARA ELIMINAR O DELAY
 setInterval(() => {
     const infoTempo = obterHoraServerAtual();
     const horarioLocal = formatar(infoTempo.hLocal, infoTempo.m, infoTempo.s);
@@ -491,14 +537,14 @@ setInterval(() => {
                 return false; 
             }
 
-            // Ativa no segundo zero
             if (diferenca === 0) {
-                // Se já disparou este alarme neste exato segundo, não repete (protege o som)
                 if (ultimosAlarmesDisparados[chaveUnica] === tempoAtualSegundos) {
                     return false;
                 }
-                ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
-                return true;
+                switch (chaveUnica.split("-")[1]) {
+                    case "MG": case "MB": return false; 
+                    case "RG": case "RB": return true; 
+                }
             }
             return false;
         }
@@ -518,8 +564,6 @@ setInterval(() => {
             let celulaAlvo = null;
             if (comecouMorteG || comecouRespG) celulaAlvo = respGL;
             if (comecouMorteB || comecouRespB) celulaAlvo = respBL;
-
-            if (celulaAlvo) celulaAlvo.classList.add('alarme-foco');
 
             const ehRespawn = comecouRespG || comecouRespB;
             if (ehRespawn) {
@@ -550,32 +594,40 @@ setInterval(() => {
         }
     }
 
-}, 10); // 10ms = 100 checagens por segundo. Adeus delay!
+}, 10); 
 
 
 // ==========================================
-// 🚀 7.1 FUNCIONALIDADE DO BOTÃO DE TESTAR ALARME
+// 🚀 13. BOTÃO DE TESTAR ALARME
 // ==========================================
 const btnTestarAlarm = document.getElementById('testar-alarm');
 if (btnTestarAlarm) {
     btnTestarAlarm.onclick = () => {
         tocarBip(duracaoAlarme); 
-        
         testeAtivo = true;
-        
-        setTimeout(() => {
-            testeAtivo = false;
-        }, duracaoAlarme * 1000); 
+        setTimeout(() => { testeAtivo = false; }, duracaoAlarme * 1000); 
     };
 }
 
 
 // ==========================================
-// ⌨️ 8. MÁSCARA DE TEMPO (GIGANTE E BANDIDO)
+// ⌨️ 14. MÁSCARA DE TEMPO + CTRL + Z (BLINDADO)
 // ==========================================
+const historicoCampos = {};
+
 document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
-    
+    const idCampo = input.dataset.mapa + "-" + (input.classList.contains('morteGigante') ? 'G' : 'B');
+    historicoCampos[idCampo] = [];
+
+    input.addEventListener('focus', () => {
+        if (historicoCampos[idCampo].length === 0) {
+            historicoCampos[idCampo].push(input.value);
+        }
+    });
+
     input.addEventListener('input', (e) => {
+        if (e.detail && e.detail.isUndo) return;
+
         let cursorPosition = e.target.selectionStart;
         let valorOriginal = e.target.value;
         let valorNumerico = valorOriginal.replace(/\D/g, ""); 
@@ -589,14 +641,13 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
         if (valorNumerico.length > 2) pedacos.push(valorNumerico.slice(2, 4));
         if (valorNumerico.length > 4) pedacos.push(valorNumerico.slice(4, 6));
 
-        if (pedacos[0] && parseInt(pedacos[0]) > 23) pedacos[0] = "23";
-        if (pedacos[1] && parseInt(pedacos[1]) > 59) pedacos[1] = "59";
-        if (pedacos[2] && parseInt(pedacos[2]) > 59) pedacos[2] = "59";
+        if (pedacos[0] && pedacos[0].length === 2 && parseInt(pedacos[0]) > 23) pedacos[0] = "23";
+        if (pedacos[1] && pedacos[1].length === 2 && parseInt(pedacos[1]) > 59) pedacos[1] = "59";
+        if (pedacos[2] && pedacos[2].length === 2 && parseInt(pedacos[2]) > 59) pedacos[2] = "59";
 
         let formatado = pedacos.join(":");
-        
         let digitandoNoFim = (cursorPosition >= valorOriginal.length);
-
+        
         e.target.value = formatado;
 
         if (digitandoNoFim) {
@@ -609,10 +660,31 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
         calcular();
     });
 
+    input.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+            const pilha = historicoCampos[idCampo];
+            if (pilha.length > 1) { 
+                e.preventDefault();
+                
+                pilha.pop(); 
+                const valorAnterior = pilha[pilha.length - 1]; 
+                
+                input.value = valorAnterior;
+                
+                input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+                calcular();
+            }
+            return;
+        }
+
+        if (e.key === 'Enter') {
+            input.blur(); 
+        }
+    });
+
     input.addEventListener('change', (e) => {
         let valorNumerico = e.target.value.replace(/\D/g, "");
         if (valorNumerico.length > 0 && valorNumerico.length < 6) {
-            
             let completo = valorNumerico;
             if (valorNumerico.length === 1) completo = valorNumerico + "00000";
             else if (valorNumerico.length === 2) completo = valorNumerico + "0000";
@@ -627,22 +699,18 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
             e.target.value = formatar(h, m, s);
             calcular();
         }
-    });
 
-    input.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-            return; 
-        }
-        
-        if (e.key === 'Enter') {
-            input.blur(); 
+        const pilha = historicoCampos[idCampo];
+        if (pilha[pilha.length - 1] !== e.target.value) {
+            pilha.push(e.target.value);
+            if (pilha.length > 10) pilha.shift();
         }
     });
 });
 
 
 // ==========================================
-// 🌟 10. BOTÃO LIMPAR HORÁRIOS
+// 🌟 15. BOTÃO LIMPAR HORÁRIOS (Atualizado)
 // ==========================================
 const btnLimpar = document.getElementById('limpar-dados');
 const modalContainer = document.getElementById('modal-container');
@@ -661,6 +729,7 @@ if (btnLimpar && modalContainer) {
     modalConfirmar.onclick = () => {
         document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
             input.value = "";
+            delete input.dataset.colado;
         });
 
         document.querySelectorAll('tr').forEach(tr => {
@@ -673,6 +742,8 @@ if (btnLimpar && modalContainer) {
         });
 
         modalContainer.classList.add('modal-oculto');
+        
+        calcular();
     };
 
     modalContainer.onclick = (e) => {
@@ -684,7 +755,7 @@ if (btnLimpar && modalContainer) {
 
 
 // ==========================================
-// 🚀 BOTÃO MORTE INSTANTÂNEA
+// 🚀 16. BOTÃO MORTE INSTANTÂNEA (CORRIGIDO)
 // ==========================================
 function marcarMorteInstantanea(botao) {
     const container = botao.closest('.container-morto');
@@ -692,15 +763,13 @@ function marcarMorteInstantanea(botao) {
     
     if (input) {
         const infoTempo = obterHoraServerAtual();
-        
-        // Atribui o tempo correto local para bater com o fuso do relógio
-        input.value = formatar(infoTempo.hLocal, infoTempo.m, infoTempo.s);
+        input.value = infoTempo.textoFormatado;
         calcular();
     }
 }
 
 
 // ==========================================
-// 9. INIT
+// 17. INIT
 // ==========================================
 carregarDadosSalvos();
