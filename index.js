@@ -829,6 +829,7 @@ if (btnLimpar && modalContainer) {
     };
 
     modalConfirmar.onclick = () => {
+        // 1. Limpa os valores digitados nos inputs
         document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
             if (input.value !== undefined) {
                 input.value = "";
@@ -838,17 +839,29 @@ if (btnLimpar && modalContainer) {
             delete input.dataset.colado;
         });
 
+        // 2. ADICIONADO: Reseta o estilo vermelho e o texto das células que spawnaram
+        document.querySelectorAll('.tempo-restante-gigante, .tempo-restante-bandido').forEach(celula => {
+            celula.innerText = "--:--:--";
+            celula.style.backgroundColor = ""; 
+            celula.style.color = "";           
+            celula.classList.remove('ultimo-spawn'); 
+            delete celula.dataset.spawnado;    
+        });
+
+        // 3. Limpa os dados salvos no navegador (LocalStorage)
         document.querySelectorAll('tr').forEach(tr => {
             const morteGigante = tr.querySelector('.morteGigante');
             if (morteGigante) {
                 const mapa = morteGigante.getAttribute('data-mapa');
                 localStorage.removeItem(`morte-${mapa}-Gigante`);
                 localStorage.removeItem(`morte-${mapa}-Bandido`);
+                
+                localStorage.removeItem(`spawn-${mapa}-G`);
+                localStorage.removeItem(`spawn-${mapa}-B`);
             }
         });
 
         modalContainer.classList.add('modal-oculto');
-        
         calcular();
     };
 
@@ -858,7 +871,6 @@ if (btnLimpar && modalContainer) {
         }
     };
 }
-
 
 // ==========================================
 // 16. BOTÃO MORTE INSTANTÂNEA
