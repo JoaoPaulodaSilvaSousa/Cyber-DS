@@ -866,6 +866,24 @@ body.light-mode #toggle-restante:hover {
     border-bottom: 2px solid #e53935 !important;
 }
 
+/* ==========================================
+   ESTILO DO "SPAWNOU!" IGUAL AO DA DIREITA
+   ========================================== */
+
+/* Aplica o fundo rosa claro e texto vermelho para o Gigante */
+.tempo-restante-gigante[data-spawnado="true"] {
+    background-color: #FFEBEE !important; /* Rosa bem claro */
+    color: #D32F2F !important;           /* Texto vermelho */
+    font-weight: bold !important;
+}
+
+/* Aplica o fundo rosa claro e texto vermelho para o Bandido */
+.tempo-restante-bandido[data-spawnado="true"] {
+    background-color: #FFEBEE !important; /* Rosa bem claro */
+    color: #D32F2F !important;           /* Texto vermelho */
+    font-weight: bold !important;
+}
+
 /* ===================================================
    IMPLEMENTAÇÃO: TRAVAMENTO, CENTRALIZAÇÃO E QUEBRA DE TEXTO
    =================================================== */
