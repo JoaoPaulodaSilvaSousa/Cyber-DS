@@ -912,5 +912,6 @@ td:nth-child(6),
 td:nth-child(9) {
     font-size: 16px !important;
     font-weight: bold !important;
-    font-family: 'Courier New', Courier, monospace !important; /* Fonte estilo relógio */
+    font-family: Arial, Helvetica, sans-serif !important; /* Fonte estilo relógio */
 }
+

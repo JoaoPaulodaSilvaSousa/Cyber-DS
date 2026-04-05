@@ -2,7 +2,7 @@
 // 0. DECLARAÇÕES GLOBAIS INICIAIS
 // ==========================================
 let volumeAtual = parseFloat(localStorage.getItem('volumeAlarme')) || 0.1;
-let ultimoSpawnado = null; 
+let ultimoSpawnado = null;
 
 // ==========================================
 // 1. TEMA (BOTÃO ALTERNAR TEMA) - EMOJIS CUSTOMIZADOS
@@ -19,7 +19,6 @@ if (localStorage.getItem('tema') === 'light') {
 if (btnTema) {
     btnTema.onclick = () => {
         document.body.classList.toggle('light-mode');
-
         if (document.body.classList.contains('light-mode')) {
             localStorage.setItem('tema', 'light');
             btnTema.innerHTML = "<span>🌗</span> Modo Claro";
@@ -48,12 +47,11 @@ if (localStorage.getItem('alarme') === 'desligado') {
 if (btnAlarme) {
     btnAlarme.onclick = () => {
         alarmeAtivo = !alarmeAtivo;
-
         btnAlarme.classList.toggle('desativado', !alarmeAtivo);
         btnAlarme.innerText = alarmeAtivo
-            ? "🔔 Alarme: LIGADO"
+            ?
+            "🔔 Alarme: LIGADO"
             : "🔕 Alarme: DESLIGADO";
-
         localStorage.setItem('alarme', alarmeAtivo ? 'ligado' : 'desligado');
     };
 }
@@ -81,7 +79,8 @@ fusos.forEach(f => {
         const interpretador = new Intl.DateTimeFormat('en-US', { timeZone: f, timeZoneName: 'long' });
         const partesData = interpretador.formatToParts(new Date());
         const nomeFusoLongo = partesData.find(p => p.type === 'timeZoneName').value;
-        nomeExibicao = `${cidade} (${nomeFusoLongo})`;
+        nomeExibicao 
+        = `${cidade} (${nomeFusoLongo})`;
     } catch (e) {}
     listaComPaises.push({ valorOriginal: f, textoExibicao: nomeExibicao });
 });
@@ -89,7 +88,7 @@ fusos.forEach(f => {
 function renderizarOpcoes(lista) {
     if (!fusoOpcoes) return;
     fusoOpcoes.innerHTML = "";
-    
+
     if (lista.length === 0) {
         const li = document.createElement("li");
         li.textContent = "Nenhum fuso encontrado";
@@ -128,7 +127,6 @@ function fecharMenu() {
 if (fusoSelect) {
     fusoSelect.onclick = (e) => {
         e.stopPropagation();
-        
         const termo = buscarFuso ? buscarFuso.value.trim() : "";
         if (termo.length > 0) {
             fusoOpcoes.classList.toggle('ativo');
@@ -150,7 +148,7 @@ if (buscarFuso) {
 
 function aplicarFiltro() {
     const termo = buscarFuso ? buscarFuso.value.toLowerCase().trim() : "";
-    
+
     if (termo.length === 0) {
         fecharMenu();
         if (fusoOpcoes) fusoOpcoes.innerHTML = "";
@@ -161,7 +159,7 @@ function aplicarFiltro() {
         item.textoExibicao.toLowerCase().includes(termo) || 
         item.valorOriginal.toLowerCase().includes(termo)
     );
-    
+
     renderizarOpcoes(filtrados);
     fusoOpcoes.classList.add('ativo');
     fusoSelect.classList.add('aberto');
@@ -170,6 +168,7 @@ function aplicarFiltro() {
 const fusoSalvo = localStorage.getItem("fuso");
 if (fusoSalvo) {
     const encontrado = listaComPaises.find(p => p.valorOriginal === fusoSalvo);
+
     if (encontrado) {
         fusoSelect.innerHTML = `<span>🌍</span> ${encontrado.textoExibicao}`;
         fusoSelect.dataset.valor = fusoSalvo;
@@ -225,7 +224,8 @@ function formatar(h, m, s) {
 // 🌍 5. CALCULAR HORA DO SERVER
 // ==========================================
 function obterHoraServerAtual() {
-    const fusoUsuario = fusoSelect && fusoSelect.dataset.valor ? fusoSelect.dataset.valor : "America/Sao_Paulo";
+    const fusoUsuario = fusoSelect && fusoSelect.dataset.valor ?
+    fusoSelect.dataset.valor : "America/Sao_Paulo";
     const agora = new Date();
 
     const formatterUsuario = new Intl.DateTimeFormat('en-US', {
@@ -233,6 +233,7 @@ function obterHoraServerAtual() {
         hour: 'numeric', minute: 'numeric', second: 'numeric',
         hour12: false
     });
+
     const partesUsu = formatterUsuario.formatToParts(agora);
     const hUsu = parseInt(partesUsu.find(p => p.type === 'hour').value) % 24;
     const mUsu = parseInt(partesUsu.find(p => p.type === 'minute').value);
@@ -242,6 +243,7 @@ function obterHoraServerAtual() {
         timeZone: 'America/Manaus', 
         hour: 'numeric', hour12: false
     });
+
     const hServidor = parseInt(formatterServer.format(agora)) % 24;
 
     return {
@@ -259,6 +261,7 @@ function obterDiferencaFuso() {
         timeZone: fusoUsuario,
         hour: 'numeric', hour12: false
     });
+
     const formatterServ = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Manaus',
         hour: 'numeric', hour12: false
@@ -292,6 +295,11 @@ function calcular() {
         const campoTempoB = tr.querySelector('.tempo-restante-bandido');
 
         function processarCalculo(valorInput, campoServer, campoLocal, storageKey, celulaRegressiva) {
+            // Se o cronômetro desta coluna já estiver com "SPAWNOU!", ignora o recálculo
+            if (celulaRegressiva && celulaRegressiva.dataset.spawnado === "true") {
+                return;
+            }
+
             let valorNumerico = valorInput.replace(/\D/g, "");
 
             if (valorNumerico.length === 0) {
@@ -333,7 +341,6 @@ function calcular() {
 
             if (valorNumerico.length === 6) {
                 localStorage.setItem(storageKey, formatar(hDigitada, m, s));
-                
                 if (celulaRegressiva) {
                     delete celulaRegressiva.dataset.spawnado;
                     celulaRegressiva.classList.remove('ultimo-spawn'); 
@@ -351,6 +358,7 @@ function calcular() {
 // 7. SISTEMA DE COLAR TEXTO DA IMAGEM
 // ==========================================
 const campoColar = document.getElementById('campo-colar');
+
 if (campoColar) {
     campoColar.addEventListener('input', (e) => {
         const texto = e.target.value.trim();
@@ -428,7 +436,6 @@ function carregarDadosSalvos() {
 // ==========================================
 function tocarBip(duracaoSegundos = 1) {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    
     if (ctx.state === 'suspended') {
         ctx.resume();
     }
@@ -440,8 +447,7 @@ function tocarBip(duracaoSegundos = 1) {
     gain.connect(ctx.destination);
     
     osc.type = 'triangle'; 
-    osc.frequency.value = 600; 
-    
+    osc.frequency.value = 600;
     const agora = ctx.currentTime;
     
     gain.gain.setValueAtTime(0, agora);
@@ -471,11 +477,9 @@ function atualizarInterfaceVolume(valor) {
 if (sliderVolume && campoVolumeTxt) {
     sliderVolume.value = volumeAtual;
     campoVolumeTxt.value = Math.round(volumeAtual * 100);
-
     sliderVolume.oninput = (e) => {
         atualizarInterfaceVolume(parseFloat(e.target.value));
     };
-
     campoVolumeTxt.oninput = (e) => {
         let valorDigitado = parseInt(e.target.value);
         if (isNaN(valorDigitado)) return;
@@ -488,14 +492,14 @@ if (sliderVolume && campoVolumeTxt) {
 
     if (btnVolMenos) {
         btnVolMenos.onclick = () => {
-            let novoVol = Math.max(0, volumeAtual - 0.05); 
+            let novoVol = Math.max(0, volumeAtual - 0.05);
             atualizarInterfaceVolume(parseFloat(novoVol.toFixed(2)));
         };
     }
 
     if (btnVolMais) {
         btnVolMais.onclick = () => {
-            let novoVol = Math.min(1, volumeAtual + 0.05); 
+            let novoVol = Math.min(1, volumeAtual + 0.05);
             atualizarInterfaceVolume(parseFloat(novoVol.toFixed(2)));
         };
     }
@@ -506,10 +510,10 @@ if (sliderVolume && campoVolumeTxt) {
 // 11. CONTROLE DA DURACAO DO ALARME
 // ==========================================
 const campoDuracao = document.getElementById('duracao-alarme');
-const btnDuracaoMenos = document.getElementById('duracao-menos'); 
+const btnDuracaoMenos = document.getElementById('duracao-menos');
 const btnDuracaoMais = document.getElementById('duracao-mais');   
 
-let duracaoAlarme = parseFloat(localStorage.getItem('duracaoAlarme')) || 1; 
+let duracaoAlarme = parseFloat(localStorage.getItem('duracaoAlarme')) || 1;
 
 function atualizarInterfaceDuracao(valor) {
     if (campoDuracao) campoDuracao.value = valor.toFixed(1);
@@ -539,7 +543,7 @@ if (btnDuracaoMais) {
 // ==========================================================
 // 12. RELÓGIO + ALARME + REGRESSIVA (Blindado com Web Worker)
 // ==========================================================
-let testeAtivo = false; 
+let testeAtivo = false;
 let respawnAtivo = false; 
 let ultimosAlarmesDisparados = {}; 
 
@@ -584,16 +588,20 @@ worker.onmessage = function() {
         function atualizarLinha(inputHoraRespawn, celulaExibicao, celulaFoco, chaveUnica) {
             if (!celulaExibicao) return;
             
-            if (celulaExibicao.dataset.spawnado === "true") {
-                celulaExibicao.innerText = "SPAWNOU!";
-                celulaExibicao.style.color = "#ff5252"; 
-                return;
-            }
-
             const horaTexto = inputHoraRespawn ? inputHoraRespawn.value : "";
+            
+            // 1. LIMPEZA AUTOMÁTICA SE O INPUT FOR ZERADO
             if (!horaTexto || horaTexto === "" || horaTexto === "--:--:--" || horaTexto === "HH:MM:SS") {
                 celulaExibicao.innerText = "--:--:--";
                 celulaExibicao.style.color = ""; 
+                delete celulaExibicao.dataset.spawnado; 
+                return;
+            }
+
+            // 2. SE JÁ ESTIVER MARCADO COMO SPAWNADO, MANTÉM ASSIM...
+            if (celulaExibicao.dataset.spawnado === "true") {
+                celulaExibicao.innerText = "💥 SPAWNOU!";
+                celulaExibicao.style.color = "#ff5252"; 
                 return;
             }
 
@@ -601,35 +609,29 @@ worker.onmessage = function() {
             const hResp = parseInt(partes[0]);
             const mResp = parseInt(partes[1]);
             const sResp = parseInt(partes[2]);
-
             const tempoRespawnSegundos = hResp * 3600 + mResp * 60 + sResp;
             
             let diferencaSegundos = tempoRespawnSegundos - tempoAtualServidorSegundos;
-
             if (diferencaSegundos < 0) {
-                diferencaSegundos += 24 * 3600; 
+                diferencaSegundos += 24 * 3600;
             }
 
-            // Se o tempo bater zerado (momento do spawn)
+            // 3. MOMENTO DO SPAWN (ZERA O CONTADOR)
             if (diferencaSegundos <= 0) { 
                 celulaExibicao.dataset.spawnado = "true";
                 celulaExibicao.innerText = "💥 SPAWNOU!";
                 celulaExibicao.style.color = "#ff5252"; 
 
-                // Ajuste de cores da célula em destaque
                 if (ultimoSpawnado) {
                     ultimoSpawnado.classList.remove('ultimo-spawn');
                 }
                 celulaExibicao.classList.add('ultimo-spawn');
                 ultimoSpawnado = celulaExibicao;
 
-                // 🌟 EXECUÇÃO DO ALARME SINCRONIZADA AQUI:
                 const tempoAtualSegundos = infoTempo.hLocal * 3600 + infoTempo.m * 60 + infoTempo.s;
                 
-                // Evita disparar múltiplos alarmes no mesmo segundo
                 if (ultimosAlarmesDisparados[chaveUnica] !== tempoAtualSegundos) {
                     ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
-
                     tr.classList.add('alarme-linha');
                     if (celulaFoco) celulaFoco.classList.add('alarme-foco');
 
@@ -642,9 +644,12 @@ worker.onmessage = function() {
                         tr.classList.remove('alarme-linha');
                         if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
                         respawnAtivo = false;
-                    }, duracaoAlarme * 1000); 
+                    }, duracaoAlarme * 1000);
                 }
             } else {
+                // 4. VOLTA A MOSTRAR O CRONÔMETRO (O "SPAWNOU!" some se o usuário mudou o input)
+                delete celulaExibicao.dataset.spawnado; 
+                
                 const hrs = Math.floor(diferencaSegundos / 3600);
                 const mins = Math.floor((diferencaSegundos % 3600) / 60);
                 const segs = diferencaSegundos % 60;
@@ -674,9 +679,10 @@ worker.onmessage = function() {
 // 13. BOTÃO DE TESTAR ALARME
 // ==========================================
 const btnTestarAlarm = document.getElementById('testar-alarm');
+
 if (btnTestarAlarm) {
     btnTestarAlarm.onclick = () => {
-        tocarBip(duracaoAlarme); 
+        tocarBip(duracaoAlarme);
         testeAtivo = true;
         setTimeout(() => { testeAtivo = false; }, duracaoAlarme * 1000); 
     };
@@ -700,6 +706,16 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
 
     input.addEventListener('input', (e) => {
         if (e.detail && e.detail.isUndo) return;
+
+        // Assim que o usuário digita algo novo, nós liberamos a trava do monstro específico
+        const campoRegressiva = input.classList.contains('morteGigante') ? 
+                                input.closest('tr').querySelector('.tempo-restante-gigante') : 
+                                input.closest('tr').querySelector('.tempo-restante-bandido');
+                                
+        if (campoRegressiva) {
+            delete campoRegressiva.dataset.spawnado;
+            campoRegressiva.classList.remove('ultimo-spawn');
+        }
 
         let cursorPosition = e.target.selectionStart;
         let valorOriginal = e.target.value;
@@ -740,11 +756,13 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
                 e.preventDefault();
                 
                 pilha.pop(); 
+                
                 const valorAnterior = pilha[pilha.length - 1]; 
                 
                 input.value = valorAnterior;
                 
                 input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+                
                 calcular();
             }
             return;
@@ -757,6 +775,7 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
 
     input.addEventListener('change', (e) => {
         let valorNumerico = e.target.value.replace(/\D/g, "");
+
         if (valorNumerico.length > 0 && valorNumerico.length < 6) {
             let completo = valorNumerico;
             
@@ -779,8 +798,9 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
             if (s > 59) s = 59;
 
             e.target.value = formatar(h, m, s);
-            calcular();
         }
+
+        calcular();
 
         const pilha = historicoCampos[idCampo];
         if (pilha[pilha.length - 1] !== e.target.value) {
@@ -789,6 +809,7 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
         }
     });
 });
+
 
 // ==========================================
 // 15. BOTÃO LIMPAR HORÁRIOS
@@ -847,11 +868,22 @@ function marcarMorteInstantanea(botao) {
     const input = container.querySelector('input');
     
     if (input) {
+        // >>> NOVA REGRA: Limpa a trava do Spawnou quando clica no botão "Morto" <<<
+        const campoRegressiva = input.classList.contains('morteGigante') ? 
+                                input.closest('tr').querySelector('.tempo-restante-gigante') : 
+                                input.closest('tr').querySelector('.tempo-restante-bandido');
+                                
+        if (campoRegressiva) {
+            delete campoRegressiva.dataset.spawnado;
+            campoRegressiva.classList.remove('ultimo-spawn');
+        }
+
         const infoTempo = obterHoraServerAtual();
         input.value = infoTempo.textoFormatado;
         calcular();
     }
 }
+
 
 // ==========================================
 // 18. OCULTAR / EXIBIR TEMPO RESTANTE
@@ -859,37 +891,57 @@ function marcarMorteInstantanea(botao) {
 const btnToggleRestante = document.getElementById('toggle-restante');
 
 if (btnToggleRestante) {
+    const colunasG = document.querySelectorAll('.tempo-restante-gigante');
+    const colunasB = document.querySelectorAll('.tempo-restante-bandido');
+    
+    const ths = document.querySelectorAll('th');
+    let thGigante, thBandido;
+    ths.forEach(th => {
+        if (th.innerText.includes('RESTANTE GIGANTE')) thGigante = th;
+        if (th.innerText.includes('RESTANTE BANDIDO')) thBandido = th;
+    });
+
+    const alternarVisibilidade = (elemento, esconder) => {
+        if (elemento) {
+            elemento.style.display = esconder ?
+            'none' : '';
+        }
+    };
+
+    const estadoSalvo = localStorage.getItem('mostrarRestante');
+    let deveEsconder = (estadoSalvo === 'oculto');
+
+    if (deveEsconder) {
+        alternarVisibilidade(thGigante, true);
+        colunasG.forEach(el => alternarVisibilidade(el, true));
+
+        alternarVisibilidade(thBandido, true);
+        colunasB.forEach(el => alternarVisibilidade(el, true));
+
+        btnToggleRestante.innerText = " Mostrar Tempo Restante + ";
+    } else {
+        btnToggleRestante.innerText = "  Ocultar Tempo Restante - ";
+    }
+
     btnToggleRestante.onclick = () => {
-        const colunasG = document.querySelectorAll('.tempo-restante-gigante');
-        const colunasB = document.querySelectorAll('.tempo-restante-bandido');
-        
-        const ths = document.querySelectorAll('th');
-        let thGigante, thBandido;
-        
-        ths.forEach(th => {
-            if (th.innerText.includes('RESTANTE GIGANTE')) thGigante = th;
-            if (th.innerText.includes('RESTANTE BANDIDO')) thBandido = th;
-        });
+        deveEsconder = !deveEsconder;
 
-        const escondido = colunasG[0].style.display === 'none';
+        alternarVisibilidade(thGigante, deveEsconder);
+        colunasG.forEach(el => alternarVisibilidade(el, deveEsconder));
 
-        const alternarVisibilidade = (elemento) => {
-            if (elemento) {
-                elemento.style.display = escondido ? '' : 'none';
-            }
-        };
+        alternarVisibilidade(thBandido, deveEsconder);
+        colunasB.forEach(el => alternarVisibilidade(el, deveEsconder));
 
-        alternarVisibilidade(thGigante);
-        colunasG.forEach(alternarVisibilidade);
-
-        alternarVisibilidade(thBandido);
-        colunasB.forEach(alternarVisibilidade);
-
-        btnToggleRestante.innerText = escondido 
-            ? "  Ocultar Tempo Restante - " 
-            : " Mostrar Tempo Restante + ";
+        if (deveEsconder) {
+            btnToggleRestante.innerText = " Mostrar Tempo Restante + ";
+            localStorage.setItem('mostrarRestante', 'oculto');
+        } else {
+            btnToggleRestante.innerText = "  Ocultar Tempo Restante - ";
+            localStorage.setItem('mostrarRestante', 'visivel');
+        }
     };
 }
+
 
 // ==========================================
 // 18. BOTÕES PARA OCULTAR/EXIBIR COLUNAS
@@ -898,7 +950,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerRow = document.querySelector('thead tr');
     if (!headerRow) return;
 
-    // Acha a posição das colunas pelos nomes
     const ths = headerRow.querySelectorAll('th');
     let indexGigante = [];
     let indexBandido = [];
@@ -929,7 +980,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Cria os botões na tela
     const containerBotoes = document.createElement('div');
     containerBotoes.style.margin = "15px 0";
     containerBotoes.style.display = "flex";
@@ -963,14 +1013,14 @@ document.addEventListener('DOMContentLoaded', () => {
     containerBotoes.appendChild(btnGigante);
     containerBotoes.appendChild(btnBandido);
 
-    // Insere os botões antes da tabela
     const tabela = document.querySelector('table');
     if (tabela) {
         tabela.parentNode.insertBefore(containerBotoes, tabela);
     }
 });
 
+
 // ==========================================
-// 17. INIT
+// 19. INIT
 // ==========================================
 carregarDadosSalvos();
