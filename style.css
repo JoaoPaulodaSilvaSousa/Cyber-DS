@@ -894,9 +894,8 @@ body.light-mode #toggle-restante:hover {
     margin: 0 auto !important;
 }
 
-/* Removi as regras duplicadas de largura de colunas (width fixado em pixels) que estavam fazendo o texto maior quebrar e amassar tudo! */
 table {
-    table-layout: auto !important; /* Deixei em auto para o navegador calcular o espaço com base nas letras maiores */
+    table-layout: auto !important; /* Deixa o navegador calcular o espaço com base nas letras maiores */
     width: 100% !important;
     border-collapse: collapse;
 }
@@ -904,14 +903,14 @@ table {
 th {
     white-space: normal !important; 
     word-wrap: break-word !important;
-    padding: 12px 6px !important; /* Respiro extra */
+    padding: 12px 6px !important; 
     vertical-align: middle !important;
 }
 
 td {
     white-space: nowrap !important;
-    padding: 10px 6px !important; /* Respiro extra */
-    font-size: 14px !important; /* Aumentado de 13px para 14px */
+    padding: 10px 6px !important; 
+    font-size: 14px !important; 
 }
 
 .coluna-oculta {
@@ -922,14 +921,23 @@ td {
 td:nth-child(1) {
     font-size: 18px !important;
     font-weight: bold !important;
-    color: #4CAF50 !important; /* Mantém o padrão verde brilhante */
+    color: #4CAF50 !important; 
 }
 
-/* AUMENTA O TEMPO RESTANTE GIGANTE E BANDIDO (6ª E 9ª COLUNAS) */
+/* AUMENTA O TEMPO RESTANTE GIGANTE E BANDIDO */
 td:nth-child(6), 
 td:nth-child(9) {
     font-size: 16px !important;
     font-weight: bold !important;
-    font-family: Arial, Helvetica, sans-serif !important; /* Fonte estilo relógio */
+    font-family: Arial, Helvetica, sans-serif !important; 
 }
 
+/* ⚠️ REMOVIDOS OS !IMPORTANT DA COR DE FUNDO DO SPAWNADO 
+   Isso permite que a animação da linha vermelha funcione!
+*/
+.tempo-restante-gigante[data-spawnado="true"],
+.tempo-restante-bandido[data-spawnado="true"] {
+    background-color: #FFEBEE; /* Sem !important para não travar o fundo da linha */
+    color: #D32F2F !important;           
+    font-weight: bold !important;
+}

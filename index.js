@@ -50,8 +50,7 @@ if (btnAlarme) {
         alarmeAtivo = !alarmeAtivo;
         btnAlarme.classList.toggle('desativado', !alarmeAtivo);
         btnAlarme.innerText = alarmeAtivo
-            ?
-            "🔔 Alarme: LIGADO"
+            ? "🔔 Alarme: LIGADO"
             : "🔕 Alarme: DESLIGADO";
         localStorage.setItem('alarme', alarmeAtivo ? 'ligado' : 'desligado');
     };
@@ -80,8 +79,7 @@ fusos.forEach(f => {
         const interpretador = new Intl.DateTimeFormat('en-US', { timeZone: f, timeZoneName: 'long' });
         const partesData = interpretador.formatToParts(new Date());
         const nomeFusoLongo = partesData.find(p => p.type === 'timeZoneName').value;
-        nomeExibicao 
-        = `${cidade} (${nomeFusoLongo})`;
+        nomeExibicao = `${cidade} (${nomeFusoLongo})`;
     } catch (e) {}
     listaComPaises.push({ valorOriginal: f, textoExibicao: nomeExibicao });
 });
@@ -89,7 +87,6 @@ fusos.forEach(f => {
 function renderizarOpcoes(lista) {
     if (!fusoOpcoes) return;
     fusoOpcoes.innerHTML = "";
-
     if (lista.length === 0) {
         const li = document.createElement("li");
         li.textContent = "Nenhum fuso encontrado";
@@ -149,7 +146,6 @@ if (buscarFuso) {
 
 function aplicarFiltro() {
     const termo = buscarFuso ? buscarFuso.value.toLowerCase().trim() : "";
-
     if (termo.length === 0) {
         fecharMenu();
         if (fusoOpcoes) fusoOpcoes.innerHTML = "";
@@ -160,7 +156,6 @@ function aplicarFiltro() {
         item.textoExibicao.toLowerCase().includes(termo) || 
         item.valorOriginal.toLowerCase().includes(termo)
     );
-
     renderizarOpcoes(filtrados);
     fusoOpcoes.classList.add('ativo');
     fusoSelect.classList.add('aberto');
@@ -169,7 +164,6 @@ function aplicarFiltro() {
 const fusoSalvo = localStorage.getItem("fuso");
 if (fusoSalvo) {
     const encontrado = listaComPaises.find(p => p.valorOriginal === fusoSalvo);
-
     if (encontrado) {
         fusoSelect.innerHTML = `<span>🌍</span> ${encontrado.textoExibicao}`;
         fusoSelect.dataset.valor = fusoSalvo;
@@ -225,8 +219,7 @@ function formatar(h, m, s) {
 // 🌍 5. CALCULAR HORA DO SERVER
 // ==========================================
 function obterHoraServerAtual() {
-    const fusoUsuario = fusoSelect && fusoSelect.dataset.valor ?
-    fusoSelect.dataset.valor : "America/Sao_Paulo";
+    const fusoUsuario = fusoSelect && fusoSelect.dataset.valor ? fusoSelect.dataset.valor : "America/Sao_Paulo";
     const agora = new Date();
 
     const formatterUsuario = new Intl.DateTimeFormat('en-US', {
@@ -234,17 +227,14 @@ function obterHoraServerAtual() {
         hour: 'numeric', minute: 'numeric', second: 'numeric',
         hour12: false
     });
-
     const partesUsu = formatterUsuario.formatToParts(agora);
     const hUsu = parseInt(partesUsu.find(p => p.type === 'hour').value) % 24;
     const mUsu = parseInt(partesUsu.find(p => p.type === 'minute').value);
     const sUsu = parseInt(partesUsu.find(p => p.type === 'second').value);
-
     const formatterServer = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Manaus', 
         hour: 'numeric', hour12: false
     });
-
     const hServidor = parseInt(formatterServer.format(agora)) % 24;
 
     return {
@@ -262,12 +252,10 @@ function obterDiferencaFuso() {
         timeZone: fusoUsuario,
         hour: 'numeric', hour12: false
     });
-
     const formatterServ = new Intl.DateTimeFormat('en-US', {
         timeZone: 'America/Manaus',
         hour: 'numeric', hour12: false
     });
-
     const hUsuarioAgora = parseInt(formatterUsu.format(agora)) % 24;
     const hServerAgora = parseInt(formatterServ.format(agora)) % 24;
 
@@ -276,11 +264,10 @@ function obterDiferencaFuso() {
 
 
 // =======================================================
-// 🌟 6. CALCULAR (AGORA SIM: BLINDADO NO F5 E NOVO INPUT)
+// 🌟 6. CALCULAR
 // =======================================================
 function calcular() {
     const diferencaFuso = obterDiferencaFuso();
-
     document.querySelectorAll('tr').forEach(tr => {
         const morteGigante = tr.querySelector('.morteGigante');
         const morteBandido = tr.querySelector('.morteBandido');
@@ -301,21 +288,35 @@ function calcular() {
             if (valorNumerico.length === 0) {
                 if (campoServer && !campoServer.dataset.colado) campoServer.value = "";
                 if (campoLocal && !campoLocal.dataset.colado) campoLocal.value = "";
-                localStorage.removeItem(storageKey);
-                localStorage.removeItem(spawnKey); 
                 
-                if (celulaRegressiva) {
-                    delete celulaRegressiva.dataset.spawnado;
-                    celulaRegressiva.innerText = "--:--:--";
-                    celulaRegressiva.style.backgroundColor = ""; 
-                    celulaRegressiva.style.color = "";
-                    celulaRegressiva.classList.remove('ultimo-spawn'); 
+                // NOVIDADE: SÓ limpa o localStorage se a página já terminou de ser carregada
+                if (paginaCarregada) {
+                    localStorage.removeItem(storageKey);
+                    localStorage.removeItem(spawnKey); 
+                    
+                    if (celulaRegressiva) {
+                        delete celulaRegressiva.dataset.spawnado;
+                        celulaRegressiva.innerText = "--:--:--";
+                        celulaRegressiva.style.backgroundColor = ""; 
+                        celulaRegressiva.style.color = "";
+                        celulaRegressiva.classList.remove('ultimo-spawn');
+                    }
+                    
+                    if (campoLocal) campoLocal.classList.remove('alarme-foco'); 
+                    
+                    const mapaLocal = morteGigante.getAttribute('data-mapa');
+                    localStorage.removeItem(`linha-vermelha-${mapaLocal}`);
+                    localStorage.removeItem(`foco-azul-${spawnKey}`);
+
+                    const outroTipo = spawnKey.endsWith('-G') ? 'B' : 'G';
+                    if (localStorage.getItem(`spawn-${mapaLocal}-${outroTipo}`) !== "true") {
+                         tr.classList.remove('alarme-linha'); 
+                    }
                 }
                 return;
             }
 
             if (campoLocal && campoLocal.dataset.colado) return;
-
             let valorCompleto = valorNumerico;
             if (valorNumerico.length === 1) valorCompleto = valorNumerico + "00000";
             else if (valorNumerico.length === 2) valorCompleto = valorNumerico + "0000";
@@ -327,7 +328,6 @@ function calcular() {
             let hDigitada = parseInt(valorCompleto.slice(0, 2)) || 0;
             let m = parseInt(valorCompleto.slice(2, 4)) || 0;
             let s = parseInt(valorCompleto.slice(4, 6)) || 0;
-
             let respawnServerH = (hDigitada + 3) % 24;
 
             let respawnLocalH = respawnServerH + diferencaFuso;
@@ -339,11 +339,11 @@ function calcular() {
 
             let horarioFormatado = formatar(hDigitada, m, s);
             let horarioSalvoNoStorage = localStorage.getItem(storageKey);
-
             if (valorNumerico.length === 6) {
-                // SE O HORÁRIO DIGITADO FOR DIFERENTE DO SALVO: o usuário mudou o tempo! Resetamos o spawn.
                 if (horarioSalvoNoStorage && horarioSalvoNoStorage !== horarioFormatado) {
                     localStorage.removeItem(spawnKey);
+                    localStorage.removeItem(`foco-azul-${spawnKey}`);
+                    
                     if (celulaRegressiva) {
                         delete celulaRegressiva.dataset.spawnado;
                         celulaRegressiva.style.backgroundColor = ""; 
@@ -351,16 +351,18 @@ function calcular() {
                         celulaRegressiva.classList.remove('ultimo-spawn');
                         celulaRegressiva.innerText = "--:--:--";
                     }
+                    
+                    if (campoLocal) campoLocal.classList.remove('alarme-foco'); 
+                    
+                    const mapaLocal = morteGigante.getAttribute('data-mapa');
+                    const outroTipo = spawnKey.endsWith('-G') ? 'B' : 'G';
+                    if (localStorage.getItem(`spawn-${mapaLocal}-${outroTipo}`) !== "true") {
+                         localStorage.removeItem(`linha-vermelha-${mapaLocal}`);
+                         tr.classList.remove('alarme-linha'); 
+                    }
                 }
                 
                 localStorage.setItem(storageKey, horarioFormatado);
-            }
-
-            // Se o LocalStorage diz que já spawnou, paramos o relógio aqui e mantemos o visual
-            if (localStorage.getItem(spawnKey) === "true" && celulaRegressiva) {
-                celulaRegressiva.dataset.spawnado = "true";
-                celulaRegressiva.innerText = "SPAWNOU!";
-                return; 
             }
         }
 
@@ -374,7 +376,6 @@ function calcular() {
 // 7. SISTEMA DE COLAR TEXTO DA IMAGEM
 // ==========================================
 const campoColar = document.getElementById('campo-colar');
-
 if (campoColar) {
     campoColar.addEventListener('input', (e) => {
         const texto = e.target.value.trim();
@@ -396,7 +397,7 @@ if (campoColar) {
                     if (celulaMapa && celulaMapa.innerText.trim() === mapaNome) {
                         const respGL = tr.querySelector('.respGiganteLocal');
                         const respBL = tr.querySelector('.respBandidoLocal');
-                        
+               
                         const campoTempoG = tr.querySelector('.tempo-restante-gigante');
                         const campoTempoB = tr.querySelector('.tempo-restante-bandido');
 
@@ -406,9 +407,11 @@ if (campoColar) {
                             if (campoTempoG) {
                                 delete campoTempoG.dataset.spawnado;
                                 localStorage.removeItem(`spawn-${mapaNome}-G`);
+                                localStorage.removeItem(`foco-azul-spawn-${mapaNome}-G`);
                                 campoTempoG.style.backgroundColor = "";
                                 campoTempoG.style.color = "";
                                 campoTempoG.classList.remove('ultimo-spawn'); 
+                                respGL.classList.remove('alarme-foco'); 
                             }
                         }
                         if (respBL && horaBandido) {
@@ -417,10 +420,17 @@ if (campoColar) {
                             if (campoTempoB) {
                                 delete campoTempoB.dataset.spawnado;
                                 localStorage.removeItem(`spawn-${mapaNome}-B`);
+                                localStorage.removeItem(`foco-azul-spawn-${mapaNome}-B`);
                                 campoTempoB.style.backgroundColor = "";
                                 campoTempoB.style.color = "";
                                 campoTempoB.classList.remove('ultimo-spawn'); 
+                                respBL.classList.remove('alarme-foco'); 
                             }
+                        }
+
+                        if (localStorage.getItem(`spawn-${mapaNome}-G`) !== "true" && localStorage.getItem(`spawn-${mapaNome}-B`) !== "true") {
+                            localStorage.removeItem(`linha-vermelha-${mapaNome}`);
+                            tr.classList.remove('alarme-linha');
                         }
                     }
                 });
@@ -448,26 +458,40 @@ function carregarDadosSalvos() {
 
         if (salvoG) morteGigante.value = salvoG;
         if (salvoB) morteBandido.value = salvoB;
+    });
 
+    // Calcula os tempos iniciais uma vez para preencher a tabela
+    calcular();
+
+    // NOVIDADE: Força a estilização visual persistida diretamente do banco local.
+    document.querySelectorAll('tr').forEach(tr => {
+        const morteGigante = tr.querySelector('.morteGigante');
+        if (!morteGigante) return;
+        const mapa = morteGigante.getAttribute('data-mapa');
+        
         const campoTempoG = tr.querySelector('.tempo-restante-gigante');
         const campoTempoB = tr.querySelector('.tempo-restante-bandido');
-        const spawnG = localStorage.getItem(`spawn-${mapa}-G`);
-        const spawnB = localStorage.getItem(`spawn-${mapa}-B`);
+        const respGL = tr.querySelector('.respGiganteLocal');
+        const respBL = tr.querySelector('.respBandidoLocal');
 
-        if (spawnG === "true" && campoTempoG) {
+        if (localStorage.getItem(`spawn-${mapa}-G`) === "true" && campoTempoG) {
             campoTempoG.dataset.spawnado = "true";
-            campoTempoG.style.backgroundColor = "rgb(255, 82, 82)";
-            campoTempoG.style.color = "white";
             campoTempoG.innerText = "💥 SPAWNOU!";
         }
-        if (spawnB === "true" && campoTempoB) {
+        if (localStorage.getItem(`spawn-${mapa}-B`) === "true" && campoTempoB) {
             campoTempoB.dataset.spawnado = "true";
-            campoTempoB.style.backgroundColor = "rgb(255, 82, 82)";
-            campoTempoB.style.color = "white";
             campoTempoB.innerText = "💥 SPAWNOU!";
         }
+        if (localStorage.getItem(`foco-azul-spawn-${mapa}-G`) === "true" && respGL) {
+            respGL.classList.add('alarme-foco');
+        }
+        if (localStorage.getItem(`foco-azul-spawn-${mapa}-B`) === "true" && respBL) {
+            respBL.classList.add('alarme-foco');
+        }
+        if (localStorage.getItem(`linha-vermelha-${mapa}`) === "true") {
+            tr.classList.add('alarme-linha');
+        }
     });
-    calcular();
 }
 
 
@@ -554,7 +578,6 @@ const btnDuracaoMenos = document.getElementById('duracao-menos');
 const btnDuracaoMais = document.getElementById('duracao-mais');   
 
 let duracaoAlarme = parseFloat(localStorage.getItem('duracaoAlarme')) || 1;
-
 function atualizarInterfaceDuracao(valor) {
     if (campoDuracao) campoDuracao.value = valor.toFixed(1);
     duracaoAlarme = valor;
@@ -595,11 +618,8 @@ const workerCode = `
 
 const blob = new Blob([workerCode], { type: 'application/javascript' });
 const worker = new Worker(URL.createObjectURL(blob));
-
 worker.onmessage = function() {
-    // SÓ DEIXA O WORKER RODAR SE O CARREGAMENTO INICIAL JÁ TERMINOU
     if (!paginaCarregada) return;
-
     const infoTempo = obterHoraServerAtual();
     const horarioLocal = formatar(infoTempo.hLocal, infoTempo.m, infoTempo.s);
     const horarioServer = infoTempo.textoFormatado; 
@@ -610,7 +630,6 @@ worker.onmessage = function() {
     }
 
     const tempoAtualServidorSegundos = infoTempo.h * 3600 + infoTempo.m * 60 + infoTempo.s;
-
     document.querySelectorAll('tr').forEach(tr => {
         const morteGigante = tr.querySelector('.morteGigante');
         const morteBandido = tr.querySelector('.morteBandido');
@@ -622,21 +641,28 @@ worker.onmessage = function() {
 
         const campoTempoG = tr.querySelector('.tempo-restante-gigante');
         const campoTempoB = tr.querySelector('.tempo-restante-bandido');
-        
+  
         if (!morteGigante || !morteBandido) return;
 
         const mapa = morteGigante.getAttribute('data-mapa');
 
+        // MANTÉM OS ESTADOS VISUAIS ATIVOS (Evita sumir no F5 contínuo)
+        if (localStorage.getItem(`linha-vermelha-${mapa}`) === "true") {
+            tr.classList.add('alarme-linha');
+        } else {
+            tr.classList.remove('alarme-linha');
+        }
+
         function atualizarLinha(inputHoraRespawn, celulaExibicao, celulaFoco, chaveUnica, spawnKey) {
             if (!celulaExibicao) return;
             
-            // TRAVA DO F5: Se já foi salvo no LocalStorage que spawnou, mantém travado!
             if (localStorage.getItem(spawnKey) === "true") {
                 celulaExibicao.dataset.spawnado = "true";
                 celulaExibicao.innerText = "💥 SPAWNOU!";
-                celulaExibicao.style.backgroundColor = "rgb(255, 82, 82)";
-                celulaExibicao.style.color = "white";
-                return; 
+                if (localStorage.getItem(`foco-azul-${spawnKey}`) === "true" && celulaFoco) {
+                    celulaFoco.classList.add('alarme-foco');
+                }
+                return;
             }
 
             const horaTexto = inputHoraRespawn ? inputHoraRespawn.value : "";
@@ -659,11 +685,8 @@ worker.onmessage = function() {
             if (diferencaSegundos <= 0) { 
                 celulaExibicao.dataset.spawnado = "true";
                 celulaExibicao.innerText = "💥 SPAWNOU!";
-                celulaExibicao.style.backgroundColor = "rgb(255, 82, 82)";
-                celulaExibicao.style.color = "white";
-
-                // SALVA NO NAVEGADOR
-                localStorage.setItem(spawnKey, "true");
+                
+                localStorage.setItem(spawnKey, "true"); 
 
                 if (ultimoSpawnado) {
                     ultimoSpawnado.classList.remove('ultimo-spawn');
@@ -672,11 +695,16 @@ worker.onmessage = function() {
                 ultimoSpawnado = celulaExibicao;
 
                 const tempoAtualSegundos = infoTempo.hLocal * 3600 + infoTempo.m * 60 + infoTempo.s;
-
                 if (ultimosAlarmesDisparados[chaveUnica] !== tempoAtualSegundos) {
                     ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
-                    tr.classList.add('alarme-linha');
-                    if (celulaFoco) celulaFoco.classList.add('alarme-foco');
+                    
+                    tr.classList.add('alarme-linha'); 
+                    localStorage.setItem(`linha-vermelha-${mapa}`, "true");
+                    
+                    if (celulaFoco) {
+                        celulaFoco.classList.add('alarme-foco'); 
+                        localStorage.setItem(`foco-azul-${spawnKey}`, "true");
+                    }
 
                     if (alarmeAtivo) {
                         respawnAtivo = true;
@@ -684,15 +712,10 @@ worker.onmessage = function() {
                     }
 
                     setTimeout(() => {
-                        tr.classList.remove('alarme-linha');
-                        if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
                         respawnAtivo = false;
                     }, duracaoAlarme * 1000);
                 }
             } else {
-                celulaExibicao.style.backgroundColor = "";
-                celulaExibicao.style.color = "";
-                
                 const hrs = Math.floor(diferencaSegundos / 3600);
                 const mins = Math.floor((diferencaSegundos % 3600) / 60);
                 const segs = diferencaSegundos % 60;
@@ -720,7 +743,6 @@ worker.onmessage = function() {
 // 13. BOTÃO DE TESTAR ALARME
 // ==========================================
 const btnTestarAlarm = document.getElementById('testar-alarm');
-
 if (btnTestarAlarm) {
     btnTestarAlarm.onclick = () => {
         tocarBip(duracaoAlarme);
@@ -734,7 +756,6 @@ if (btnTestarAlarm) {
 // 14. MÁSCARA DE TEMPO + CTRL + Z (BLINDADO)
 // ==========================================
 const historicoCampos = {};
-
 document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     const idCampo = input.dataset.mapa + "-" + (input.classList.contains('morteGigante') ? 'G' : 'B');
     historicoCampos[idCampo] = [];
@@ -779,13 +800,13 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
 
         calcular();
     });
-
     input.addEventListener('keydown', (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
             const pilha = historicoCampos[idCampo];
             if (pilha.length > 1) { 
                 e.preventDefault();
                 pilha.pop(); 
+                
                 const valorAnterior = pilha[pilha.length - 1]; 
                 input.value = valorAnterior;
                 input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
@@ -798,7 +819,6 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
             input.blur(); 
         }
     });
-
     input.addEventListener('change', (e) => {
         let valorNumerico = e.target.value.replace(/\D/g, "");
         if (valorNumerico.length > 0 && valorNumerico.length < 6) {
@@ -849,7 +869,6 @@ if (btnLimpar && modalContainer) {
     modalCancelar.onclick = () => {
         modalContainer.classList.add('modal-oculto');
     };
-
     modalConfirmar.onclick = () => {
         document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
             if (input.value !== undefined) {
@@ -858,30 +877,27 @@ if (btnLimpar && modalContainer) {
                 input.innerText = "--:--:--";
             }
             delete input.dataset.colado;
+            input.classList.remove('alarme-foco'); 
         });
-
-        // Reseta o estilo vermelho e o texto das células que spawnaram
         document.querySelectorAll('.tempo-restante-gigante, .tempo-restante-bandido').forEach(celula => {
             celula.innerText = "--:--:--";
-            celula.style.backgroundColor = ""; 
-            celula.style.color = "";           
             celula.classList.remove('ultimo-spawn'); 
             delete celula.dataset.spawnado;    
         });
-
         document.querySelectorAll('tr').forEach(tr => {
             const morteGigante = tr.querySelector('.morteGigante');
             if (morteGigante) {
                 const mapa = morteGigante.getAttribute('data-mapa');
                 localStorage.removeItem(`morte-${mapa}-Gigante`);
                 localStorage.removeItem(`morte-${mapa}-Bandido`);
-                
-                // LIMPA AS CHAVES DO F5 TAMBÉM!
                 localStorage.removeItem(`spawn-${mapa}-G`);
                 localStorage.removeItem(`spawn-${mapa}-B`);
+                localStorage.removeItem(`linha-vermelha-${mapa}`); 
+                localStorage.removeItem(`foco-azul-spawn-${mapa}-G`); 
+                localStorage.removeItem(`foco-azul-spawn-${mapa}-B`); 
             }
+            tr.classList.remove('alarme-linha'); 
         });
-
         modalContainer.classList.add('modal-oculto');
         calcular();
     };
@@ -906,18 +922,27 @@ function marcarMorteInstantanea(botao) {
         const infoTempo = obterHoraServerAtual();
         const mapa = input.getAttribute('data-mapa');
         const tipo = input.classList.contains('morteGigante') ? 'G' : 'B';
+        const spawnKey = `spawn-${mapa}-${tipo}`;
         
-        // Limpa a trava do F5 do LocalStorage para esse Boss específico
-        localStorage.removeItem(`spawn-${mapa}-${tipo}`);
+        localStorage.removeItem(spawnKey);
+        localStorage.removeItem(`foco-azul-${spawnKey}`);
         
-        // Limpa o visual do "SPAWNOU!" da linha se ele existir
         const celulaRegressiva = tr.querySelector(tipo === 'G' ? '.tempo-restante-gigante' : '.tempo-restante-bandido');
         if (celulaRegressiva) {
             delete celulaRegressiva.dataset.spawnado;
-            celulaRegressiva.style.backgroundColor = ""; 
-            celulaRegressiva.style.color = "";
             celulaRegressiva.classList.remove('ultimo-spawn');
             celulaRegressiva.innerText = "--:--:--";
+        }
+
+        const respGL = tr.querySelector('.respGiganteLocal');
+        const respBL = tr.querySelector('.respBandidoLocal');
+        if (tipo === 'G' && respGL) respGL.classList.remove('alarme-foco');
+        if (tipo === 'B' && respBL) respBL.classList.remove('alarme-foco'); 
+
+        const outroTipo = (tipo === 'G') ? 'B' : 'G';
+        if (localStorage.getItem(`spawn-${mapa}-${outroTipo}`) !== "true") {
+            tr.classList.remove('alarme-linha'); 
+            localStorage.removeItem(`linha-vermelha-${mapa}`); 
         }
 
         input.value = infoTempo.textoFormatado;
@@ -929,7 +954,6 @@ function marcarMorteInstantanea(botao) {
 // 18. OCULTAR / EXIBIR TEMPO RESTANTE
 // ==========================================
 const btnToggleRestante = document.getElementById('toggle-restante');
-
 if (btnToggleRestante) {
     const colunasG = document.querySelectorAll('.tempo-restante-gigante');
     const colunasB = document.querySelectorAll('.tempo-restante-bandido');
@@ -940,7 +964,6 @@ if (btnToggleRestante) {
         if (th.innerText.includes('RESTANTE GIGANTE')) thGigante = th;
         if (th.innerText.includes('RESTANTE BANDIDO')) thBandido = th;
     });
-
     const alternarVisibilidade = (elemento, esconder) => {
         if (elemento) {
             elemento.style.display = esconder ? 'none' : '';
@@ -949,7 +972,6 @@ if (btnToggleRestante) {
 
     const estadoSalvo = localStorage.getItem('mostrarRestante');
     let deveEsconder = (estadoSalvo === 'oculto');
-
     if (deveEsconder) {
         alternarVisibilidade(thGigante, true);
         colunasG.forEach(el => alternarVisibilidade(el, true));
@@ -964,13 +986,11 @@ if (btnToggleRestante) {
 
     btnToggleRestante.onclick = () => {
         deveEsconder = !deveEsconder;
-
         alternarVisibilidade(thGigante, deveEsconder);
         colunasG.forEach(el => alternarVisibilidade(el, deveEsconder));
 
         alternarVisibilidade(thBandido, deveEsconder);
         colunasB.forEach(el => alternarVisibilidade(el, deveEsconder));
-
         if (deveEsconder) {
             btnToggleRestante.innerText = " Mostrar Tempo Restante + ";
             localStorage.setItem('mostrarRestante', 'oculto');
@@ -997,6 +1017,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const texto = th.innerText.toUpperCase();
         if (texto.includes('GIGANTE') && texto.includes('RESTANTE')) {
             indexGigante.push(index);
+      
         }
         if (texto.includes('BANDIDO') && texto.includes('RESTANTE')) {
             indexBandido.push(index);
@@ -1006,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function alternarColuna(indices, visivel) {
         const linhas = document.querySelectorAll('tr');
         linhas.forEach(linha => {
-            const celulas = line.querySelectorAll('th, td');
+            const celulas = linha.querySelectorAll('th, td');
             indices.forEach(idx => {
                 if (celulas[idx]) {
                     if (visivel) {
@@ -1023,7 +1044,6 @@ document.addEventListener('DOMContentLoaded', () => {
     containerBotoes.style.margin = "15px 0";
     containerBotoes.style.display = "flex";
     containerBotoes.style.gap = "10px";
-
     const btnGigante = document.createElement('button');
     btnGigante.innerText = "Ocultar Tempo Gigante";
     btnGigante.style.padding = "8px 12px";
@@ -1036,13 +1056,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let giganteVisivel = true;
     let bandidoVisivel = true;
-
     btnGigante.onclick = () => {
         giganteVisivel = !giganteVisivel;
         alternarColuna(indexGigante, giganteVisivel);
         btnGigante.innerText = giganteVisivel ? "Ocultar Tempo Gigante" : "Exibir Tempo Gigante";
     };
-
     btnBandido.onclick = () => {
         bandidoVisivel = !bandidoVisivel;
         alternarColuna(indexBandido, bandidoVisivel);
@@ -1064,8 +1082,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 window.onload = function() {
     carregarDadosSalvos();
-    
-    // Pequeno atraso de segurança para o HTML terminar de renderizar
     setTimeout(() => {
         paginaCarregada = true;
     }, 100);
