@@ -302,16 +302,13 @@ function calcular() {
                         celulaRegressiva.classList.remove('ultimo-spawn');
                     }
                     
-                    if (campoLocal) campoLocal.classList.remove('alarme-foco'); 
+                    if (campoLocal) campoLocal.classList.remove('alarme-foco');
+                    
+                    const tipo = spawnKey.endsWith('-G') ? 'G' : 'B';
+                    tr.classList.remove(tipo === 'G' ? 'linha-vermelha-gigante' : 'linha-vermelha-bandido'); 
                     
                     const mapaLocal = morteGigante.getAttribute('data-mapa');
-                    localStorage.removeItem(`linha-vermelha-${mapaLocal}`);
                     localStorage.removeItem(`foco-azul-${spawnKey}`);
-
-                    const outroTipo = spawnKey.endsWith('-G') ? 'B' : 'G';
-                    if (localStorage.getItem(`spawn-${mapaLocal}-${outroTipo}`) !== "true") {
-                         tr.classList.remove('alarme-linha'); 
-                    }
                 }
                 return;
             }
@@ -352,14 +349,12 @@ function calcular() {
                         celulaRegressiva.innerText = "--:--:--";
                     }
                     
+                    const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
+                    tr.classList.remove(`linha-vermelha-${tipo}`);
+                    
                     if (campoLocal) campoLocal.classList.remove('alarme-foco'); 
                     
                     const mapaLocal = morteGigante.getAttribute('data-mapa');
-                    const outroTipo = spawnKey.endsWith('-G') ? 'B' : 'G';
-                    if (localStorage.getItem(`spawn-${mapaLocal}-${outroTipo}`) !== "true") {
-                         localStorage.removeItem(`linha-vermelha-${mapaLocal}`);
-                         tr.classList.remove('alarme-linha'); 
-                    }
                 }
                 
                 localStorage.setItem(storageKey, horarioFormatado);
@@ -429,8 +424,7 @@ if (campoColar) {
                         }
 
                         if (localStorage.getItem(`spawn-${mapaNome}-G`) !== "true" && localStorage.getItem(`spawn-${mapaNome}-B`) !== "true") {
-                            localStorage.removeItem(`linha-vermelha-${mapaNome}`);
-                            tr.classList.remove('alarme-linha');
+                            // Não usa mais destaque de linha inteira.
                         }
                     }
                 });
@@ -477,19 +471,18 @@ function carregarDadosSalvos() {
         if (localStorage.getItem(`spawn-${mapa}-G`) === "true" && campoTempoG) {
             campoTempoG.dataset.spawnado = "true";
             campoTempoG.innerText = "💥 SPAWNOU!";
+            tr.classList.add('linha-vermelha-gigante');
         }
         if (localStorage.getItem(`spawn-${mapa}-B`) === "true" && campoTempoB) {
             campoTempoB.dataset.spawnado = "true";
             campoTempoB.innerText = "💥 SPAWNOU!";
+            tr.classList.add('linha-vermelha-bandido');
         }
         if (localStorage.getItem(`foco-azul-spawn-${mapa}-G`) === "true" && respGL) {
             respGL.classList.add('alarme-foco');
         }
         if (localStorage.getItem(`foco-azul-spawn-${mapa}-B`) === "true" && respBL) {
             respBL.classList.add('alarme-foco');
-        }
-        if (localStorage.getItem(`linha-vermelha-${mapa}`) === "true") {
-            tr.classList.add('alarme-linha');
         }
     });
 }
@@ -498,7 +491,7 @@ function carregarDadosSalvos() {
 // ==========================================
 // 9. SISTEMA DE AUDIO (SEM DELAY)
 // ==========================================
-function tocarBip(duracaoSegundos = 1) {
+function tocarBip(duracaoSegundos = 1, tipo = 'default') {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') {
         ctx.resume();
@@ -509,11 +502,19 @@ function tocarBip(duracaoSegundos = 1) {
     
     osc.connect(gain);
     gain.connect(ctx.destination);
-    
-    osc.type = 'triangle'; 
-    osc.frequency.value = 600;
+
+    if (tipo === 'bandido') {
+        osc.type = 'sawtooth';
+        osc.frequency.value = 480;
+    } else if (tipo === 'gigante') {
+        osc.type = 'triangle';
+        osc.frequency.value = 720;
+    } else {
+        osc.type = 'square';
+        osc.frequency.value = 600;
+    }
+
     const agora = ctx.currentTime;
-    
     gain.gain.setValueAtTime(0, agora);
     gain.gain.linearRampToValueAtTime(volumeAtual, agora + 0.02);
     gain.gain.linearRampToValueAtTime(0, agora + duracaoSegundos - 0.05);
@@ -646,13 +647,7 @@ worker.onmessage = function() {
 
         const mapa = morteGigante.getAttribute('data-mapa');
 
-        // MANTÉM OS ESTADOS VISUAIS ATIVOS (Evita sumir no F5 contínuo)
-        if (localStorage.getItem(`linha-vermelha-${mapa}`) === "true") {
-            tr.classList.add('alarme-linha');
-        } else {
-            tr.classList.remove('alarme-linha');
-        }
-
+        // Não usa mais destaque de linha inteira para o alarme.
         function atualizarLinha(inputHoraRespawn, celulaExibicao, celulaFoco, chaveUnica, spawnKey) {
             if (!celulaExibicao) return;
             
@@ -688,6 +683,10 @@ worker.onmessage = function() {
                 
                 localStorage.setItem(spawnKey, "true"); 
 
+                // Adicionar classe da linha vermelha
+                const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
+                tr.classList.add(`linha-vermelha-${tipo}`);
+
                 if (ultimoSpawnado) {
                     ultimoSpawnado.classList.remove('ultimo-spawn');
                 }
@@ -698,9 +697,6 @@ worker.onmessage = function() {
                 if (ultimosAlarmesDisparados[chaveUnica] !== tempoAtualSegundos) {
                     ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
                     
-                    tr.classList.add('alarme-linha'); 
-                    localStorage.setItem(`linha-vermelha-${mapa}`, "true");
-                    
                     if (celulaFoco) {
                         celulaFoco.classList.add('alarme-foco'); 
                         localStorage.setItem(`foco-azul-${spawnKey}`, "true");
@@ -708,14 +704,30 @@ worker.onmessage = function() {
 
                     if (alarmeAtivo) {
                         respawnAtivo = true;
-                        tocarBip(duracaoAlarme); 
+                        const tipoSom = chaveUnica.endsWith('-G') ? 'gigante' : 'bandido';
+                        tocarBip(duracaoAlarme, tipoSom);
+                        
+                        // Remover após a duração do alarme
+                        setTimeout(() => {
+                            // Não remover a linha vermelha aqui, deixar fixa até o usuário resetar
+                        }, duracaoAlarme * 1000);
                     }
-
-                    setTimeout(() => {
-                        respawnAtivo = false;
-                    }, duracaoAlarme * 1000);
                 }
             } else {
+                // Remover spawn se o tempo ainda não zerou
+                if (localStorage.getItem(spawnKey) === "true") {
+                    localStorage.removeItem(spawnKey);
+                    localStorage.removeItem(`foco-azul-${spawnKey}`);
+                    delete celulaExibicao.dataset.spawnado;
+                    celulaExibicao.classList.remove('ultimo-spawn');
+                    
+                    // Remover classe da linha vermelha
+                    const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
+                    tr.classList.remove(`linha-vermelha-${tipo}`);
+                    
+                    if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
+                }
+                
                 const hrs = Math.floor(diferencaSegundos / 3600);
                 const mins = Math.floor((diferencaSegundos % 3600) / 60);
                 const segs = diferencaSegundos % 60;
@@ -892,11 +904,9 @@ if (btnLimpar && modalContainer) {
                 localStorage.removeItem(`morte-${mapa}-Bandido`);
                 localStorage.removeItem(`spawn-${mapa}-G`);
                 localStorage.removeItem(`spawn-${mapa}-B`);
-                localStorage.removeItem(`linha-vermelha-${mapa}`); 
                 localStorage.removeItem(`foco-azul-spawn-${mapa}-G`); 
                 localStorage.removeItem(`foco-azul-spawn-${mapa}-B`); 
             }
-            tr.classList.remove('alarme-linha'); 
         });
         modalContainer.classList.add('modal-oculto');
         calcular();
@@ -941,8 +951,7 @@ function marcarMorteInstantanea(botao) {
 
         const outroTipo = (tipo === 'G') ? 'B' : 'G';
         if (localStorage.getItem(`spawn-${mapa}-${outroTipo}`) !== "true") {
-            tr.classList.remove('alarme-linha'); 
-            localStorage.removeItem(`linha-vermelha-${mapa}`); 
+            tr.classList.remove(tipo === 'G' ? 'linha-vermelha-gigante' : 'linha-vermelha-bandido');
         }
 
         input.value = infoTempo.textoFormatado;

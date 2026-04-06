@@ -310,8 +310,61 @@ tr:hover {
 
 /* SISTEMA DE ALARME */
 tr.alarme-linha {
-    background-color: #b71c1c !important; 
-    animation: piscar 1s infinite alternate;
+    background-color: transparent !important;
+    animation: none !important;
+}
+
+/* Linha vermelha na metade do Gigante (colunas 2-5) */
+tr.linha-vermelha-gigante {
+    background-color: transparent;
+}
+
+tr.linha-vermelha-gigante td:nth-child(2),
+tr.linha-vermelha-gigante td:nth-child(3),
+tr.linha-vermelha-gigante td:nth-child(4),
+tr.linha-vermelha-gigante td:nth-child(5),
+tr.linha-vermelha-gigante td:nth-child(2) *,
+tr.linha-vermelha-gigante td:nth-child(3) *,
+tr.linha-vermelha-gigante td:nth-child(4) *,
+tr.linha-vermelha-gigante td:nth-child(5) * {
+    background-color: #D32F2F !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
+tr.linha-vermelha-gigante td:nth-child(2) .btn-morto,
+tr.linha-vermelha-bandido td:nth-child(6) .btn-morto {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    background-color: rgba(0,0,0,0.25) !important;
+}
+
+/* Linha vermelha na metade do Bandido (colunas 6-9) */
+tr.linha-vermelha-bandido {
+    background-color: transparent;
+}
+
+tr.linha-vermelha-bandido td:nth-child(6),
+tr.linha-vermelha-bandido td:nth-child(7),
+tr.linha-vermelha-bandido td:nth-child(8),
+tr.linha-vermelha-bandido td:nth-child(9),
+tr.linha-vermelha-bandido td:nth-child(6) *,
+tr.linha-vermelha-bandido td:nth-child(7) *,
+tr.linha-vermelha-bandido td:nth-child(8) *,
+tr.linha-vermelha-bandido td:nth-child(9) * {
+    background-color: #D32F2F !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+    box-shadow: none !important;
+    animation: none !important;
+}
+
+tr.linha-vermelha-bandido td:nth-child(6) .btn-morto {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    background-color: rgba(0,0,0,0.25) !important;
 }
 
 .respGiganteLocal.alarme-foco {
@@ -329,6 +382,12 @@ tr.alarme-linha {
 @keyframes piscar {
     from { opacity: 1; }
     to { opacity: 0.7; }
+}
+
+/* Animação de pulso para o vermelho da linha */
+@keyframes pulsar-vermelho {
+    0%, 100% { background-color: #C62828; }
+    50% { background-color: #D32F2F; }
 }
 
 /* INPUTS DA TABELA */
@@ -863,7 +922,7 @@ body.light-mode #toggle-restante:hover {
     background-color: #ffebee !important;
     color: #c62828 !important;
     font-weight: bold;
-    border-bottom: 2px solid #e53935 !important;
+    border-bottom: none !important;
 }
 
 /* ==========================================
@@ -872,16 +931,30 @@ body.light-mode #toggle-restante:hover {
 
 /* Aplica o fundo rosa claro e texto vermelho para o Gigante */
 .tempo-restante-gigante[data-spawnado="true"] {
-    background-color: #FFEBEE !important; /* Rosa bem claro */
+    background-color: #FFEBEE; /* Rosa bem claro */
     color: #D32F2F !important;           /* Texto vermelho */
     font-weight: bold !important;
 }
 
 /* Aplica o fundo rosa claro e texto vermelho para o Bandido */
 .tempo-restante-bandido[data-spawnado="true"] {
-    background-color: #FFEBEE !important; /* Rosa bem claro */
+    background-color: #FFEBEE; /* Rosa bem claro */
     color: #D32F2F !important;           /* Texto vermelho */
     font-weight: bold !important;
+}
+
+body.light-mode .tempo-restante-gigante[data-spawnado="true"] {
+    background-color: #43A047 !important; /* Verde vivo mais definido */
+    color: #ffffff !important;            /* Texto branco para melhor contraste */
+    border-bottom: 4px solid #1B5E20 !important;
+    box-shadow: none !important;
+}
+
+body.light-mode .tempo-restante-bandido[data-spawnado="true"] {
+    background-color: #1976D2 !important; /* Azul vibrante */
+    color: #ffffff !important;            /* Texto branco para melhor contraste */
+    border-bottom: 4px solid #0B3D91 !important;
+    box-shadow: none !important;
 }
 
 /* ===================================================
@@ -932,12 +1005,11 @@ td:nth-child(9) {
     font-family: Arial, Helvetica, sans-serif !important; 
 }
 
-/* ⚠️ REMOVIDOS OS !IMPORTANT DA COR DE FUNDO DO SPAWNADO 
-   Isso permite que a animação da linha vermelha funcione!
-*/
+/* Estilo quando spawn ativa (destaque na célula) */
 .tempo-restante-gigante[data-spawnado="true"],
 .tempo-restante-bandido[data-spawnado="true"] {
-    background-color: #FFEBEE; /* Sem !important para não travar o fundo da linha */
+    background-color: #FFEBEE;
     color: #D32F2F !important;           
     font-weight: bold !important;
+    border-bottom: none;
 }
