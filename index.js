@@ -798,21 +798,100 @@ if (btnTestarAlarm) {
 }
 
 // ==========================================
-// 14. MÁSCARA DE TEMPO + CTRL + Z (BLINDADO)
+// 14. MÁSCARA DE TEMPO + CTRL + Z (DESFAZER) + CTRL + Y (REFAZER) - CORRIGIDO
 // ==========================================
 const historicoCampos = {};
+const historicoFuturoCampos = {};
+
 document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     const idCampo = input.dataset.mapa + "-" + (input.classList.contains('morteGigante') ? 'G' : 'B');
     historicoCampos[idCampo] = [];
+    historicoFuturoCampos[idCampo] = [];
+
+    // Salvar valor no histórico (desfazer)
+    function salvarNoHistorico(valor) {
+        const pilha = historicoCampos[idCampo];
+        if (pilha.length === 0 || pilha[pilha.length - 1] !== valor) {
+            pilha.push(valor);
+            if (pilha.length > 30) pilha.shift();
+        }
+    }
+
+    // Salvar valor no futuro (refazer)
+    function salvarNoFuturo(valor) {
+        const pilhaFuturo = historicoFuturoCampos[idCampo];
+        if (pilhaFuturo.length === 0 || pilhaFuturo[pilhaFuturo.length - 1] !== valor) {
+            pilhaFuturo.push(valor);
+            if (pilhaFuturo.length > 30) pilhaFuturo.shift();
+        }
+    }
+
+    // Limpar futuro (quando faz uma nova ação)
+    function limparFuturo() {
+        historicoFuturoCampos[idCampo] = [];
+    }
+
+    // Desfazer (Ctrl+Z)
+    function desfazer() {
+        const pilha = historicoCampos[idCampo];
+        const pilhaFuturo = historicoFuturoCampos[idCampo];
+        
+        if (pilha.length > 1) {
+            // Salvar valor atual no futuro antes de desfazer
+            const valorAtual = input.value;
+            if (valorAtual) {
+                pilhaFuturo.push(valorAtual);
+            }
+            
+            // Voltar para o anterior
+            pilha.pop();
+            const valorAnterior = pilha[pilha.length - 1];
+            input.value = valorAnterior || "";
+            
+            // Forçar atualização
+            input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+            calcular();
+        }
+    }
+
+    // Refazer (Ctrl+Y)
+    function refazer() {
+        const pilhaFuturo = historicoFuturoCampos[idCampo];
+        
+        if (pilhaFuturo.length > 0) {
+            // Pegar o próximo valor do futuro
+            const valorProximo = pilhaFuturo.pop();
+            
+            // Salvar valor atual no histórico
+            const valorAtual = input.value;
+            if (valorAtual) {
+                historicoCampos[idCampo].push(valorAtual);
+            }
+            
+            input.value = valorProximo;
+            
+            // Forçar atualização
+            input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+            calcular();
+        }
+    }
+
+    // Salvar valor inicial
+    if (input.value) {
+        historicoCampos[idCampo].push(input.value);
+    }
 
     input.addEventListener('focus', () => {
-        if (historicoCampos[idCampo].length === 0) {
+        if (historicoCampos[idCampo].length === 0 && input.value) {
             historicoCampos[idCampo].push(input.value);
         }
     });
 
     input.addEventListener('input', (e) => {
         if (e.detail && e.detail.isUndo) return;
+
+        // Limpar futuro quando faz nova digitação
+        limparFuturo();
 
         let cursorPosition = e.target.selectionStart;
         let valorOriginal = e.target.value;
@@ -843,27 +922,45 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
             e.target.setSelectionRange(cursorPosition, cursorPosition);
         }
 
+        // Salvar no histórico após formatação
+        if (formatado) {
+            salvarNoHistorico(formatado);
+        }
+        
         calcular();
     });
+
+    // Teclas de atalho
     input.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-            const pilha = historicoCampos[idCampo];
-            if (pilha.length > 1) { 
-                e.preventDefault();
-                pilha.pop(); 
-                
-                const valorAnterior = pilha[pilha.length - 1]; 
-                input.value = valorAnterior;
-                input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
-                calcular();
-            }
+        // Ctrl + Z (Desfazer)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+            desfazer();
+            return;
+        }
+
+        // Ctrl + Y (Refazer)
+        if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+            e.preventDefault();
+            e.stopPropagation();
+            refazer();
+            return;
+        }
+
+        // Ctrl + Shift + Z (Refazer - alternativa)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
+            e.preventDefault();
+            e.stopPropagation();
+            refazer();
             return;
         }
 
         if (e.key === 'Enter') {
-            input.blur(); 
+            input.blur();
         }
     });
+
     input.addEventListener('change', (e) => {
         let valorNumerico = e.target.value.replace(/\D/g, "");
         if (valorNumerico.length > 0 && valorNumerico.length < 6) {
@@ -889,13 +986,16 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
             calcular();
         }
 
-        const pilha = historicoCampos[idCampo];
-        if (pilha[pilha.length - 1] !== e.target.value) {
-            pilha.push(e.target.value);
-            if (pilha.length > 10) pilha.shift();
-        }
+        salvarNoHistorico(e.target.value);
+        limparFuturo();
     });
 });
+
+// Função para debug (opcional - digitar no console)
+window.verificarHistorico = function() {
+    console.log('Histórico de campos:', historicoCampos);
+    console.log('Histórico de refazer:', historicoFuturoCampos);
+};
 
 
 // ==========================================
