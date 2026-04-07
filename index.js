@@ -489,8 +489,37 @@ function carregarDadosSalvos() {
 
 
 // ==========================================
-// 9. SISTEMA DE AUDIO (SEM DELAY)
+// 9. SISTEMA DE AUDIO COM EFEITO VISUAL LIMITADO
 // ==========================================
+let efeitoVisualTimeout = null;
+
+function removerEfeitoVisualRelogio() {
+    const relogioEl = document.getElementById('relogio');
+    if (relogioEl) {
+        relogioEl.style.borderColor = "#4CAF50";
+        relogioEl.style.color = "#4CAF50";
+        relogioEl.style.transition = "all 0.3s ease";
+    }
+    respawnAtivo = false;
+}
+
+function aplicarEfeitoVisualRelogio() {
+    const relogioEl = document.getElementById('relogio');
+    if (relogioEl) {
+        relogioEl.style.borderColor = "#ff5252";
+        relogioEl.style.color = "#ff5252";
+        relogioEl.style.transition = "all 0.1s ease";
+    }
+    
+    // Remover efeito após a duração do alarme
+    if (efeitoVisualTimeout) {
+        clearTimeout(efeitoVisualTimeout);
+    }
+    efeitoVisualTimeout = setTimeout(() => {
+        removerEfeitoVisualRelogio();
+    }, duracaoAlarme * 1000);
+}
+
 function tocarBip(duracaoSegundos = 1, tipo = 'default') {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === 'suspended') {
@@ -521,8 +550,10 @@ function tocarBip(duracaoSegundos = 1, tipo = 'default') {
     
     osc.start(agora);
     osc.stop(agora + duracaoSegundos);
+    
+    // Aplicar efeito visual no relógio
+    aplicarEfeitoVisualRelogio();
 }
-
 
 // ==========================================
 // 10. CONTROLE DE VOLUME
@@ -626,7 +657,7 @@ worker.onmessage = function() {
     const horarioServer = infoTempo.textoFormatado; 
     
     const relogioEl = document.getElementById('relogio');
-    if (relogioEl) {
+   if (relogioEl) {
         relogioEl.innerText = `${horarioLocal} (Server: ${horarioServer})`;
     }
 
@@ -759,10 +790,12 @@ if (btnTestarAlarm) {
     btnTestarAlarm.onclick = () => {
         tocarBip(duracaoAlarme);
         testeAtivo = true;
-        setTimeout(() => { testeAtivo = false; }, duracaoAlarme * 1000); 
+        setTimeout(() => { 
+            testeAtivo = false;
+            removerEfeitoVisualRelogio();
+        }, duracaoAlarme * 1000); 
     };
 }
-
 
 // ==========================================
 // 14. MÁSCARA DE TEMPO + CTRL + Z (BLINDADO)
@@ -923,6 +956,14 @@ if (btnLimpar && modalContainer) {
 // ==========================================
 // 16. BOTÃO MORTE INSTANTÂNEA (RESETANDO O SPAWN)
 // ==========================================
+
+function marcarMorteInstantanea(tipo, mapa) {
+    // Adicione esta linha no inicio da funcao:
+    onMortoButtonClicked(`${tipo}-${mapa}`);
+    
+    // ... resto do codigo existente ...
+}
+
 function marcarMorteInstantanea(botao) {
     const container = botao.closest('.container-morto');
     const input = container.querySelector('input');
@@ -1085,9 +1126,226 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ==========================================
+// CRONÔMETRO MANUAL - SEM RECORDE
+// ==========================================
+let runTime = 0;
+let runInterval = null;
+let runActive = false;
+let runPaused = false;
+
+// Elementos
+const runTimeDisplay = document.getElementById('runTimeDisplay');
+const runLabel = document.getElementById('runLabel');
+const runStartBtn = document.getElementById('runStartBtn');
+const runPauseBtn = document.getElementById('runPauseBtn');
+const runStopBtn = document.getElementById('runStopBtn');
+const runResetBtn = document.getElementById('runResetBtn');
+const runCard = document.querySelector('.run-card');
+
+// Chaves do localStorage para persistência do timer
+const STORAGE_RUN_TIME = 'run_tempo_atual';
+const STORAGE_RUN_ACTIVE = 'run_estado_ativo';
+const STORAGE_RUN_PAUSED = 'run_estado_pausado';
+
+// Carregar estado salvo do timer
+function carregarEstadoTimer() {
+    const savedTime = localStorage.getItem(STORAGE_RUN_TIME);
+    const savedActive = localStorage.getItem(STORAGE_RUN_ACTIVE);
+    const savedPaused = localStorage.getItem(STORAGE_RUN_PAUSED);
+    
+    if (savedTime !== null && savedTime !== '0') {
+        runTime = parseInt(savedTime);
+        updateDisplay();
+    }
+    
+    if (savedActive === 'true') {
+        runActive = true;
+        
+        if (savedPaused === 'true') {
+            runPaused = true;
+            if (runPauseBtn) {
+                runPauseBtn.textContent = '▶ RETOMAR';
+                runPauseBtn.style.background = '#2196F3';
+            }
+            if (runCard) runCard.classList.remove('run-ativo');
+        } else {
+            runPaused = false;
+            if (runInterval) clearInterval(runInterval);
+            runInterval = setInterval(() => {
+                if (runActive && !runPaused) {
+                    runTime++;
+                    updateDisplay();
+                    salvarEstadoTimer();
+                }
+            }, 1000);
+            if (runCard) runCard.classList.add('run-ativo');
+            if (runPauseBtn) {
+                runPauseBtn.textContent = '⏸ PAUSAR';
+                runPauseBtn.style.background = '#ff9800';
+            }
+        }
+    }
+}
+
+function salvarEstadoTimer() {
+    if (runActive) {
+        localStorage.setItem(STORAGE_RUN_TIME, runTime);
+        localStorage.setItem(STORAGE_RUN_ACTIVE, runActive);
+        localStorage.setItem(STORAGE_RUN_PAUSED, runPaused);
+    }
+}
+
+function limparEstadoTimer() {
+    localStorage.removeItem(STORAGE_RUN_TIME);
+    localStorage.removeItem(STORAGE_RUN_ACTIVE);
+    localStorage.removeItem(STORAGE_RUN_PAUSED);
+}
+
+function formatRunTime(sec) {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = sec % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function updateDisplay() {
+    if (runTimeDisplay) runTimeDisplay.textContent = formatRunTime(runTime);
+}
+
+function removerFinalizado() {
+    if (runTimeDisplay) runTimeDisplay.classList.remove('finalizado');
+    if (runLabel) runLabel.classList.remove('finalizado');
+    if (runCard) runCard.classList.remove('run-finalizado');
+    if (runLabel) runLabel.textContent = 'TEMPO DE ROTA:';
+    if (runTimeDisplay) runTimeDisplay.style.fontSize = '42px';
+}
+
+function mostrarFinalizado() {
+    if (runLabel) {
+        runLabel.textContent = '✅ ROTA FINALIZADA:';
+        runLabel.classList.add('finalizado');
+    }
+    if (runTimeDisplay) {
+        runTimeDisplay.classList.add('finalizado');
+    }
+    if (runCard) {
+        runCard.classList.add('run-finalizado');
+        runCard.classList.remove('run-ativo');
+    }
+    limparEstadoTimer();
+}
+
+function iniciar() {
+    if (runActive) return;
+    
+    removerFinalizado();
+    
+    runActive = true;
+    runPaused = false;
+    runTime = 0;
+    updateDisplay();
+    
+    if (runInterval) clearInterval(runInterval);
+    runInterval = setInterval(() => {
+        if (runActive && !runPaused) {
+            runTime++;
+            updateDisplay();
+            salvarEstadoTimer();
+        }
+    }, 1000);
+    
+    if (runCard) runCard.classList.add('run-ativo');
+    if (runPauseBtn) {
+        runPauseBtn.textContent = '⏸ PAUSAR';
+        runPauseBtn.style.background = '#ff9800';
+    }
+    
+    salvarEstadoTimer();
+}
+
+function pausarOuRetomar() {
+    if (!runActive) return;
+    
+    if (runInterval) {
+        clearInterval(runInterval);
+        runInterval = null;
+        runPaused = true;
+        if (runPauseBtn) {
+            runPauseBtn.textContent = '▶ RETOMAR';
+            runPauseBtn.style.background = '#2196F3';
+        }
+        if (runCard) runCard.classList.remove('run-ativo');
+    } else {
+        runPaused = false;
+        runInterval = setInterval(() => {
+            if (runActive && !runPaused) {
+                runTime++;
+                updateDisplay();
+                salvarEstadoTimer();
+            }
+        }, 1000);
+        if (runPauseBtn) {
+            runPauseBtn.textContent = '⏸ PAUSAR';
+            runPauseBtn.style.background = '#ff9800';
+        }
+        if (runCard) runCard.classList.add('run-ativo');
+    }
+    salvarEstadoTimer();
+}
+
+function parar() {
+    if (!runActive) return;
+    
+    if (runInterval) {
+        clearInterval(runInterval);
+        runInterval = null;
+    }
+    
+    runActive = false;
+    runPaused = false;
+    
+    mostrarFinalizado();
+    
+    if (runPauseBtn) {
+        runPauseBtn.textContent = '⏸ PAUSAR';
+        runPauseBtn.style.background = '#ff9800';
+    }
+}
+
+function resetar() {
+    if (runInterval) {
+        clearInterval(runInterval);
+        runInterval = null;
+    }
+    
+    runActive = false;
+    runPaused = false;
+    runTime = 0;
+    updateDisplay();
+    
+    removerFinalizado();
+    
+    if (runCard) runCard.classList.remove('run-ativo');
+    if (runPauseBtn) {
+        runPauseBtn.textContent = '⏸ PAUSAR';
+        runPauseBtn.style.background = '#ff9800';
+    }
+    
+    limparEstadoTimer();
+}
+
+// Eventos
+if (runStartBtn) runStartBtn.onclick = iniciar;
+if (runPauseBtn) runPauseBtn.onclick = pausarOuRetomar;
+if (runStopBtn) runStopBtn.onclick = parar;
+if (runResetBtn) runResetBtn.onclick = resetar;
+
+// Carregar estado salvo ao iniciar
+carregarEstadoTimer();
 
 // ==========================================
-// 19. INIT (Forçado a rodar só após tudo carregar)
+// 20. INIT (Forçado a rodar só após tudo carregar)
 // ==========================================
 window.onload = function() {
     carregarDadosSalvos();

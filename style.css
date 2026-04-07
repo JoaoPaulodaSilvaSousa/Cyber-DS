@@ -322,23 +322,61 @@ tr.linha-vermelha-gigante {
 tr.linha-vermelha-gigante td:nth-child(2),
 tr.linha-vermelha-gigante td:nth-child(3),
 tr.linha-vermelha-gigante td:nth-child(4),
-tr.linha-vermelha-gigante td:nth-child(5),
-tr.linha-vermelha-gigante td:nth-child(2) *,
-tr.linha-vermelha-gigante td:nth-child(3) *,
-tr.linha-vermelha-gigante td:nth-child(4) *,
-tr.linha-vermelha-gigante td:nth-child(5) * {
-    background-color: #D32F2F !important;
-    color: #ffffff !important;
-    border-color: #ffffff !important;
-    box-shadow: none !important;
-    animation: none !important;
+tr.linha-vermelha-gigante td:nth-child(5) {
+    background-color: #8B0000 !important;
+    border-color: #333333 !important;
+    animation: pulsar-vermelho 2.5s ease-in-out infinite !important;
 }
 
-tr.linha-vermelha-gigante td:nth-child(2) .btn-morto,
-tr.linha-vermelha-bandido td:nth-child(6) .btn-morto {
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.15) !important;
+tr.linha-vermelha-gigante td:nth-child(5).tempo-restante-gigante[data-spawnado="true"] {
+    background-color: #FFEBEE !important;
+    color: #D32F2F !important;
+    animation: pulsar-spawn 2.5s ease-in-out infinite !important;
+    border: 1px solid #333333 !important;
+    border-bottom: 4px solid #D32F2F !important;
+}
+
+tr.linha-vermelha-bandido td:nth-child(9).tempo-restante-bandido[data-spawnado="true"] {
+    background-color: #FFEBEE !important;
+    color: #D32F2F !important;
+    animation: pulsar-spawn 2.5s ease-in-out infinite !important;
+    border: 1px solid #333333 !important;
+    border-bottom: 4px solid #D32F2F !important;
+}
+
+/* Preserva estilo original dos inputs dentro das células vermelhas do Gigante */
+tr.linha-vermelha-gigante td:nth-child(2) .morteGigante {
+    background-color: #1a1a1a !important;
     color: #ffffff !important;
+    border: 1px solid #555555 !important;
+    box-shadow: none !important;
+}
+
+tr.linha-vermelha-gigante td:nth-child(3) .respGiganteServer {
+    background-color: #0a1f10 !important;
+    color: #81C784 !important;
+    border: 1px solid #2e7d32 !important;
+    box-shadow: none !important;
+}
+
+tr.linha-vermelha-gigante td:nth-child(4) .respGiganteLocal {
+    background-color: #241400 !important;
+    color: #ffb74d !important;
+    border: 1px solid #b56a00 !important;
+    box-shadow: none !important;
+}
+
+tr.linha-vermelha-gigante td:nth-child(4) .respGiganteLocal.alarme-foco {
+    background-color: #00E676 !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+}
+
+tr.linha-vermelha-gigante td:nth-child(2) .btn-morto {
     background-color: rgba(0,0,0,0.25) !important;
+    color: #ffffff !important;
+    border: 1px solid #ff5252 !important;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.15) !important;
 }
 
 /* Linha vermelha na metade do Bandido (colunas 6-9) */
@@ -349,22 +387,45 @@ tr.linha-vermelha-bandido {
 tr.linha-vermelha-bandido td:nth-child(6),
 tr.linha-vermelha-bandido td:nth-child(7),
 tr.linha-vermelha-bandido td:nth-child(8),
-tr.linha-vermelha-bandido td:nth-child(9),
-tr.linha-vermelha-bandido td:nth-child(6) *,
-tr.linha-vermelha-bandido td:nth-child(7) *,
-tr.linha-vermelha-bandido td:nth-child(8) *,
-tr.linha-vermelha-bandido td:nth-child(9) * {
-    background-color: #D32F2F !important;
+tr.linha-vermelha-bandido td:nth-child(9) {
+    background-color: #8B0000 !important;
+    border-color: #333333 !important;
+    animation: pulsar-vermelho 2.5s ease-in-out infinite !important;
+}
+
+/* Preserva estilo original dos inputs dentro das células vermelhas do Bandido */
+tr.linha-vermelha-bandido td:nth-child(6) .morteBandido {
+    background-color: #1a1a1a !important;
     color: #ffffff !important;
-    border-color: #ffffff !important;
+    border: 1px solid #555555 !important;
     box-shadow: none !important;
-    animation: none !important;
+}
+
+tr.linha-vermelha-bandido td:nth-child(7) .respBandidoServer {
+    background-color: #0a1f10 !important;
+    color: #81C784 !important;
+    border: 1px solid #2e7d32 !important;
+    box-shadow: none !important;
+}
+
+tr.linha-vermelha-bandido td:nth-child(8) .respBandidoLocal {
+    background-color: #241400 !important;
+    color: #ffb74d !important;
+    border: 1px solid #b56a00 !important;
+    box-shadow: none !important;
+}
+
+tr.linha-vermelha-bandido td:nth-child(8) .respBandidoLocal.alarme-foco {
+    background-color: #00B0FF !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
 }
 
 tr.linha-vermelha-bandido td:nth-child(6) .btn-morto {
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.15) !important;
-    color: #ffffff !important;
     background-color: rgba(0,0,0,0.25) !important;
+    color: #ffffff !important;
+    border: 1px solid #ff5252 !important;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.15) !important;
 }
 
 .respGiganteLocal.alarme-foco {
@@ -384,10 +445,15 @@ tr.linha-vermelha-bandido td:nth-child(6) .btn-morto {
     to { opacity: 0.7; }
 }
 
+@keyframes pulsar-spawn {
+    0%, 100% { filter: brightness(0.85); }
+    50%       { filter: brightness(1.1); }
+}
+
 /* Animação de pulso para o vermelho da linha */
 @keyframes pulsar-vermelho {
-    0%, 100% { background-color: #C62828; }
-    50% { background-color: #D32F2F; }
+    0%, 100% { filter: brightness(0.7); }
+    50%       { filter: brightness(1.0); }
 }
 
 /* INPUTS DA TABELA */
@@ -923,6 +989,7 @@ body.light-mode #toggle-restante:hover {
     color: #c62828 !important;
     font-weight: bold;
     border-bottom: none !important;
+    animation: pulsar-spawn 2.5s ease-in-out infinite !important;
 }
 
 /* ==========================================
@@ -931,16 +998,20 @@ body.light-mode #toggle-restante:hover {
 
 /* Aplica o fundo rosa claro e texto vermelho para o Gigante */
 .tempo-restante-gigante[data-spawnado="true"] {
-    background-color: #FFEBEE; /* Rosa bem claro */
-    color: #D32F2F !important;           /* Texto vermelho */
+    background-color: #FFEBEE !important;
+    color: #D32F2F !important;
     font-weight: bold !important;
+    animation: pulsar-spawn 2.5s ease-in-out infinite !important;
+    border-bottom: 4px solid #D32F2F !important;
 }
 
-/* Aplica o fundo rosa claro e texto vermelho para o Bandido */
+/* Aplica o fundo escuro e texto vermelho para o Bandido */
 .tempo-restante-bandido[data-spawnado="true"] {
-    background-color: #FFEBEE; /* Rosa bem claro */
-    color: #D32F2F !important;           /* Texto vermelho */
+    background-color: #FFEBEE !important;
+    color: #D32F2F !important;
     font-weight: bold !important;
+    animation: pulsar-spawn 2.5s ease-in-out infinite !important;
+    border-bottom: 4px solid #D32F2F !important;
 }
 
 body.light-mode .tempo-restante-gigante[data-spawnado="true"] {
@@ -998,7 +1069,7 @@ td:nth-child(1) {
 }
 
 /* AUMENTA O TEMPO RESTANTE GIGANTE E BANDIDO */
-td:nth-child(6), 
+td:nth-child(5),
 td:nth-child(9) {
     font-size: 16px !important;
     font-weight: bold !important;
@@ -1008,8 +1079,399 @@ td:nth-child(9) {
 /* Estilo quando spawn ativa (destaque na célula) */
 .tempo-restante-gigante[data-spawnado="true"],
 .tempo-restante-bandido[data-spawnado="true"] {
-    background-color: #FFEBEE;
-    color: #D32F2F !important;           
+    background-color: #FFEBEE !important;
+    color: #D32F2F !important;
     font-weight: bold !important;
     border-bottom: none;
+    animation: none !important;
+}
+
+/* CRONÔMETRO MODERNO - LAYOUT VERTICAL COMPACTO */
+.run-card {
+    background: #121212;
+    border-radius: 24px;
+    padding: 18px 24px;
+    margin: 10px auto 20px auto;
+    width: fit-content;
+    min-width: 360px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.run-time-area {
+    margin-bottom: 16px;
+}
+
+.run-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #b0b0b0;  /* Mais claro que antes (#888) */
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;  /* Adicionado negrito */
+}
+
+.run-time {
+    font-family: 'Courier New', monospace;
+    font-size: 42px;
+    font-weight: 800;
+    color: #4CAF50;
+    line-height: 1;
+    letter-spacing: 3px;
+    text-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
+    transition: all 0.3s ease;
+}
+
+/* Estilo quando finalizado */
+.run-time.finalizado {
+    color: #FFD700;
+    font-size: 38px;
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+}
+
+.run-label.finalizado {
+    color: #FFD700;
+}
+
+.run-buttons-area {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.run-btn {
+    font-weight: bold;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    white-space: nowrap;
+}
+
+.run-start-btn {
+    background: #4CAF50;
+    color: #121212;
+}
+
+.run-start-btn:hover {
+    background: #45a049;
+    transform: scale(1.02);
+}
+
+.run-pause-btn {
+    background: #ff9800;
+    color: #121212;
+}
+
+.run-pause-btn:hover {
+    background: #f57c00;
+    transform: scale(1.02);
+}
+
+.run-stop-btn {
+    background: #f44336;
+    color: white;
+}
+
+.run-stop-btn:hover {
+    background: #d32f2f;
+    transform: scale(1.02);
+}
+
+.run-reset-btn {
+    background: #555;
+    color: white;
+}
+
+.run-reset-btn:hover {
+    background: #666;
+    transform: scale(1.02);
+}
+
+.run-card.run-ativo {
+    border-color: #FF9800;
+    box-shadow: 0 0 14px rgba(255, 152, 0, 0.3);
+}
+
+.run-card.run-finalizado {
+    border-color: #FFD700;
+    box-shadow: 0 0 18px rgba(255, 215, 0, 0.3);
+}
+
+/* Modo claro */
+body.light-mode .run-card {
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .run-label {
+    color: #444;  /* Escuro no modo claro para contraste */
+    font-weight: 600;
+}
+
+/* ALARGAR COLUNA MAPA - VERSÃO ESPECÍFICA */
+table tr th:first-child {
+    width: 90px !important;
+    min-width: 90px !important;
+}
+
+table tr td:first-child {
+    width: 90px !important;
+    min-width: 90px !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+}
+
+/* ==========================================
+   RESPONSIVIDADE - MEDIA QUERIES
+   ========================================== */
+
+/* TABLET (telas entre 768px e 1024px) */
+@media screen and (max-width: 1024px) {
+    .tabela-wrapper {
+        width: 95%;
+        overflow-x: auto;
+    }
+    
+    table {
+        font-size: 12px;
+    }
+    
+    th, td {
+        padding: 10px 6px;
+    }
+    
+    td input {
+        width: 85px !important;
+        height: 35px !important;
+        font-size: 13px !important;
+    }
+    
+    .btn-morto {
+        padding: 0 8px !important;
+        font-size: 10px !important;
+        height: 35px !important;
+    }
+    
+    .run-card {
+        min-width: 300px;
+        padding: 14px 18px;
+    }
+    
+    .run-time {
+        font-size: 36px;
+    }
+    
+    .run-btn {
+        font-size: 11px;
+        padding: 5px 12px;
+    }
+}
+
+/* CELULAR (telas até 768px) */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    h1 {
+        font-size: 28px;
+        letter-spacing: 2px;
+    }
+    
+    /* Container do topo em coluna */
+    .topo-container {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    #toggle-alarm, #toggle-tema, #testar-alarm, .controle-volume {
+        width: 100% !important;
+        justify-content: center;
+    }
+    
+    input#buscarFuso {
+        width: 100% !important;
+    }
+    
+    .custom-select-container {
+        width: 100%;
+    }
+    
+    .select-gatilho {
+        width: 100%;
+    }
+    
+    /* Timer responsivo */
+    .run-card {
+        min-width: auto;
+        width: 95%;
+        padding: 12px 16px;
+    }
+    
+    .run-time {
+        font-size: 32px;
+        letter-spacing: 2px;
+    }
+    
+    .run-time.finalizado {
+        font-size: 28px;
+    }
+    
+    .run-buttons-area {
+        gap: 6px;
+    }
+    
+    .run-btn {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+    
+    /* Tabela com scroll horizontal */
+    .tabela-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    table {
+        min-width: 700px;
+        font-size: 11px;
+    }
+    
+    th, td {
+        padding: 8px 4px;
+    }
+    
+    th {
+        font-size: 10px !important;
+    }
+    
+    td input {
+        width: 70px !important;
+        height: 32px !important;
+        font-size: 11px !important;
+        padding: 2px;
+    }
+    
+    .btn-morto {
+        padding: 0 5px !important;
+        font-size: 9px !important;
+        height: 32px !important;
+    }
+    
+    .container-morto {
+        gap: 5px !important;
+    }
+    
+    /* Relógio */
+    .relogio-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    #relogio {
+        font-size: 18px;
+        padding: 6px 15px;
+    }
+    
+    /* Controles de volume e duração */
+    .controle-volume, .duracao-alarme-container {
+        padding: 8px 12px !important;
+        height: 38px !important;
+    }
+    
+    .controle-volume span, .duracao-alarme-container span {
+        font-size: 12px !important;
+    }
+    
+    #valor-volume {
+        width: 45px !important;
+        height: 28px !important;
+        font-size: 12px !important;
+    }
+    
+    /* Botões extras */
+    #limpar-dados, #toggle-restante {
+        padding: 8px 16px;
+        font-size: 12px;
+        height: 38px;
+    }
+    
+    /* Modal */
+    .modal-conteudo {
+        padding: 20px;
+        width: 85%;
+    }
+    
+    .modal-conteudo h3 {
+        font-size: 18px;
+    }
+    
+    .modal-botoes button {
+        padding: 8px 16px;
+        font-size: 14px;
+        height: 38px;
+    }
+}
+
+/* CELULAR PEQUENO (até 480px) */
+@media screen and (max-width: 480px) {
+    .run-time {
+        font-size: 28px;
+    }
+    
+    .run-btn {
+        font-size: 9px;
+        padding: 4px 8px;
+    }
+    
+    .run-buttons-area {
+        gap: 4px;
+    }
+    
+    .run-label {
+        font-size: 9px;
+    }
+    
+    td input {
+        width: 60px !important;
+        font-size: 10px !important;
+    }
+    
+    .btn-morto {
+        font-size: 8px !important;
+        padding: 0 3px !important;
+    }
+    
+    .container-morto {
+        gap: 3px !important;
+    }
+    
+    #relogio {
+        font-size: 14px;
+        padding: 5px 10px;
+    }
+    
+    .controle-volume input[type="range"] {
+        width: 60px !important;
+    }
+}
+
+/* TABELA COM SCROLL HORIZONTAL PARA TODAS AS TELAS MENORES */
+@media screen and (max-width: 900px) {
+    .tabela-wrapper {
+        overflow-x: auto;
+    }
+    
+    table {
+        min-width: 800px;
+    }
 }
