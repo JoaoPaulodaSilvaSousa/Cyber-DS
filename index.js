@@ -368,73 +368,291 @@ function calcular() {
 }
 
 // ==========================================
-// 7. SISTEMA DE COLAR TEXTO DA IMAGEM
+// 7. SISTEMA DE COLAR TEXTO - COMPLETO E FUNCIONAL
 // ==========================================
+
+// Definir as variáveis
 const campoColar = document.getElementById('campo-colar');
-if (campoColar) {
-    campoColar.addEventListener('input', (e) => {
-        const texto = e.target.value.trim();
-        if (!texto) return;
+const btnColarTexto = document.getElementById('btnColarTexto');
 
-        const linhas = texto.split('\n');
+// Função para converter hora com AM/PM para 24h
+function converterHoraPara24h(horaStr) {
+    if (!horaStr) return horaStr;
+    let horaLimpa = horaStr.trim().toLowerCase();
+    const temPM = /p\s*\.?\s*m\s*\.?/.test(horaLimpa);
+    const temAM = /a\s*\.?\s*m\s*\.?/.test(horaLimpa);
+    const match = horaLimpa.match(/(\d{1,2}):(\d{2}):(\d{2})/);
+    if (!match) return horaStr;
+    let hora = parseInt(match[1]);
+    const minuto = match[2];
+    const segundo = match[3];
+    if (temPM && hora < 12) hora += 12;
+    if (temAM && hora === 12) hora = 0;
+    return `${String(hora).padStart(2, '0')}:${minuto}:${segundo}`;
+}
 
-        linhas.forEach(linha => {
-            const regex = /([A-Z]{2})\s+(\d{2}:\d{2}:\d{2})\s+(\d{2}:\d{2}:\d{2})/;
-            const match = linha.match(regex);
+// Mapeamento de mapas
+const mapaMapping = {
+    'GF': 'GF', 'GOLDFIELDS': 'GF', 'GOLD FIELDS': 'GF', 'GOLD': 'GF',
+    'MW': 'MW', 'MOKON WOODS': 'MW', 'MOKONWOODS': 'MW', 'MOKON': 'MW', 'WOODS': 'MW', 'MK': 'MW',
+    'GV': 'GV', 'GREEN VOLCANO': 'GV', 'GREENVOLCANO': 'GV', 'GREEN': 'GV', 'VOLCANO': 'GV',
+    'CCV': 'CCV', 'CV': 'CCV', 'COLDCLAW VALLEY': 'CCV', 'COLDCLAWVALLEY': 'CCV', 'COLDCLAW': 'CCV', 'VALLEY': 'CCV', 'COLD': 'CCV',
+    'MM': 'MM', 'MAUJAK MOUNTAINS': 'MM', 'MAUJAKMOUNTAINS': 'MM', 'MAUJAK': 'MM', 'MOUNTAINS': 'MM', 'MJ': 'MM'
+};
 
-            if (match) {
-                const mapaNome = match[1];      
-                const horaGigante = match[2];   
-                const horaBandido = match[3];   
+function normalizarMapa(nome) {
+    if (!nome) return null;
+    let nomeLimpo = nome.trim().toUpperCase();
+    if (mapaMapping[nomeLimpo]) return mapaMapping[nomeLimpo];
+    nomeLimpo = nomeLimpo.replace(/[^A-Z0-9]/g, '');
+    if (mapaMapping[nomeLimpo]) return mapaMapping[nomeLimpo];
+    return null;
+}
 
-                document.querySelectorAll('tr').forEach(tr => {
-                    const celulaMapa = tr.querySelector('td:first-child');
-                    if (celulaMapa && celulaMapa.innerText.trim() === mapaNome) {
-                        const respGL = tr.querySelector('.respGiganteLocal');
-                        const respBL = tr.querySelector('.respBandidoLocal');
-               
-                        const campoTempoG = tr.querySelector('.tempo-restante-gigante');
-                        const campoTempoB = tr.querySelector('.tempo-restante-bandido');
+function extrairDados(linha) {
+    let linhaLimpa = linha.replace(/\s+/g, ' ').trim();
+    
+    // ==========================================
+    // FORMATO CSV: GF,21:46:36,21:51:20
+    // ==========================================
+    let csvMatch = linhaLimpa.match(/^([A-Za-z]{2,3}),(\d{1,2}:\d{2}:\d{2}),(\d{1,2}:\d{2}:\d{2})$/i);
+    if (csvMatch) {
+        return {
+            mapa: normalizarMapa(csvMatch[1]),
+            horaGigante: converterHoraPara24h(csvMatch[2]),
+            horaBandido: converterHoraPara24h(csvMatch[3])
+        };
+    }
+    
+    // ==========================================
+    // FORMATO TABELA: | GF | 21:46:36 | 21:51:20 |
+    // ==========================================
+    let tableMatch = linhaLimpa.match(/\|\s*([A-Za-z]{2,3})\s*\|\s*(\d{1,2}:\d{2}:\d{2})\s*\|\s*(\d{1,2}:\d{2}:\d{2})\s*\|/i);
+    if (tableMatch) {
+        return {
+            mapa: normalizarMapa(tableMatch[1]),
+            horaGigante: converterHoraPara24h(tableMatch[2]),
+            horaBandido: converterHoraPara24h(tableMatch[3])
+        };
+    }
+    
+    // ==========================================
+    // FORMATO MAPAS: MM
+    // ==========================================
+    let mapaMatch = linhaLimpa.match(/MAPAS?:?\s*([A-Za-z]{2,3})/i);
+    if (mapaMatch) {
+        let mapa = normalizarMapa(mapaMatch[1]);
+        if (mapa) return { mapa: mapa, pending: true };
+    }
+    
+    // ==========================================
+    // FORMATO HORA GIGANTE: H. MORTO (G): 12:20:00
+    // ==========================================
+    let horaGiganteMatch = linhaLimpa.match(/(?:MORTO\s*\(G\)|GIGANTE|H\.?\s*MORTO\s*\(G\)|MORTE GIGANTE):?\s*(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)/i);
+    if (horaGiganteMatch) {
+        return { horaGigante: converterHoraPara24h(horaGiganteMatch[1]) };
+    }
+    
+    // ==========================================
+    // FORMATO HORA BANDIDO: H. MORTO (B): 12:20:00
+    // ==========================================
+    let horaBandidoMatch = linhaLimpa.match(/(?:MORTO\s*\(B\)|BANDIDO|H\.?\s*MORTO\s*\(B\)|MORTE BANDIDO):?\s*(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)/i);
+    if (horaBandidoMatch) {
+        return { horaBandido: converterHoraPara24h(horaBandidoMatch[1]) };
+    }
+    
+    // ==========================================
+    // FORMATO RESPAWN GIGANTE: RESP. SERVER (G): 12:35:00
+    // ==========================================
+    let respGiganteMatch = linhaLimpa.match(/(?:RESP\.?\s*SERVER\s*\(G\)|RESPAWN GIGANTE):?\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (respGiganteMatch) {
+        // Ignorar respawn, só interessa morte
+        return null;
+    }
+    
+    // ==========================================
+    // FORMATO SIMPLES: GF 14:30:00 15:30:00
+    // ==========================================
+    let match = linhaLimpa.match(/^([A-Za-z\s\-]{2,10})\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)/i);
+    if (match) {
+        return {
+            mapa: normalizarMapa(match[1]),
+            horaGigante: converterHoraPara24h(match[2]),
+            horaBandido: converterHoraPara24h(match[3])
+        };
+    }
+    
+    // ==========================================
+    // FORMATO INVERTIDO: 14:30:00 15:30:00 GF
+    // ==========================================
+    match = linhaLimpa.match(/(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+([A-Za-z\s\-]{2,10})$/i);
+    if (match) {
+        return {
+            mapa: normalizarMapa(match[3]),
+            horaGigante: converterHoraPara24h(match[1]),
+            horaBandido: converterHoraPara24h(match[2])
+        };
+    }
+    
+    // ==========================================
+    // FORMATO PIPE: 09:10:05 p. m. | 09:07:27 p. m. | GF
+    // ==========================================
+    match = linhaLimpa.match(/(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s*[|\-]\s*(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s*[|\-]\s*([A-Za-z\s\-]{2,10})/i);
+    if (match) {
+        return {
+            mapa: normalizarMapa(match[3]),
+            horaGigante: converterHoraPara24h(match[1]),
+            horaBandido: converterHoraPara24h(match[2])
+        };
+    }
+    
+    // ==========================================
+    // FORMATO TEXTO LIVRE: GF as 21:46:36 e 21:51:20
+    // ==========================================
+    let mapaLivro = linhaLimpa.match(/\b(GF|MW|GV|CCV|MM|Gf|Mw|Gv|Ccv|Mm)\b/i);
+    let horas = linhaLimpa.match(/(\d{1,2}:\d{2}:\d{2})/g);
+    if (mapaLivro && horas && horas.length >= 2) {
+        return {
+            mapa: normalizarMapa(mapaLivro[1]),
+            horaGigante: converterHoraPara24h(horas[0]),
+            horaBandido: converterHoraPara24h(horas[1])
+        };
+    }
+    
+    return null;
+}
 
-                        if (respGL && horaGigante) {
-                            respGL.value = horaGigante;
-                            respGL.dataset.colado = "true"; 
-                            if (campoTempoG) {
-                                delete campoTempoG.dataset.spawnado;
-                                localStorage.removeItem(`spawn-${mapaNome}-G`);
-                                localStorage.removeItem(`foco-azul-spawn-${mapaNome}-G`);
-                                campoTempoG.style.backgroundColor = "";
-                                campoTempoG.style.color = "";
-                                campoTempoG.classList.remove('ultimo-spawn'); 
-                                respGL.classList.remove('alarme-foco'); 
-                            }
-                        }
-                        if (respBL && horaBandido) {
-                            respBL.value = horaBandido;
-                            respBL.dataset.colado = "true";
-                            if (campoTempoB) {
-                                delete campoTempoB.dataset.spawnado;
-                                localStorage.removeItem(`spawn-${mapaNome}-B`);
-                                localStorage.removeItem(`foco-azul-spawn-${mapaNome}-B`);
-                                campoTempoB.style.backgroundColor = "";
-                                campoTempoB.style.color = "";
-                                campoTempoB.classList.remove('ultimo-spawn'); 
-                                respBL.classList.remove('alarme-foco'); 
-                            }
-                        }
-
-                        if (localStorage.getItem(`spawn-${mapaNome}-G`) !== "true" && localStorage.getItem(`spawn-${mapaNome}-B`) !== "true") {
-                            // Não usa mais destaque de linha inteira.
-                        }
-                    }
-                });
+function preencherMapa(mapa, horaGigante, horaBandido, mapasEncontrados) {
+    console.log(`Preenchendo ${mapa}: G=${horaGigante} B=${horaBandido}`);
+    mapasEncontrados.push(mapa);
+    
+    document.querySelectorAll('tr').forEach(tr => {
+        const celulaMapa = tr.querySelector('td:first-child');
+        if (celulaMapa && celulaMapa.innerText.trim().toUpperCase() === mapa) {
+            const inputGigante = tr.querySelector('.morteGigante');
+            if (inputGigante && horaGigante) {
+                inputGigante.value = horaGigante;
+                inputGigante.dispatchEvent(new Event('input', { bubbles: true }));
             }
-        });
-
-        setTimeout(() => { campoColar.value = ""; }, 1000);
+            const inputBandido = tr.querySelector('.morteBandido');
+            if (inputBandido && horaBandido) {
+                inputBandido.value = horaBandido;
+                inputBandido.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
     });
 }
 
+function processarTextoColado(texto) {
+    console.log('Processando texto...');
+    const linhas = texto.split('\n');
+    let encontrados = 0;
+    const mapasEncontrados = [];
+    let mapaAtual = null;
+    let horaGiganteAtual = null;
+    let horaBandidoAtual = null;
+    
+    for (const linha of linhas) {
+        if (linha.trim().length === 0) continue;
+        
+        // Pular linhas que contém "RESP." ou "TEMPO RESTANTE" (não são horários de morte)
+        if (linha.match(/RESP\.|TEMPO RESTANTE|RESPAWN/i)) {
+            continue;
+        }
+        
+        const dados = extrairDados(linha);
+        if (!dados) continue;
+        
+        // Se tem mapa pendente
+        if (dados.pending && dados.mapa) {
+            if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
+                preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
+                encontrados += 2;
+            }
+            mapaAtual = dados.mapa;
+            horaGiganteAtual = null;
+            horaBandidoAtual = null;
+            continue;
+        }
+        
+        // Acumular horas
+        if (dados.horaGigante) horaGiganteAtual = dados.horaGigante;
+        if (dados.horaBandido) horaBandidoAtual = dados.horaBandido;
+        
+        // Se tem tudo junto
+        if (dados.mapa && dados.horaGigante && dados.horaBandido) {
+            preencherMapa(dados.mapa, dados.horaGigante, dados.horaBandido, mapasEncontrados);
+            encontrados += 2;
+            continue;
+        }
+        
+        // Se acumulou tudo
+        if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
+            preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
+            encontrados += 2;
+            mapaAtual = null;
+            horaGiganteAtual = null;
+            horaBandidoAtual = null;
+        }
+    }
+    
+    // Final pendente
+    if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
+        preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
+        encontrados += 2;
+    }
+    
+    if (typeof calcular === 'function') calcular();
+    
+    const container = campoColar ? campoColar.parentNode : document.body;
+    const statusDiv = document.createElement('div');
+    if (encontrados > 0) {
+        statusDiv.innerHTML = `✅ ${encontrados} horários preenchidos (${mapasEncontrados.length} mapas)`;
+        statusDiv.style.color = '#4CAF50';
+    } else {
+        statusDiv.innerHTML = `❌ Nenhum horário encontrado. Tente outro formato.`;
+        statusDiv.style.color = '#ff5252';
+    }
+    statusDiv.style.cssText = 'font-size: 12px; margin-top: 8px; text-align: center; font-weight: bold; padding: 5px; border-radius: 8px;';
+    container.appendChild(statusDiv);
+    setTimeout(() => statusDiv.remove(), 5000);
+    
+    if (campoColar) campoColar.value = '';
+    console.log(`Processamento concluído: ${encontrados} horários`);
+    return encontrados;
+}
+
+// Evento do botão PREENCHER HORÁRIOS
+if (btnColarTexto) {
+    const novoBtn = btnColarTexto.cloneNode(true);
+    btnColarTexto.parentNode.replaceChild(novoBtn, btnColarTexto);
+    
+    novoBtn.onclick = function() {
+        console.log('Botão PREENCHER HORÁRIOS clicado');
+        if (!campoColar) {
+            console.error('campoColar não encontrado');
+            return;
+        }
+        const texto = campoColar.value.trim();
+        if (!texto) {
+            alert('⚠️ Cole o texto primeiro!');
+            return;
+        }
+        processarTextoColado(texto);
+    };
+}
+
+if (campoColar) {
+    campoColar.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            const btn = document.getElementById('btnColarTexto');
+            if (btn) btn.click();
+        }
+    });
+}
+
+console.log('Sistema de colar texto carregado com sucesso!');
 
 // ==========================================
 // 8. CARREGAR DADOS SALVOS
@@ -560,45 +778,66 @@ function tocarBip(duracaoSegundos = 1, tipo = 'default') {
 // ==========================================
 const sliderVolume = document.getElementById('volume-alarme');
 const campoVolumeTxt = document.getElementById('valor-volume'); 
-const btnVolMenos = document.getElementById('vol-menos') || document.getElementById('diminuir-vol');
-const btnVolMais = document.getElementById('vol-mais') || document.getElementById('aumentar-vol');
+const btnVolMenos = document.getElementById('vol-menos');
+const btnVolMais = document.getElementById('vol-mais');
 
+// Converter de 0-100 para 0-1 e vice-versa
 function atualizarInterfaceVolume(valor) {
+    // Garantir que é número inteiro
+    valor = Math.round(Number(valor));
+    if (isNaN(valor)) valor = 10;
+    if (valor > 100) valor = 100;
+    if (valor < 0) valor = 0;
+    
+    const valorNormalizado = valor / 100;
     if (sliderVolume) sliderVolume.value = valor;
-    if (campoVolumeTxt) campoVolumeTxt.value = Math.round(valor * 100);
-    volumeAtual = valor;
-    localStorage.setItem('volumeAlarme', valor);
+    if (campoVolumeTxt) campoVolumeTxt.value = valor;
+    volumeAtual = valorNormalizado;
+    localStorage.setItem('volumeAlarme', valorNormalizado);
 }
 
+// Carregar volume salvo
+let volumeSalvo = parseFloat(localStorage.getItem('volumeAlarme')) || 0.1;
+let volumePercentual = Math.round(volumeSalvo * 100);
+
 if (sliderVolume && campoVolumeTxt) {
-    sliderVolume.value = volumeAtual;
-    campoVolumeTxt.value = Math.round(volumeAtual * 100);
+    sliderVolume.value = volumePercentual;
+    campoVolumeTxt.value = volumePercentual;
+    
     sliderVolume.oninput = (e) => {
-        atualizarInterfaceVolume(parseFloat(e.target.value));
+        let novoValor = parseInt(e.target.value);
+        atualizarInterfaceVolume(novoValor);
     };
+    
     campoVolumeTxt.oninput = (e) => {
         let valorDigitado = parseInt(e.target.value);
         if (isNaN(valorDigitado)) return;
         if (valorDigitado > 100) valorDigitado = 100;
         if (valorDigitado < 0) valorDigitado = 0;
-
-        campoVolumeTxt.value = valorDigitado; 
-        atualizarInterfaceVolume(valorDigitado / 100);
+        atualizarInterfaceVolume(valorDigitado);
     };
+}
 
-    if (btnVolMenos) {
-        btnVolMenos.onclick = () => {
-            let novoVol = Math.max(0, volumeAtual - 0.05);
-            atualizarInterfaceVolume(parseFloat(novoVol.toFixed(2)));
-        };
-    }
+// Botão diminuir volume
+if (btnVolMenos) {
+    btnVolMenos.onclick = () => {
+        let valorAtual = parseInt(sliderVolume.value);
+        if (isNaN(valorAtual)) valorAtual = 10;
+        let novoValor = valorAtual - 1;
+        if (novoValor < 0) novoValor = 0;
+        atualizarInterfaceVolume(novoValor);
+    };
+}
 
-    if (btnVolMais) {
-        btnVolMais.onclick = () => {
-            let novoVol = Math.min(1, volumeAtual + 0.05);
-            atualizarInterfaceVolume(parseFloat(novoVol.toFixed(2)));
-        };
-    }
+// Botão aumentar volume
+if (btnVolMais) {
+    btnVolMais.onclick = () => {
+        let valorAtual = parseInt(sliderVolume.value);
+        if (isNaN(valorAtual)) valorAtual = 10;
+        let novoValor = valorAtual + 1;
+        if (novoValor > 100) novoValor = 100;
+        atualizarInterfaceVolume(novoValor);
+    };
 }
 
 
@@ -789,11 +1028,6 @@ const btnTestarAlarm = document.getElementById('testar-alarm');
 if (btnTestarAlarm) {
     btnTestarAlarm.onclick = () => {
         tocarBip(duracaoAlarme);
-        testeAtivo = true;
-        setTimeout(() => { 
-            testeAtivo = false;
-            removerEfeitoVisualRelogio();
-        }, duracaoAlarme * 1000); 
     };
 }
 
@@ -1227,80 +1461,22 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// CRONÔMETRO MANUAL - SEM RECORDE
+// CRONÔMETRO SIMPLES - PLAY/PAUSE UNIFICADO
 // ==========================================
 let runTime = 0;
 let runInterval = null;
 let runActive = false;
-let runPaused = false;
 
 // Elementos
 const runTimeDisplay = document.getElementById('runTimeDisplay');
-const runLabel = document.getElementById('runLabel');
-const runStartBtn = document.getElementById('runStartBtn');
-const runPauseBtn = document.getElementById('runPauseBtn');
+const runPlayPauseBtn = document.getElementById('runPlayPauseBtn');
 const runStopBtn = document.getElementById('runStopBtn');
 const runResetBtn = document.getElementById('runResetBtn');
-const runCard = document.querySelector('.run-card');
+const cronometroSide = document.querySelector('.cronometro-box');
 
-// Chaves do localStorage para persistência do timer
+// Chaves do localStorage
 const STORAGE_RUN_TIME = 'run_tempo_atual';
 const STORAGE_RUN_ACTIVE = 'run_estado_ativo';
-const STORAGE_RUN_PAUSED = 'run_estado_pausado';
-
-// Carregar estado salvo do timer
-function carregarEstadoTimer() {
-    const savedTime = localStorage.getItem(STORAGE_RUN_TIME);
-    const savedActive = localStorage.getItem(STORAGE_RUN_ACTIVE);
-    const savedPaused = localStorage.getItem(STORAGE_RUN_PAUSED);
-    
-    if (savedTime !== null && savedTime !== '0') {
-        runTime = parseInt(savedTime);
-        updateDisplay();
-    }
-    
-    if (savedActive === 'true') {
-        runActive = true;
-        
-        if (savedPaused === 'true') {
-            runPaused = true;
-            if (runPauseBtn) {
-                runPauseBtn.textContent = '▶ RETOMAR';
-                runPauseBtn.style.background = '#2196F3';
-            }
-            if (runCard) runCard.classList.remove('run-ativo');
-        } else {
-            runPaused = false;
-            if (runInterval) clearInterval(runInterval);
-            runInterval = setInterval(() => {
-                if (runActive && !runPaused) {
-                    runTime++;
-                    updateDisplay();
-                    salvarEstadoTimer();
-                }
-            }, 1000);
-            if (runCard) runCard.classList.add('run-ativo');
-            if (runPauseBtn) {
-                runPauseBtn.textContent = '⏸ PAUSAR';
-                runPauseBtn.style.background = '#ff9800';
-            }
-        }
-    }
-}
-
-function salvarEstadoTimer() {
-    if (runActive) {
-        localStorage.setItem(STORAGE_RUN_TIME, runTime);
-        localStorage.setItem(STORAGE_RUN_ACTIVE, runActive);
-        localStorage.setItem(STORAGE_RUN_PAUSED, runPaused);
-    }
-}
-
-function limparEstadoTimer() {
-    localStorage.removeItem(STORAGE_RUN_TIME);
-    localStorage.removeItem(STORAGE_RUN_ACTIVE);
-    localStorage.removeItem(STORAGE_RUN_PAUSED);
-}
 
 function formatRunTime(sec) {
     const h = Math.floor(sec / 3600);
@@ -1313,103 +1489,101 @@ function updateDisplay() {
     if (runTimeDisplay) runTimeDisplay.textContent = formatRunTime(runTime);
 }
 
-function removerFinalizado() {
-    if (runTimeDisplay) runTimeDisplay.classList.remove('finalizado');
-    if (runLabel) runLabel.classList.remove('finalizado');
-    if (runCard) runCard.classList.remove('run-finalizado');
-    if (runLabel) runLabel.textContent = 'TEMPO DE ROTA:';
-    if (runTimeDisplay) runTimeDisplay.style.fontSize = '42px';
+function salvarEstadoTimer() {
+    if (runActive) {
+        localStorage.setItem(STORAGE_RUN_TIME, runTime);
+        localStorage.setItem(STORAGE_RUN_ACTIVE, runActive);
+    }
+}
+
+function limparEstadoTimer() {
+    localStorage.removeItem(STORAGE_RUN_TIME);
+    localStorage.removeItem(STORAGE_RUN_ACTIVE);
 }
 
 function mostrarFinalizado() {
-    if (runLabel) {
-        runLabel.textContent = '✅ ROTA FINALIZADA:';
-        runLabel.classList.add('finalizado');
-    }
+    const tempoFinal = formatRunTime(runTime);
     if (runTimeDisplay) {
-        runTimeDisplay.classList.add('finalizado');
+        runTimeDisplay.textContent = `✅ ${tempoFinal}`;
+        runTimeDisplay.style.fontSize = '14px';
+        runTimeDisplay.style.minWidth = '170px';
     }
-    if (runCard) {
-        runCard.classList.add('run-finalizado');
-        runCard.classList.remove('run-ativo');
+    if (cronometroSide) {
+        cronometroSide.classList.add('finalizado');
     }
     limparEstadoTimer();
 }
 
-function iniciar() {
+function removerFinalizado() {
+    if (runTimeDisplay) {
+        runTimeDisplay.textContent = formatRunTime(runTime);
+        runTimeDisplay.style.fontSize = '';
+        runTimeDisplay.style.minWidth = '';
+    }
+    if (cronometroSide) {
+        cronometroSide.classList.remove('finalizado');
+    }
+}
+
+function play() {
     if (runActive) return;
     
     removerFinalizado();
-    
     runActive = true;
-    runPaused = false;
     runTime = 0;
     updateDisplay();
     
     if (runInterval) clearInterval(runInterval);
     runInterval = setInterval(() => {
-        if (runActive && !runPaused) {
+        if (runActive) {
             runTime++;
             updateDisplay();
             salvarEstadoTimer();
         }
     }, 1000);
     
-    if (runCard) runCard.classList.add('run-ativo');
-    if (runPauseBtn) {
-        runPauseBtn.textContent = '⏸ PAUSAR';
-        runPauseBtn.style.background = '#ff9800';
+    // Muda ícone para PAUSE
+    if (runPlayPauseBtn) {
+        runPlayPauseBtn.textContent = '⏸';
     }
-    
     salvarEstadoTimer();
 }
 
-function pausarOuRetomar() {
+function pause() {
     if (!runActive) return;
     
     if (runInterval) {
         clearInterval(runInterval);
         runInterval = null;
-        runPaused = true;
-        if (runPauseBtn) {
-            runPauseBtn.textContent = '▶ RETOMAR';
-            runPauseBtn.style.background = '#2196F3';
-        }
-        if (runCard) runCard.classList.remove('run-ativo');
-    } else {
-        runPaused = false;
-        runInterval = setInterval(() => {
-            if (runActive && !runPaused) {
-                runTime++;
-                updateDisplay();
-                salvarEstadoTimer();
-            }
-        }, 1000);
-        if (runPauseBtn) {
-            runPauseBtn.textContent = '⏸ PAUSAR';
-            runPauseBtn.style.background = '#ff9800';
-        }
-        if (runCard) runCard.classList.add('run-ativo');
+    }
+    runActive = false;
+    
+    // Muda ícone para PLAY
+    if (runPlayPauseBtn) {
+        runPlayPauseBtn.textContent = '▶';
     }
     salvarEstadoTimer();
+}
+
+function playPause() {
+    if (runActive) {
+        pause();
+    } else {
+        play();
+    }
 }
 
 function parar() {
-    if (!runActive) return;
-    
     if (runInterval) {
         clearInterval(runInterval);
         runInterval = null;
     }
-    
     runActive = false;
-    runPaused = false;
-    
     mostrarFinalizado();
     
-    if (runPauseBtn) {
-        runPauseBtn.textContent = '⏸ PAUSAR';
-        runPauseBtn.style.background = '#ff9800';
+    // Volta para PLAY
+    if (runPlayPauseBtn) {
+        runPlayPauseBtn.textContent = '▶';
     }
 }
 
@@ -1418,38 +1592,78 @@ function resetar() {
         clearInterval(runInterval);
         runInterval = null;
     }
-    
     runActive = false;
-    runPaused = false;
     runTime = 0;
     updateDisplay();
-    
     removerFinalizado();
     
-    if (runCard) runCard.classList.remove('run-ativo');
-    if (runPauseBtn) {
-        runPauseBtn.textContent = '⏸ PAUSAR';
-        runPauseBtn.style.background = '#ff9800';
+    // Volta para PLAY
+    if (runPlayPauseBtn) {
+        runPlayPauseBtn.textContent = '▶';
     }
-    
     limparEstadoTimer();
 }
 
 // Eventos
-if (runStartBtn) runStartBtn.onclick = iniciar;
-if (runPauseBtn) runPauseBtn.onclick = pausarOuRetomar;
+if (runPlayPauseBtn) runPlayPauseBtn.onclick = playPause;
 if (runStopBtn) runStopBtn.onclick = parar;
 if (runResetBtn) runResetBtn.onclick = resetar;
 
-// Carregar estado salvo ao iniciar
+// Carregar estado salvo
+function carregarEstadoTimer() {
+    const savedTime = localStorage.getItem(STORAGE_RUN_TIME);
+    const savedActive = localStorage.getItem(STORAGE_RUN_ACTIVE);
+    
+    if (savedTime !== null && savedTime !== '0') {
+        runTime = parseInt(savedTime);
+        updateDisplay();
+    }
+    
+    if (savedActive === 'true') {
+        runActive = true;
+        if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
+        runInterval = setInterval(() => {
+            if (runActive) {
+                runTime++;
+                updateDisplay();
+                salvarEstadoTimer();
+            }
+        }, 1000);
+    } else {
+        if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
+    }
+}
+
 carregarEstadoTimer();
 
 // ==========================================
-// 20. INIT (Forçado a rodar só após tudo carregar)
+// 20. INIT
 // ==========================================
 window.onload = function() {
     carregarDadosSalvos();
     setTimeout(() => {
         paginaCarregada = true;
     }, 100);
+
+    // FORÇAR tamanho inicial do textarea SEMPRE
+    const campoColar = document.getElementById('campo-colar');
+    if (campoColar) {
+        // Resetar qualquer estilo inline que tenha sido salvo
+        campoColar.style.width = '';
+        campoColar.style.height = '55px';
+        campoColar.style.removeProperty('resize');
+        
+        // Garantir que não tem tamanho fixo conflitante
+        campoColar.setAttribute('style', '');
+        campoColar.style.height = '55px';
+        
+        console.log('Textarea resetado para altura: 55px');
+    }
+    
+    // Também resetar o container
+    const container = document.querySelector('.colar-container');
+    if (container) {
+        container.style.width = '';
+        container.style.maxWidth = '600px';
+    }
 };
