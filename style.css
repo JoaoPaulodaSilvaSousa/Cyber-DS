@@ -245,32 +245,35 @@ h1:hover {
 
 /* RELÓGIO */
 .relogio-container {
-    width: 100%;
     display: flex;
-    justify-content: center; 
     align-items: center;
-    gap: 15px;
-    font-weight: bold;
-    color: #4CAF50;
-    margin-bottom: 10px;
+    gap: 10px;
+    background: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    padding: 0 20px;
+    border-radius: 20px;
+    border: 1px solid #4CAF50;
+    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    height: 48px;
 }
 
 .relogio-container span {
-    font-size: 20px; /* Aumentado de 18px para 20px */
+    font-size: 14px;
+    color: #888;
+    font-weight: bold;
+    white-space: nowrap;
 }
 
 #relogio {
-    background-color: #1a1a1a;
+    background: none;
     color: #4CAF50;
-    padding: 10px 25px; /* Aumentado */
-    border-radius: 15px;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 30px; /* Aumentado de 22px para 26px */
-    border: 1px solid #4CAF50;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    transition: all 0.3s ease;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    padding: 0;
+    white-space: nowrap;
 }
 
 /* TABELA MODO ESCURO */
@@ -1348,32 +1351,9 @@ table tr td:first-child {
     }
 }
 
-/* ÁREA PARA COLAR TEXTO */
-.colar-container {
-    margin: 15px auto;
-    width: 90%;
-    max-width: 500px;
-    background: #1e1e1e;
-    border-radius: 16px;
-    padding: 15px;
-    border: 1px solid #4CAF50;
-    transition: all 0.3s ease;
-}
 
-.colar-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 12px;
-    color: #888;
-}
 
-.colar-header small {
-    color: #4CAF50;
-    font-family: monospace;
-    font-size: 10px;
-}
-
+/* O textarea agora redimensiona em ambos os sentidos */
 .campo-colar {
     background: #121212;
     border: 1px solid #333;
@@ -1382,28 +1362,22 @@ table tr td:first-child {
     color: #e0e0e0;
     font-family: monospace;
     font-size: 13px;
-    resize: vertical;
-    overflow-y: auto;  /* Importante para funcionar */
-    overflow-x: hidden;
+    resize: both; /* Já está both, mas vamos garantir */
+    overflow: auto;
     box-sizing: border-box;
-    width: 100%;
-    min-width: auto;
-    min-height: 55px;  /* Use min-height em vez de height fixo */
+    width: 600px;
+    min-width: 180px; /* Largura mínima */
+    max-width: none;
+    height: 55px;
+    min-height: 50px;
     max-height: 300px;
 }
 
-/* Container do textarea */
-.colar-container {
-    margin: 5px auto;
-    padding: 8px 12px;
-    border-radius: 12px;
-    background: #1e1e1e;
-    border: 1px solid #4CAF50;
-    transition: all 0.3s ease;
-    display: block;
-    width: 100%;
-    max-width: 700px;
-    box-sizing: border-box;
+/* Estilo do redimensionador (canto inferior direito) */
+.campo-colar::-webkit-resizer {
+    background-color: #4CAF50;
+    border-radius: 0 0 6px 0;
+    cursor: nw-resize;
 }
 
 .colar-header {
@@ -1449,17 +1423,6 @@ body.light-mode .campo-colar {
     background: #ffffff;
     color: #333;
     border-color: #ddd;
-}
-
-/* HEADER COM RELÓGIO E CRONÔMETRO LADO A LADO */
-.info-header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 20px;
-    margin: 10px auto 20px auto;
-    flex-wrap: nowrap;
 }
 
 /* RELÓGIO */
@@ -1496,36 +1459,34 @@ body.light-mode .campo-colar {
     white-space: nowrap;
 }
 
-/* CRONÔMETRO - BOTÕES ALINHADOS */
+/* CRONÔMETRO - NÚMEROS MAIORES */
 .cronometro-box {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
     background: rgba(30, 30, 30, 0.75);
     backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    padding: 0 16px;
-    border-radius: 20px;
+    border-radius: 30px;
     border: 1px solid #4CAF50;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
-    height: 44px;
+    padding: 0 15px;
+    height: 48px;
+    min-width: 280px;
 }
 
 .cronometro-label {
-    font-size: 25px;
+    font-size: 14px;
     color: #888;
     font-weight: bold;
-    margin: 0;
+    white-space: nowrap;
 }
 
 .cronometro-tempo {
     font-family: 'Courier New', monospace;
-    font-size: 30px;
+    font-size: 24px;
     font-weight: bold;
     color: #4CAF50;
-    min-width: 75px;
-    text-align: center;
-    margin: 0;
+    white-space: nowrap;
+    min-width: 90px;
 }
 
 .cronometro-btn {
@@ -1533,41 +1494,46 @@ body.light-mode .campo-colar {
     border: 1px solid #4CAF50;
     color: #4CAF50;
     cursor: pointer;
-    font-size: 16px;        /* Tamanho OK para os símbolos */
-    width: 34px;            /* Largura fixa */
-    height: 34px;           /* Altura fixa */
+    font-size: 14px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     border-radius: 16px;
     transition: all 0.2s;
-    font-weight: bold;
-    display: inline-flex;   /* ← ESSENCIAL para centralizar */
-    align-items: center;    /* ← Centraliza vertical */
-    justify-content: center; /* ← Centraliza horizontal */
-    text-align: center;
-    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .cronometro-btn:hover {
     background: #4CAF50;
     color: #121212;
-    transform: scale(1.02);
 }
 
 /* Quando finalizado */
-.cronometro-box.finalizado .cronometro-tempo {
-    color: #FFD700;
-    font-size: 13px;
-    min-width: 130px;
+.cronometro-box.finalizado {
+    border-color: #FFD700;
 }
 
 .cronometro-box.finalizado .cronometro-label {
     color: #FFD700;
+    font-size: 14px;
 }
 
 .cronometro-box.finalizado .cronometro-tempo {
     color: #FFD700;
-    font-size: 16px;
+    font-size: 20px;
 }
+/* HEADER COM RELÓGIO E CRONÔMETRO LADO A LADO */
+.info-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 10px auto 20px auto;
+    flex-wrap: nowrap; /* Impede que quebre para baixo */
+}
+
 
 /* Modo claro */
 body.light-mode .relogio-container,
@@ -1599,20 +1565,17 @@ body.light-mode .cronometro-btn:hover {
     }
 }
 
+
 /* Container do textarea */
 .colar-container {
     margin: 5px auto;
     padding: 8px 12px;
     border-radius: 12px;
     background: #1e1e1e;
-    border: 1px solid #4CAF50;
-    transition: all 0.3s ease;
-    width: 100%;
-    max-width: 600px;
+    border: 2px solid #4CAF50;
+    width: 600px;
+    max-width: 100%;
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* Impede vazamento */
 }
 
 .colar-header {
@@ -1631,34 +1594,6 @@ body.light-mode .cronometro-btn:hover {
     font-size: 9px;
 }
 
-.campo-colar {
-    background: #121212;
-    border: 1px solid #333;
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: #e0e0e0;
-    font-family: monospace;
-    font-size: 13px;
-    resize: both;
-    overflow: auto;
-    box-sizing: border-box;
-    width: 100%;
-    min-width: auto;
-    height: 55px;
-    min-height: 50px;
-    max-height: 200px;
-}
-
-.campo-colar:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
-}
-
-/* Limitar o tamanho máximo ao redimensionar */
-.campo-colar {
-    max-width: 100% !important;
-}
 
 .colar-btn {
     width: 100%;
@@ -1680,13 +1615,11 @@ body.light-mode .cronometro-btn:hover {
     transform: scale(1.02);
 }
 
-/* Estilo do redimensionador */
 .campo-colar::-webkit-resizer {
     background-color: #4CAF50;
     border-radius: 0 0 6px 0;
 }
 
-/* Modo claro */
 body.light-mode .colar-container {
     background: #f5f5f5;
     border-color: #4CAF50;
@@ -1705,12 +1638,398 @@ body.light-mode .campo-colar:focus {
 body.light-mode .campo-colar::-webkit-resizer {
     background-color: #2e7d32;
 }
-
-/* Quando finalizado */
+/* Quando finalizado - mantém o tamanho da fonte maior mas não aumenta a div */
 .cronometro-box.finalizado .cronometro-tempo {
     color: #FFD700;
-    font-size: 11px;
-    min-width: 170px;
-    letter-spacing: 0;
+    font-size: 30px;
+    white-space: nowrap;
+}
+
+/* ==========================================
+   BOTÕES DO CRONÔMETRO COM GLOW NA BORDA
+   ========================================== */
+
+.cronometro-btn {
+    background: none;
+    border: 2px solid #4CAF50;
+    color: #4CAF50;
+    cursor: pointer;
+    font-size: 16px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 19px;
+    transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* Efeito hover - glow na borda */
+.cronometro-btn:hover {
+    transform: scale(1.05);
+    border-color: #81C784;
+    box-shadow: 0 0 12px rgba(76, 175, 80, 0.6);
+}
+
+/* Efeito de clique */
+.cronometro-btn:active {
+    transform: scale(0.95);
+    transition: all 0.05s;
+}
+
+/* ==========================================
+   GLOW NA BORDA POR TIPO DE BOTÃO
+   ========================================== */
+
+/* Glow do botão PLAY (Iniciar) - Laranja */
+.cronometro-btn.play-glow {
+    animation: borderGlowPlay 0.5s ease-out;
+}
+
+/* Glow do botão PAUSE (Pausar) - Azul */
+.cronometro-btn.pause-glow {
+    animation: borderGlowPause 0.5s ease-out;
+}
+
+/* Glow do botão STOP - Vermelho */
+.cronometro-btn.stop-glow {
+    animation: borderGlowStop 0.5s ease-out;
+}
+
+/* Glow do botão RESET - Dourado */
+.cronometro-btn.reset-glow {
+    animation: borderGlowReset 0.5s ease-out;
+}
+
+/* ==========================================
+   ANIMAÇÕES DE GLOW NA BORDA
+   ========================================== */
+
+@keyframes borderGlowPlay {
+    0% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 rgba(255, 152, 0, 0);
+    }
+    50% {
+        border-color: #FF9800;
+        box-shadow: 0 0 15px rgba(255, 152, 0, 0.8);
+    }
+    100% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+}
+
+@keyframes borderGlowPause {
+    0% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 rgba(33, 150, 243, 0);
+    }
+    50% {
+        border-color: #2196F3;
+        box-shadow: 0 0 15px rgba(33, 150, 243, 0.8);
+    }
+    100% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+}
+
+@keyframes borderGlowStop {
+    0% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 rgba(244, 67, 54, 0);
+    }
+    50% {
+        border-color: #f44336;
+        box-shadow: 0 0 15px rgba(244, 67, 54, 0.8);
+    }
+    100% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+}
+
+@keyframes borderGlowReset {
+    0% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 rgba(255, 215, 0, 0);
+    }
+    50% {
+        border-color: #FFD700;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+    }
+    100% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+}
+
+/* ==========================================
+   GLOW VERDE SUAVE NA DIV E NÚMEROS
+   ========================================== */
+
+/* Animação de glow na borda da div quando ativa */
+.cronometro-box.run-ativo {
+    border-color: #4CAF50;
+    animation: borderGlowVerde 2s ease-in-out infinite;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+@keyframes borderGlowVerde {
+    0% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+    }
+    50% {
+        border-color: #81C784;
+        box-shadow: 0 0 15px rgba(76, 175, 80, 0.5);
+    }
+    100% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+    }
+}
+
+/* Glow nos números quando a run está ativa */
+.cronometro-box.run-ativo .cronometro-tempo {
+    animation: textGlowVerde 2s ease-in-out infinite;
+    text-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
+
+@keyframes textGlowVerde {
+    0% {
+        text-shadow: 0 0 2px rgba(76, 175, 80, 0.2);
+        color: #4CAF50;
+    }
+    50% {
+        text-shadow: 0 0 10px rgba(76, 175, 80, 0.6);
+        color: #81C784;
+    }
+    100% {
+        text-shadow: 0 0 2px rgba(76, 175, 80, 0.2);
+        color: #4CAF50;
+    }
+}
+
+/* Quando pausado - glow mais fraco */
+.cronometro-box.run-pausado {
+    border-color: #4CAF50;
+    animation: borderGlowPausado 2s ease-in-out infinite;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+}
+
+@keyframes borderGlowPausado {
+    0% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+    50% {
+        border-color: #A5D6A7;
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+    }
+    100% {
+        border-color: #4CAF50;
+        box-shadow: 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+}
+
+/* Glow nos números quando pausado (mais fraco) */
+.cronometro-box.run-pausado .cronometro-tempo {
+    animation: textGlowPausado 2s ease-in-out infinite;
+}
+
+@keyframes textGlowPausado {
+    0% {
+        text-shadow: 0 0 1px rgba(76, 175, 80, 0.1);
+    }
+    50% {
+        text-shadow: 0 0 6px rgba(76, 175, 80, 0.3);
+    }
+    100% {
+        text-shadow: 0 0 1px rgba(76, 175, 80, 0.1);
+    }
+}
+
+/* Quando finalizado - glow dourado (mantém) */
+.cronometro-box.finalizado {
+    border-color: #FFD700;
+    animation: borderGlowFinalizado 2s ease-in-out infinite;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.cronometro-box.finalizado .cronometro-tempo {
+    color: #FFD700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+@keyframes borderGlowFinalizado {
+    0% {
+        border-color: #FFD700;
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.2);
+    }
+    50% {
+        border-color: #FFE082;
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    }
+    100% {
+        border-color: #FFD700;
+        box-shadow: 0 0 5px rgba(255, 215, 0, 0.2);
+    }
+}
+
+/* FORÇAR NÚMEROS DO CRONÔMETRO À ESQUERDA */
+.cronometro-tempo {
+    text-align: left !important;
+    display: inline-block !important;
+}
+
+/* CRONÔMETRO - BOTÕES ALINHADOS */
+.info-header .cronometro-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px !important;
+    min-height: 64px !important;
+    max-height: 64px !important;
+    padding: 0 28px !important;
+    border-radius: 32px !important;
+    gap: 15px !important;
+}
+
+/* CRONÔMETRO - AJUSTE DA LARGURA DO LABEL */
+.info-header .cronometro-label {
+    font-size: 18px !important;
+    line-height: 1 !important;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    min-width: auto !important;  /* Remove largura mínima fixa */
+    width: auto !important;       /* Largura automática */
+}
+
+.info-header .cronometro-label[class*="ROTA"] {
+    min-width: 145px !important;
+}
+
+.info-header .cronometro-tempo {
+    font-size: 26px !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    min-width: 120px !important;
+    text-align: center;
+    line-height: 1;
+}
+
+.info-header .cronometro-btn {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 18px !important;
+    border-radius: 22px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+/* Garantir alinhamento vertical de todos os elementos */
+.info-header .cronometro-box,
+.info-header .cronometro-label,
+.info-header .cronometro-tempo,
+.info-header .cronometro-btn {
+    vertical-align: middle;
+}
+
+/* ANIMAÇÕES PARA O LABEL DO CRONÔMETRO */
+.info-header .cronometro-label {
+    font-size: 18px !important;
+    line-height: 1 !important;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    min-width: auto !important;
+    width: auto !important;
+    transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    position: relative;
+}
+
+/* Animação de fade e leve movimento */
+@keyframes fadeSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.run-label {
+    transition: all 0.2s ease;
+}
+
+#runTimeDisplay {
+    transition: color 0.3s ease;
+}
+
+/* Estilos para o cronômetro */
+.cronometro-box.run-ativo {
+    border-left: 4px solid #4CAF50;
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.cronometro-box.run-pausado {
+    border-left: 4px solid #ff9800;
+    background: rgba(255, 152, 0, 0.1);
+}
+
+.cronometro-box.finalizado {
+    border-left: 4px solid #2196F3;
+    background: rgba(33, 150, 243, 0.1);
+}
+
+/* Solução mais direta */
+.cronometro-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* CORREÇÃO DO BOTÃO PLAY/PAUSE - COLOQUE NO FINAL DO SEU CSS */
+.cronometro-box button,
+.cronometro-btn,
+#runPlayPauseBtn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: middle !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+#runPlayPauseBtn {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 20px !important;
 }
 

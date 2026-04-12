@@ -1460,23 +1460,144 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Função auxiliar para animar o label
+function animarLabel(novoTexto) {
+    if (!runLabel) return;
+    
+    // Adiciona classe de animação
+    runLabel.style.animation = 'none';
+    runLabel.offsetHeight; // Força reflow
+    runLabel.style.animation = 'fadeSlideIn 0.25s ease-out';
+    
+    // Muda o texto
+    runLabel.textContent = novoTexto;
+    
+    // Remove a animação depois
+    setTimeout(() => {
+        if (runLabel) runLabel.style.animation = '';
+    }, 300);
+}
+
+// Funções atualizadas com animação
+function play() {
+    if (runActive) return;
+    
+    runActive = true;
+    
+    if (runInterval) clearInterval(runInterval);
+    runInterval = setInterval(() => {
+        if (runActive) {
+            runTime++;
+            updateDisplay();
+        }
+    }, 1000);
+    
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
+    animarLabel('INICIADA:');  // ← Com animação
+    
+    if (cronometroSide) {
+        cronometroSide.classList.add('run-ativo');
+        cronometroSide.classList.remove('run-pausado', 'finalizado');
+    }
+}
+
+function retomar() {
+    if (runActive) return;
+    
+    runActive = true;
+    
+    if (runInterval) clearInterval(runInterval);
+    runInterval = setInterval(() => {
+        if (runActive) {
+            runTime++;
+            updateDisplay();
+        }
+    }, 1000);
+    
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
+    animarLabel('RETOMADA:');  // ← Com animação
+    
+    if (cronometroSide) {
+        cronometroSide.classList.add('run-ativo');
+        cronometroSide.classList.remove('run-pausado', 'finalizado');
+    }
+}
+
+function pause() {
+    if (!runActive) return;
+    
+    if (runInterval) {
+        clearInterval(runInterval);
+        runInterval = null;
+    }
+    runActive = false;
+    
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
+    animarLabel('PAUSADA:');  // ← Com animação
+    
+    if (cronometroSide) {
+        cronometroSide.classList.remove('run-ativo');
+        cronometroSide.classList.add('run-pausado');
+    }
+}
+
+function finalizar() {
+    if (!runActive && runTime === 0) return;
+    
+    if (runInterval) {
+        clearInterval(runInterval);
+        runInterval = null;
+    }
+    runActive = false;
+    
+    const tempoFinal = formatRunTime(runTime);
+    
+    animarLabel('FINALIZADA:');  // ← Com animação
+    if (runTimeDisplay) runTimeDisplay.textContent = `${tempoFinal}`;
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
+    
+    if (cronometroSide) {
+        cronometroSide.classList.remove('run-ativo', 'run-pausado');
+        cronometroSide.classList.add('finalizado');
+    }
+}
+
+function resetar() {
+    if (runInterval) {
+        clearInterval(runInterval);
+        runInterval = null;
+    }
+    runActive = false;
+    runTime = 0;
+    updateDisplay();
+    
+    animarLabel('REINICIADA:');  // ← Com animação
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
+    if (cronometroSide) {
+        cronometroSide.classList.remove('run-ativo', 'run-pausado', 'finalizado');
+    }
+    
+    // Volta para "TEMPO:" após 2 segundos
+    setTimeout(() => {
+        if (runLabel && !runActive && runTime === 0) {
+            animarLabel('TEMPO:');
+        }
+    }, 2000);
+}
+
 // ==========================================
-// CRONÔMETRO SIMPLES - PLAY/PAUSE UNIFICADO
+// CRONÔMETRO - VERSÃO COM TEXTOS "ROTA" E PADRÃO "TEMPO:"
 // ==========================================
 let runTime = 0;
 let runInterval = null;
 let runActive = false;
 
-// Elementos
 const runTimeDisplay = document.getElementById('runTimeDisplay');
+const runLabel = document.getElementById('runLabel');
 const runPlayPauseBtn = document.getElementById('runPlayPauseBtn');
 const runStopBtn = document.getElementById('runStopBtn');
 const runResetBtn = document.getElementById('runResetBtn');
 const cronometroSide = document.querySelector('.cronometro-box');
-
-// Chaves do localStorage
-const STORAGE_RUN_TIME = 'run_tempo_atual';
-const STORAGE_RUN_ACTIVE = 'run_estado_ativo';
 
 function formatRunTime(sec) {
     const h = Math.floor(sec / 3600);
@@ -1489,64 +1610,45 @@ function updateDisplay() {
     if (runTimeDisplay) runTimeDisplay.textContent = formatRunTime(runTime);
 }
 
-function salvarEstadoTimer() {
-    if (runActive) {
-        localStorage.setItem(STORAGE_RUN_TIME, runTime);
-        localStorage.setItem(STORAGE_RUN_ACTIVE, runActive);
+function animarLabel(novoTexto, corEspecial = false) {
+    if (!runLabel) return;
+    
+    runLabel.style.animation = 'none';
+    runLabel.offsetHeight;
+    runLabel.style.animation = 'fadeSlideIn 0.3s ease-out';
+    runLabel.textContent = novoTexto;
+    
+    // Se for finalizado, aplica cor amarela
+    if (corEspecial) {
+        runLabel.style.color = '#FFD700';
+    } else {
+        runLabel.style.color = '';
     }
-}
-
-function limparEstadoTimer() {
-    localStorage.removeItem(STORAGE_RUN_TIME);
-    localStorage.removeItem(STORAGE_RUN_ACTIVE);
-}
-
-function mostrarFinalizado() {
-    const tempoFinal = formatRunTime(runTime);
-    if (runTimeDisplay) {
-        runTimeDisplay.textContent = `✅ ${tempoFinal}`;
-        runTimeDisplay.style.fontSize = '14px';
-        runTimeDisplay.style.minWidth = '170px';
-    }
-    if (cronometroSide) {
-        cronometroSide.classList.add('finalizado');
-    }
-    limparEstadoTimer();
-}
-
-function removerFinalizado() {
-    if (runTimeDisplay) {
-        runTimeDisplay.textContent = formatRunTime(runTime);
-        runTimeDisplay.style.fontSize = '';
-        runTimeDisplay.style.minWidth = '';
-    }
-    if (cronometroSide) {
-        cronometroSide.classList.remove('finalizado');
-    }
+    
+    setTimeout(() => {
+        if (runLabel) runLabel.style.animation = '';
+    }, 300);
 }
 
 function play() {
     if (runActive) return;
     
-    removerFinalizado();
     runActive = true;
-    runTime = 0;
-    updateDisplay();
     
     if (runInterval) clearInterval(runInterval);
     runInterval = setInterval(() => {
         if (runActive) {
             runTime++;
             updateDisplay();
-            salvarEstadoTimer();
         }
     }, 1000);
     
-    // Muda ícone para PAUSE
-    if (runPlayPauseBtn) {
-        runPlayPauseBtn.textContent = '⏸';
-    }
-    salvarEstadoTimer();
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
+    animarLabel('ROTA INICIADA:');
+    
+    // Remove a cor amarela se tiver
+    if (runLabel) runLabel.style.color = '';
+    if (runTimeDisplay) runTimeDisplay.style.color = '';
 }
 
 function pause() {
@@ -1558,33 +1660,60 @@ function pause() {
     }
     runActive = false;
     
-    // Muda ícone para PLAY
-    if (runPlayPauseBtn) {
-        runPlayPauseBtn.textContent = '▶';
-    }
-    salvarEstadoTimer();
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
+    animarLabel('ROTA PAUSADA:');
+}
+
+function retomar() {
+    if (runActive) return;
+    
+    runActive = true;
+    
+    if (runInterval) clearInterval(runInterval);
+    runInterval = setInterval(() => {
+        if (runActive) {
+            runTime++;
+            updateDisplay();
+        }
+    }, 1000);
+    
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
+    animarLabel('ROTA RETOMADA:');
+    
+    // Remove a cor amarela se tiver
+    if (runLabel) runLabel.style.color = '';
+    if (runTimeDisplay) runTimeDisplay.style.color = '';
 }
 
 function playPause() {
     if (runActive) {
         pause();
     } else {
-        play();
+        if (runTime > 0) {
+            retomar();
+        } else {
+            play();
+        }
     }
 }
 
-function parar() {
+function finalizar() {
+    if (!runActive && runTime === 0) return;
+    
     if (runInterval) {
         clearInterval(runInterval);
         runInterval = null;
     }
     runActive = false;
-    mostrarFinalizado();
     
-    // Volta para PLAY
-    if (runPlayPauseBtn) {
-        runPlayPauseBtn.textContent = '▶';
+    const tempoFinal = formatRunTime(runTime);
+    
+    animarLabel('ROTA FINALIZADA:', true); // true = cor amarela
+    if (runTimeDisplay) {
+        runTimeDisplay.textContent = `${tempoFinal}`;
+        runTimeDisplay.style.color = '#FFD700'; // Deixa o tempo também em amarelo
     }
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
 }
 
 function resetar() {
@@ -1595,46 +1724,73 @@ function resetar() {
     runActive = false;
     runTime = 0;
     updateDisplay();
-    removerFinalizado();
     
-    // Volta para PLAY
-    if (runPlayPauseBtn) {
-        runPlayPauseBtn.textContent = '▶';
+    animarLabel('ROTA REINICIADA:');
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
+    
+    // Remove a cor amarela se tiver
+    if (runLabel) runLabel.style.color = '';
+    if (runTimeDisplay) runTimeDisplay.style.color = '';
+    
+    // Volta para "TEMPO:" após 2 segundos
+    setTimeout(() => {
+        if (runLabel && !runActive && runTime === 0) {
+            runLabel.textContent = 'TEMPO:';
+            runLabel.style.animation = '';
+        }
+    }, 2000);
+}
+
+function comecarDoZero() {
+    // Reseta o tempo
+    runTime = 0;
+    updateDisplay();
+    
+    // Remove cor amarela
+    if (runLabel) runLabel.style.color = '';
+    if (runTimeDisplay) runTimeDisplay.style.color = '';
+    
+    // Inicia o cronômetro
+    runActive = true;
+    
+    if (runInterval) clearInterval(runInterval);
+    runInterval = setInterval(() => {
+        if (runActive) {
+            runTime++;
+            updateDisplay();
+        }
+    }, 1000);
+    
+    if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
+    animarLabel('ROTA INICIADA:');
+}
+
+function playPauseAtualizado() {
+    // Verifica se está finalizado (tempo parado, não ativo, e tempo > 0)
+    const estaFinalizado = !runActive && runTime > 0 && runLabel.textContent.includes('FINALIZADA');
+    
+    if (estaFinalizado) {
+        // Se finalizado, começar do zero
+        comecarDoZero();
+    } else if (runActive) {
+        pause();
+    } else {
+        if (runTime > 0) {
+            retomar();
+        } else {
+            play();
+        }
     }
-    limparEstadoTimer();
 }
 
 // Eventos
-if (runPlayPauseBtn) runPlayPauseBtn.onclick = playPause;
-if (runStopBtn) runStopBtn.onclick = parar;
+if (runPlayPauseBtn) runPlayPauseBtn.onclick = playPauseAtualizado;
+if (runStopBtn) runStopBtn.onclick = finalizar;
 if (runResetBtn) runResetBtn.onclick = resetar;
 
-// Carregar estado salvo
-function carregarEstadoTimer() {
-    const savedTime = localStorage.getItem(STORAGE_RUN_TIME);
-    const savedActive = localStorage.getItem(STORAGE_RUN_ACTIVE);
-    
-    if (savedTime !== null && savedTime !== '0') {
-        runTime = parseInt(savedTime);
-        updateDisplay();
-    }
-    
-    if (savedActive === 'true') {
-        runActive = true;
-        if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
-        runInterval = setInterval(() => {
-            if (runActive) {
-                runTime++;
-                updateDisplay();
-                salvarEstadoTimer();
-            }
-        }, 1000);
-    } else {
-        if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
-    }
-}
-
-carregarEstadoTimer();
+// Inicializar
+if (runLabel) runLabel.textContent = 'TEMPO:';
+updateDisplay();
 
 // ==========================================
 // 20. INIT
@@ -1649,8 +1805,6 @@ window.onload = function() {
     const campoColar = document.getElementById('campo-colar');
     if (campoColar) {
         // Resetar qualquer estilo inline que tenha sido salvo
-        campoColar.style.width = '';
-        campoColar.style.height = '55px';
         campoColar.style.removeProperty('resize');
         
         // Garantir que não tem tamanho fixo conflitante
@@ -1664,6 +1818,25 @@ window.onload = function() {
     const container = document.querySelector('.colar-container');
     if (container) {
         container.style.width = '';
-        container.style.maxWidth = '600px';
     }
 };
+
+// Faz o container acompanhar o textarea quando redimensionado
+const colarContainer = document.querySelector('.colar-container');
+if (campoColar && colarContainer && typeof ResizeObserver !== 'undefined') {
+    const updateContainerWidth = () => {
+        const style = getComputedStyle(colarContainer);
+        const paddingLeft = parseFloat(style.paddingLeft) || 0;
+        const paddingRight = parseFloat(style.paddingRight) || 0;
+        const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+        const borderRight = parseFloat(style.borderRightWidth) || 0;
+        const targetWidth = campoColar.offsetWidth + paddingLeft + paddingRight + borderLeft + borderRight;
+        colarContainer.style.width = `${targetWidth}px`;
+    };
+
+    updateContainerWidth();
+    const resizeObserver = new ResizeObserver(updateContainerWidth);
+    resizeObserver.observe(campoColar);
+}
+
+
