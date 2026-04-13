@@ -449,31 +449,41 @@ function extrairDados(linha) {
     let linhaLimpa = linha.replace(/\s+/g, ' ').trim();
     
     // ==========================================
-    // NOVO FORMATO ESTRUTURADO (Morte Gigante: Morto – 19:36:08)
+    // NOVO FORMATO: "13:03 selvagem" ou "13:28 bandi"
     // ==========================================
     
-    // Morte Gigante: Morto – 19:36:08
-    let morteGiganteMatch = linhaLimpa.match(/Morte\s+Gigante:\s*Morto\s*[–\-]\s*(\d{1,2}:\d{2}:\d{2})/i);
-    if (morteGiganteMatch) {
-        return { horaGigante: converterHoraPara24h(morteGiganteMatch[1]) };
+    // Formato: "13:03 selvagem" (Gigante)
+    let selvagemMatch = linhaLimpa.match(/(\d{1,2}:\d{2}):?(\d{2})?\s+selvagem/i);
+    if (selvagemMatch) {
+        let hora = selvagemMatch[1];
+        let segundos = selvagemMatch[2] || "00";
+        return { horaGigante: converterHoraPara24h(`${hora}:${segundos}`) };
     }
     
-    // Morte Bandido: Morto – 19:39:50
-    let morteBandidoMatch = linhaLimpa.match(/Morte\s+Bandido:\s*Morto\s*[–\-]\s*(\d{1,2}:\d{2}:\d{2})/i);
-    if (morteBandidoMatch) {
-        return { horaBandido: converterHoraPara24h(morteBandidoMatch[1]) };
+    // Formato: "13:28 bandi" ou "13:43 bandido"
+    let bandidoMatch = linhaLimpa.match(/(\d{1,2}:\d{2}):?(\d{2})?\s+bandi/i);
+    if (bandidoMatch) {
+        let hora = bandidoMatch[1];
+        let segundos = bandidoMatch[2] || "00";
+        return { horaBandido: converterHoraPara24h(`${hora}:${segundos}`) };
     }
     
-    // Respawn Gigante (Server): 22:36:08 (ignorar)
-    let respGiganteMatch = linhaLimpa.match(/Respawn\s+Gigante\s*\(Server\):\s*(\d{1,2}:\d{2}:\d{2})/i);
-    if (respGiganteMatch) {
-        return null;
+    // ==========================================
+    // FORMATO: "selvagem 13:59"
+    // ==========================================
+    let selvagemInvertidoMatch = linhaLimpa.match(/selvagem\s+(\d{1,2}:\d{2}):?(\d{2})?/i);
+    if (selvagemInvertidoMatch) {
+        let hora = selvagemInvertidoMatch[1];
+        let segundos = selvagemInvertidoMatch[2] || "00";
+        return { horaGigante: converterHoraPara24h(`${hora}:${segundos}`) };
     }
     
-    // Respawn Bandido (Server): 22:39:50 (ignorar)
-    let respBandidoMatch = linhaLimpa.match(/Respawn\s+Bandido\s*\(Server\):\s*(\d{1,2}:\d{2}:\d{2})/i);
-    if (respBandidoMatch) {
-        return null;
+    // Formato: "bandido 14:10"
+    let bandidoInvertidoMatch = linhaLimpa.match(/bandido\s+(\d{1,2}:\d{2}):?(\d{2})?/i);
+    if (bandidoInvertidoMatch) {
+        let hora = bandidoInvertidoMatch[1];
+        let segundos = bandidoInvertidoMatch[2] || "00";
+        return { horaBandido: converterHoraPara24h(`${hora}:${segundos}`) };
     }
     
     // ==========================================
@@ -483,6 +493,26 @@ function extrairDados(linha) {
     if (mapaMatch) {
         return { mapa: normalizarMapa(mapaMatch[1]), pending: true };
     }
+    
+    // ==========================================
+    // FORMATO ESTRUTURADO (Morte Gigante: Morto – 19:36:08)
+    // ==========================================
+    let morteGiganteMatch = linhaLimpa.match(/Morte\s+Gigante:\s*Morto\s*[–\-]\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (morteGiganteMatch) {
+        return { horaGigante: converterHoraPara24h(morteGiganteMatch[1]) };
+    }
+    
+    let morteBandidoMatch = linhaLimpa.match(/Morte\s+Bandido:\s*Morto\s*[–\-]\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (morteBandidoMatch) {
+        return { horaBandido: converterHoraPara24h(morteBandidoMatch[1]) };
+    }
+    
+    // Ignorar respawns
+    let respGiganteMatch = linhaLimpa.match(/Respawn\s+Gigante\s*\(Server\):\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (respGiganteMatch) return null;
+    
+    let respBandidoMatch = linhaLimpa.match(/Respawn\s+Bandido\s*\(Server\):\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (respBandidoMatch) return null;
     
     // ==========================================
     // FORMATO CSV: GF,21:46:36,21:51:20
@@ -1289,39 +1319,36 @@ if (btnLimpar && modalContainer) {
         modalContainer.classList.remove('modal-oculto');
     };
 
-    modalCancelar.onclick = () => {
-        modalContainer.classList.add('modal-oculto');
-    };
     modalConfirmar.onclick = () => {
-        document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
-            if (input.value !== undefined) {
-                input.value = "";
-            } else {
-                input.innerText = "--:--:--";
-            }
-            delete input.dataset.colado;
-            input.classList.remove('alarme-foco'); 
-        });
-        document.querySelectorAll('.tempo-restante-gigante, .tempo-restante-bandido').forEach(celula => {
-            celula.innerText = "--:--:--";
-            celula.classList.remove('ultimo-spawn'); 
-            delete celula.dataset.spawnado;    
-        });
-        document.querySelectorAll('tr').forEach(tr => {
-            const morteGigante = tr.querySelector('.morteGigante');
-            if (morteGigante) {
-                const mapa = morteGigante.getAttribute('data-mapa');
-                localStorage.removeItem(`morte-${mapa}-Gigante`);
-                localStorage.removeItem(`morte-${mapa}-Bandido`);
-                localStorage.removeItem(`spawn-${mapa}-G`);
-                localStorage.removeItem(`spawn-${mapa}-B`);
-                localStorage.removeItem(`foco-azul-spawn-${mapa}-G`); 
-                localStorage.removeItem(`foco-azul-spawn-${mapa}-B`); 
-            }
-        });
-        modalContainer.classList.add('modal-oculto');
-        calcular();
-    };
+    document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
+        if (input.value !== undefined) {
+            input.value = "";
+        } else {
+            input.innerText = "--:--:--";
+        }
+        delete input.dataset.colado;
+        input.classList.remove('alarme-foco'); 
+    });
+    document.querySelectorAll('.tempo-restante-gigante, .tempo-restante-bandido').forEach(celula => {
+        celula.innerText = "--:--:--";
+        celula.classList.remove('ultimo-spawn', 'critico', 'muito-critico'); 
+        delete celula.dataset.spawnado;    
+    });
+    document.querySelectorAll('tr').forEach(tr => {
+        const morteGigante = tr.querySelector('.morteGigante');
+        if (morteGigante) {
+            const mapa = morteGigante.getAttribute('data-mapa');
+            localStorage.removeItem(`morte-${mapa}-Gigante`);
+            localStorage.removeItem(`morte-${mapa}-Bandido`);
+            localStorage.removeItem(`spawn-${mapa}-G`);
+            localStorage.removeItem(`spawn-${mapa}-B`);
+            localStorage.removeItem(`foco-azul-spawn-${mapa}-G`); 
+            localStorage.removeItem(`foco-azul-spawn-${mapa}-B`); 
+        }
+    });
+    modalContainer.classList.add('modal-oculto');
+    calcular();
+};
 
     modalContainer.onclick = (e) => {
         if (e.target === modalContainer) {
