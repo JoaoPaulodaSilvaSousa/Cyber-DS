@@ -1,4 +1,40 @@
 // ==========================================
+// DESBLOQUEAR ÁUDIO NO PRIMEIRO TOQUE/CLIQUE
+// ==========================================
+let audioDesbloqueado = false;
+
+function desbloquearAudio() {
+    if (audioDesbloqueado) return;
+    
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start();
+    
+    if (ctx.state === 'suspended') {
+        ctx.resume();
+    }
+    
+    audioDesbloqueado = true;
+    console.log('Áudio desbloqueado!');
+}
+
+// Desbloqueia no primeiro clique em qualquer lugar
+document.body.addEventListener('click', desbloquearAudio, { once: true });
+document.body.addEventListener('touchstart', desbloquearAudio, { once: true });
+
+// Tenta desbloquear também no load
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        if (!audioDesbloqueado) {
+            console.log('Aguardando clique do usuário para ativar som...');
+        }
+    }, 1000);
+});
+
+// ==========================================
 // 0. DECLARAÇÕES GLOBAIS INICIAIS
 // ==========================================
 let volumeAtual = parseFloat(localStorage.getItem('volumeAlarme')) || 0.1;
@@ -730,37 +766,48 @@ function aplicarEfeitoVisualRelogio() {
 
 function tocarBip(duracaoSegundos = 1, tipo = 'default') {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Garante que o contexto está rodando
     if (ctx.state === 'suspended') {
-        ctx.resume();
-    }
-
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    if (tipo === 'bandido') {
-        osc.type = 'sawtooth';
-        osc.frequency.value = 480;
-    } else if (tipo === 'gigante') {
-        osc.type = 'triangle';
-        osc.frequency.value = 720;
+        ctx.resume().then(() => {
+            tocarBipReal(ctx, duracaoSegundos, tipo);
+        });
     } else {
-        osc.type = 'square';
-        osc.frequency.value = 600;
+        tocarBipReal(ctx, duracaoSegundos, tipo);
     }
+}
 
-    const agora = ctx.currentTime;
-    gain.gain.setValueAtTime(0, agora);
-    gain.gain.linearRampToValueAtTime(volumeAtual, agora + 0.02);
-    gain.gain.linearRampToValueAtTime(0, agora + duracaoSegundos - 0.05);
-    
-    osc.start(agora);
-    osc.stop(agora + duracaoSegundos);
-    
-    // Aplicar efeito visual no relógio
-    aplicarEfeitoVisualRelogio();
+function tocarBipReal(ctx, duracaoSegundos, tipo) {
+    try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        if (tipo === 'bandido') {
+            osc.type = 'sawtooth';
+            osc.frequency.value = 480;
+        } else if (tipo === 'gigante') {
+            osc.type = 'triangle';
+            osc.frequency.value = 720;
+        } else {
+            osc.type = 'square';
+            osc.frequency.value = 600;
+        }
+        
+        const agora = ctx.currentTime;
+        gain.gain.setValueAtTime(0, agora);
+        gain.gain.linearRampToValueAtTime(volumeAtual, agora + 0.02);
+        gain.gain.linearRampToValueAtTime(0, agora + duracaoSegundos - 0.05);
+        
+        osc.start(agora);
+        osc.stop(agora + duracaoSegundos);
+        
+        aplicarEfeitoVisualRelogio();
+    } catch (e) {
+        console.log('Erro no áudio:', e);
+    }
 }
 
 // ==========================================
@@ -974,25 +1021,32 @@ worker.onmessage = function() {
                     }
                 }
             } else {
-                // Remover spawn se o tempo ainda não zerou
                 if (localStorage.getItem(spawnKey) === "true") {
-                    localStorage.removeItem(spawnKey);
-                    localStorage.removeItem(`foco-azul-${spawnKey}`);
-                    delete celulaExibicao.dataset.spawnado;
-                    celulaExibicao.classList.remove('ultimo-spawn');
-                    
-                    // Remover classe da linha vermelha
-                    const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
-                    tr.classList.remove(`linha-vermelha-${tipo}`);
-                    
-                    if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
-                }
-                
+                localStorage.removeItem(spawnKey);
+                localStorage.removeItem(`foco-azul-${spawnKey}`);
+                delete celulaExibicao.dataset.spawnado;
+                celulaExibicao.classList.remove('ultimo-spawn');
+                tr.classList.remove(`linha-vermelha-${tipo}`);
+                if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
+            }
+    
                 const hrs = Math.floor(diferencaSegundos / 3600);
                 const mins = Math.floor((diferencaSegundos % 3600) / 60);
                 const segs = diferencaSegundos % 60;
-
+    
                 celulaExibicao.innerText = formatar(hrs, mins, segs);
+
+                if (!celulaExibicao.dataset.spawnado) {
+        if (diferencaSegundos <= 60) {
+            celulaExibicao.classList.add('muito-critico');
+            celulaExibicao.classList.remove('critico');
+        } else if (diferencaSegundos <= 300) {
+            celulaExibicao.classList.add('critico');
+            celulaExibicao.classList.remove('muito-critico');
+        } else {
+            celulaExibicao.classList.remove('critico', 'muito-critico');
+        }
+    }
             }
         }
 
@@ -1781,6 +1835,28 @@ if (runResetBtn) runResetBtn.onclick = resetar;
 // Inicializar
 if (runLabel) runLabel.textContent = 'TEMPO:';
 updateDisplay();
+
+
+// ==========================================
+// DESTAQUE PARA TEMPO CRÍTICO (5 minutos a 1 minuto)
+// ==========================================
+
+function aplicarDestaqueCritico(celula, segundosRestantes) {
+    if (!celula) return;
+    
+    // Remove classes anteriores
+    celula.classList.remove('critico', 'muito-critico');
+    
+    // Se já spawnou, não aplica destaque
+    if (celula.dataset.spawnado === "true") return;
+    
+    // Aplica destaque baseado no tempo restante
+    if (segundosRestantes <= 60) { // menos de 1 minuto
+        celula.classList.add('muito-critico');
+    } else if (segundosRestantes <= 300) { // menos de 5 minutos
+        celula.classList.add('critico');
+    }
+}
 
 // ==========================================
 // 20. INIT
