@@ -1568,12 +1568,13 @@ body.light-mode .cronometro-btn:hover {
 
 /* Container do textarea */
 .colar-container {
+    display: inline-block;
     margin: 5px auto;
     padding: 8px 12px;
     border-radius: 12px;
     background: #1e1e1e;
     border: 2px solid #4CAF50;
-    width: 600px;
+    width: auto;
     max-width: 100%;
     box-sizing: border-box;
 }

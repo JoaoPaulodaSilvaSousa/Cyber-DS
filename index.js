@@ -413,6 +413,42 @@ function extrairDados(linha) {
     let linhaLimpa = linha.replace(/\s+/g, ' ').trim();
     
     // ==========================================
+    // NOVO FORMATO ESTRUTURADO (Morte Gigante: Morto – 19:36:08)
+    // ==========================================
+    
+    // Morte Gigante: Morto – 19:36:08
+    let morteGiganteMatch = linhaLimpa.match(/Morte\s+Gigante:\s*Morto\s*[–\-]\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (morteGiganteMatch) {
+        return { horaGigante: converterHoraPara24h(morteGiganteMatch[1]) };
+    }
+    
+    // Morte Bandido: Morto – 19:39:50
+    let morteBandidoMatch = linhaLimpa.match(/Morte\s+Bandido:\s*Morto\s*[–\-]\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (morteBandidoMatch) {
+        return { horaBandido: converterHoraPara24h(morteBandidoMatch[1]) };
+    }
+    
+    // Respawn Gigante (Server): 22:36:08 (ignorar)
+    let respGiganteMatch = linhaLimpa.match(/Respawn\s+Gigante\s*\(Server\):\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (respGiganteMatch) {
+        return null;
+    }
+    
+    // Respawn Bandido (Server): 22:39:50 (ignorar)
+    let respBandidoMatch = linhaLimpa.match(/Respawn\s+Bandido\s*\(Server\):\s*(\d{1,2}:\d{2}:\d{2})/i);
+    if (respBandidoMatch) {
+        return null;
+    }
+    
+    // ==========================================
+    // FORMATO MAPA (GF, MW, GV, CCV, MM)
+    // ==========================================
+    let mapaMatch = linhaLimpa.match(/^(GF|MW|GV|CCV|MM)$/i);
+    if (mapaMatch) {
+        return { mapa: normalizarMapa(mapaMatch[1]), pending: true };
+    }
+    
+    // ==========================================
     // FORMATO CSV: GF,21:46:36,21:51:20
     // ==========================================
     let csvMatch = linhaLimpa.match(/^([A-Za-z]{2,3}),(\d{1,2}:\d{2}:\d{2}),(\d{1,2}:\d{2}:\d{2})$/i);
@@ -437,40 +473,6 @@ function extrairDados(linha) {
     }
     
     // ==========================================
-    // FORMATO MAPAS: MM
-    // ==========================================
-    let mapaMatch = linhaLimpa.match(/MAPAS?:?\s*([A-Za-z]{2,3})/i);
-    if (mapaMatch) {
-        let mapa = normalizarMapa(mapaMatch[1]);
-        if (mapa) return { mapa: mapa, pending: true };
-    }
-    
-    // ==========================================
-    // FORMATO HORA GIGANTE: H. MORTO (G): 12:20:00
-    // ==========================================
-    let horaGiganteMatch = linhaLimpa.match(/(?:MORTO\s*\(G\)|GIGANTE|H\.?\s*MORTO\s*\(G\)|MORTE GIGANTE):?\s*(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)/i);
-    if (horaGiganteMatch) {
-        return { horaGigante: converterHoraPara24h(horaGiganteMatch[1]) };
-    }
-    
-    // ==========================================
-    // FORMATO HORA BANDIDO: H. MORTO (B): 12:20:00
-    // ==========================================
-    let horaBandidoMatch = linhaLimpa.match(/(?:MORTO\s*\(B\)|BANDIDO|H\.?\s*MORTO\s*\(B\)|MORTE BANDIDO):?\s*(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)/i);
-    if (horaBandidoMatch) {
-        return { horaBandido: converterHoraPara24h(horaBandidoMatch[1]) };
-    }
-    
-    // ==========================================
-    // FORMATO RESPAWN GIGANTE: RESP. SERVER (G): 12:35:00
-    // ==========================================
-    let respGiganteMatch = linhaLimpa.match(/(?:RESP\.?\s*SERVER\s*\(G\)|RESPAWN GIGANTE):?\s*(\d{1,2}:\d{2}:\d{2})/i);
-    if (respGiganteMatch) {
-        // Ignorar respawn, só interessa morte
-        return null;
-    }
-    
-    // ==========================================
     // FORMATO SIMPLES: GF 14:30:00 15:30:00
     // ==========================================
     let match = linhaLimpa.match(/^([A-Za-z\s\-]{2,10})\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)/i);
@@ -486,18 +488,6 @@ function extrairDados(linha) {
     // FORMATO INVERTIDO: 14:30:00 15:30:00 GF
     // ==========================================
     match = linhaLimpa.match(/(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+([A-Za-z\s\-]{2,10})$/i);
-    if (match) {
-        return {
-            mapa: normalizarMapa(match[3]),
-            horaGigante: converterHoraPara24h(match[1]),
-            horaBandido: converterHoraPara24h(match[2])
-        };
-    }
-    
-    // ==========================================
-    // FORMATO PIPE: 09:10:05 p. m. | 09:07:27 p. m. | GF
-    // ==========================================
-    match = linhaLimpa.match(/(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s*[|\-]\s*(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s*[|\-]\s*([A-Za-z\s\-]{2,10})/i);
     if (match) {
         return {
             mapa: normalizarMapa(match[3]),
@@ -1809,15 +1799,21 @@ window.onload = function() {
         
         // Garantir que não tem tamanho fixo conflitante
         campoColar.setAttribute('style', '');
+        campoColar.style.width = '600px';
         campoColar.style.height = '55px';
         
-        console.log('Textarea resetado para altura: 55px');
+        console.log('Textarea resetado para tamanho inicial 600x55');
     }
     
     // Também resetar o container
     const container = document.querySelector('.colar-container');
-    if (container) {
-        container.style.width = '';
+    if (container && campoColar) {
+        const style = getComputedStyle(container);
+        const paddingLeft = parseFloat(style.paddingLeft) || 0;
+        const paddingRight = parseFloat(style.paddingRight) || 0;
+        const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+        const borderRight = parseFloat(style.borderRightWidth) || 0;
+        container.style.width = `${campoColar.offsetWidth + paddingLeft + paddingRight + borderLeft + borderRight}px`;
     }
 };
 
