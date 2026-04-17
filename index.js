@@ -432,7 +432,7 @@ const mapaMapping = {
     'GF': 'GF', 'GOLDFIELDS': 'GF', 'GOLD FIELDS': 'GF', 'GOLD': 'GF',
     'MW': 'MW', 'MOKON WOODS': 'MW', 'MOKONWOODS': 'MW', 'MOKON': 'MW', 'WOODS': 'MW', 'MK': 'MW',
     'GV': 'GV', 'GREEN VOLCANO': 'GV', 'GREENVOLCANO': 'GV', 'GREEN': 'GV', 'VOLCANO': 'GV',
-    'CCV': 'CCV', 'CV': 'CCV', 'COLDCLAW VALLEY': 'CCV', 'COLDCLAWVALLEY': 'CCV', 'COLDCLAW': 'CCV', 'VALLEY': 'CCV', 'COLD': 'CCV',
+    'CCV': 'CCV', 'CV': 'CCV',  // <--- ADICIONADO 'CV': 'CCV'
     'MM': 'MM', 'MAUJAK MOUNTAINS': 'MM', 'MAUJAKMOUNTAINS': 'MM', 'MAUJAK': 'MM', 'MOUNTAINS': 'MM', 'MJ': 'MM'
 };
 
@@ -513,11 +513,16 @@ function extrairDados(linha) {
     
     let respBandidoMatch = linhaLimpa.match(/Respawn\s+Bandido\s*\(Server\):\s*(\d{1,2}:\d{2}:\d{2})/i);
     if (respBandidoMatch) return null;
+
+    // Debug para CV
+    if (linhaLimpa.includes('CV')) {
+    console.log('🔴 Linha CV encontrada:', linhaLimpa);
+    }
     
     // ==========================================
     // FORMATO CSV: GF,21:46:36,21:51:20
     // ==========================================
-    let csvMatch = linhaLimpa.match(/^([A-Za-z]{2,3}),(\d{1,2}:\d{2}:\d{2}),(\d{1,2}:\d{2}:\d{2})$/i);
+    let csvMatch = linhaLimpa.match(/^([A-Za-z]{2,3})\s*,\s*(\d{1,2}:\d{2}:\d{2})\s*,\s*(\d{1,2}:\d{2}:\d{2})$/i);
     if (csvMatch) {
         return {
             mapa: normalizarMapa(csvMatch[1]),
@@ -610,6 +615,11 @@ function processarTextoColado(texto) {
     
     for (const linha of linhas) {
         if (linha.trim().length === 0) continue;
+        
+        // Debug
+        if (linha.includes('CV')) {
+            console.log('🔴 Linha CV no loop:', linha);
+        }
         
         // Pular linhas que contém "RESP." ou "TEMPO RESTANTE" (não são horários de morte)
         if (linha.match(/RESP\.|TEMPO RESTANTE|RESPAWN/i)) {
