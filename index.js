@@ -427,6 +427,12 @@ function converterHoraPara24h(horaStr) {
     return `${String(hora).padStart(2, '0')}:${minuto}:${segundo}`;
 }
 
+// Função para limpar palavras indesejadas (Editada, Edit, Edited, etc.)
+function limparTextoMapa(texto) {
+    // Remove palavras comuns de edição em vários idiomas
+    return texto.replace(/\s+(Editada|Editado|Edited|Edit|edit|editar|modificado|alterado)\s+/gi, ' ');
+}
+
 // Mapeamento de mapas
 const mapaMapping = {
     'GF': 'GF', 'GOLDFIELDS': 'GF', 'GOLD FIELDS': 'GF', 'GOLD': 'GF',
@@ -449,10 +455,103 @@ function extrairDados(linha) {
     let linhaLimpa = linha.replace(/\s+/g, ' ').trim();
     
     // ==========================================
-    // NOVO FORMATO: "13:03 selvagem" ou "13:28 bandi"
+    // FORMATO TABELA ESTRUTURADA (com colunas)
     // ==========================================
+    let tabelaEstruturadaMatch = linhaLimpa.match(/^(GF|MW|GV|CCV|MM)\s+(\d{1,2}:\d{2}:\d{2})\s+💀\s+Morto\s+(\d{1,2}:\d{2}:\d{2})\s+(\d{1,2}:\d{2}:\d{2})\s+(\d{1,2}:\d{2}:\d{2})\s+💀\s+Morto\s+(\d{1,2}:\d{2}:\d{2})\s+(\d{1,2}:\d{2}:\d{2})$/i);
+    if (tabelaEstruturadaMatch) {
+        return {
+            mapa: normalizarMapa(tabelaEstruturadaMatch[1]),
+            horaGigante: converterHoraPara24h(tabelaEstruturadaMatch[2]),
+            horaBandido: converterHoraPara24h(tabelaEstruturadaMatch[5])
+        };
+    }
     
-    // Formato: "13:03 selvagem" (Gigante)
+    // ==========================================
+    // FORMATO SIMPLES: GF 18:59:00 19:00:00
+    // ==========================================
+    let mapaHorasMatch = linhaLimpa.match(/^(GF|MW|GV|CCV|MM)\s+(\d{1,2}:\d{2}:\d{2}).*?(\d{1,2}:\d{2}:\d{2})/i);
+    if (mapaHorasMatch) {
+        return {
+            mapa: normalizarMapa(mapaHorasMatch[1]),
+            horaGigante: converterHoraPara24h(mapaHorasMatch[2]),
+            horaBandido: converterHoraPara24h(mapaHorasMatch[3])
+        };
+    }
+    
+    // ==========================================
+    // FORMATO: "n 19:01" ou "b 19:09"
+    // ==========================================
+    let nMatch = linhaLimpa.match(/^n\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
+    if (nMatch) {
+        let hora = nMatch[1];
+        let segundos = nMatch[2] || "00";
+        return { horaGigante: converterHoraPara24h(`${hora}:${segundos}`) };
+    }
+    
+    let bMatch = linhaLimpa.match(/^b\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
+    if (bMatch) {
+        let hora = bMatch[1];
+        let segundos = bMatch[2] || "00";
+        return { horaBandido: converterHoraPara24h(`${hora}:${segundos}`) };
+    }
+    
+    // ==========================================
+    // FORMATO: "mm 19:10" (Mapa com hora)
+    // ==========================================
+    const mapaAbreviado = {
+        'mm': 'MM', 'ccv': 'CCV', 'gv': 'GV', 'mk': 'MW', 'gf': 'GF'
+    };
+    
+    let linhaLimpaOriginal = linhaLimpa;
+    linhaLimpa = limparTextoMapa(linhaLimpa);
+    
+    let mapaComHoraMatch = linhaLimpa.match(/^(mm|ccv|gv|mk|gf)\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
+    if (mapaComHoraMatch) {
+        let mapaAbrev = mapaComHoraMatch[1].toLowerCase();
+        let mapa = mapaAbreviado[mapaAbrev];
+        let hora = mapaComHoraMatch[2];
+        let segundos = mapaComHoraMatch[3] || "00";
+        let horaCompleta = converterHoraPara24h(`${hora}:${segundos}`);
+        return { 
+            mapa: mapa, 
+            pending: true,
+            horaGigante: horaCompleta,
+            horaBandido: horaCompleta
+        };
+    }
+    
+    linhaLimpa = linhaLimpaOriginal;
+    
+    // ==========================================
+    // FORMATO: "gf b 20:07" ou "gf n 20:17"
+    // ==========================================
+    let mapaComBandidoMatch = linhaLimpa.match(/^(gf|mm|ccv|gv|mk)\s+b\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
+    if (mapaComBandidoMatch) {
+        let mapaAbrev = mapaComBandidoMatch[1].toLowerCase();
+        let mapa = mapaAbreviado[mapaAbrev];
+        let hora = mapaComBandidoMatch[2];
+        let segundos = mapaComBandidoMatch[3] || "00";
+        return {
+            mapa: mapa,
+            horaBandido: converterHoraPara24h(`${hora}:${segundos}`)
+        };
+    }
+    
+    let mapaComGiganteMatch = linhaLimpa.match(/^(gf|mm|ccv|gv|mk)\s+n\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
+    if (mapaComGiganteMatch) {
+        let mapaAbrev = mapaComGiganteMatch[1].toLowerCase();
+        let mapa = mapaAbreviado[mapaAbrev];
+        let hora = mapaComGiganteMatch[2];
+        let segundos = mapaComGiganteMatch[3] || "00";
+        return {
+            mapa: mapa,
+            horaGigante: converterHoraPara24h(`${hora}:${segundos}`)
+        };
+    }
+    
+    // ==========================================
+    // FORMATO: "13:03 selvagem" ou "selvagem 13:59"
+    // ==========================================
     let selvagemMatch = linhaLimpa.match(/(\d{1,2}:\d{2}):?(\d{2})?\s+selvagem/i);
     if (selvagemMatch) {
         let hora = selvagemMatch[1];
@@ -460,7 +559,6 @@ function extrairDados(linha) {
         return { horaGigante: converterHoraPara24h(`${hora}:${segundos}`) };
     }
     
-    // Formato: "13:28 bandi" ou "13:43 bandido"
     let bandidoMatch = linhaLimpa.match(/(\d{1,2}:\d{2}):?(\d{2})?\s+bandi/i);
     if (bandidoMatch) {
         let hora = bandidoMatch[1];
@@ -468,9 +566,6 @@ function extrairDados(linha) {
         return { horaBandido: converterHoraPara24h(`${hora}:${segundos}`) };
     }
     
-    // ==========================================
-    // FORMATO: "selvagem 13:59"
-    // ==========================================
     let selvagemInvertidoMatch = linhaLimpa.match(/selvagem\s+(\d{1,2}:\d{2}):?(\d{2})?/i);
     if (selvagemInvertidoMatch) {
         let hora = selvagemInvertidoMatch[1];
@@ -478,7 +573,6 @@ function extrairDados(linha) {
         return { horaGigante: converterHoraPara24h(`${hora}:${segundos}`) };
     }
     
-    // Formato: "bandido 14:10"
     let bandidoInvertidoMatch = linhaLimpa.match(/bandido\s+(\d{1,2}:\d{2}):?(\d{2})?/i);
     if (bandidoInvertidoMatch) {
         let hora = bandidoInvertidoMatch[1];
@@ -513,23 +607,19 @@ function extrairDados(linha) {
     
     let respBandidoMatch = linhaLimpa.match(/Respawn\s+Bandido\s*\(Server\):\s*(\d{1,2}:\d{2}:\d{2})/i);
     if (respBandidoMatch) return null;
-
-    // Debug para CV
-    if (linhaLimpa.includes('CV')) {
-    console.log('🔴 Linha CV encontrada:', linhaLimpa);
-    }
     
     // ==========================================
-    // FORMATO CSV: GF,21:46:36,21:51:20
-    // ==========================================
-    let csvMatch = linhaLimpa.match(/^([A-Za-z]{2,3})\s*,\s*(\d{1,2}:\d{2}:\d{2})\s*,\s*(\d{1,2}:\d{2}:\d{2})$/i);
-    if (csvMatch) {
-        return {
-            mapa: normalizarMapa(csvMatch[1]),
-            horaGigante: converterHoraPara24h(csvMatch[2]),
-            horaBandido: converterHoraPara24h(csvMatch[3])
-        };
-    }
+// FORMATO CSV COMPLETO: GF,18:59:00,21:59:00,22:59:00,19:00:00,22:00:00,23:00:00
+// Pega apenas as colunas de MORTE (2ª e 5ª)
+// ==========================================
+let csvMatch = linhaLimpa.match(/^([A-Za-z]{2,3})\s*,\s*(\d{1,2}:\d{2}:\d{2})\s*,\s*\d{1,2}:\d{2}:\d{2}\s*,\s*\d{1,2}:\d{2}:\d{2}\s*,\s*(\d{1,2}:\d{2}:\d{2})/i);
+if (csvMatch) {
+    return {
+        mapa: normalizarMapa(csvMatch[1]),
+        horaGigante: converterHoraPara24h(csvMatch[2]),  // 18:59:00
+        horaBandido: converterHoraPara24h(csvMatch[3])   // 19:00:00
+    };
+}
     
     // ==========================================
     // FORMATO TABELA: | GF | 21:46:36 | 21:51:20 |
@@ -544,31 +634,7 @@ function extrairDados(linha) {
     }
     
     // ==========================================
-    // FORMATO SIMPLES: GF 14:30:00 15:30:00
-    // ==========================================
-    let match = linhaLimpa.match(/^([A-Za-z\s\-]{2,10})\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)/i);
-    if (match) {
-        return {
-            mapa: normalizarMapa(match[1]),
-            horaGigante: converterHoraPara24h(match[2]),
-            horaBandido: converterHoraPara24h(match[3])
-        };
-    }
-    
-    // ==========================================
-    // FORMATO INVERTIDO: 14:30:00 15:30:00 GF
-    // ==========================================
-    match = linhaLimpa.match(/(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+(\d{1,2}:\d{2}:\d{2}(?:\s*[ap]\.?\s*m\.?)?)\s+([A-Za-z\s\-]{2,10})$/i);
-    if (match) {
-        return {
-            mapa: normalizarMapa(match[3]),
-            horaGigante: converterHoraPara24h(match[1]),
-            horaBandido: converterHoraPara24h(match[2])
-        };
-    }
-    
-    // ==========================================
-    // FORMATO TEXTO LIVRE: GF as 21:46:36 e 21:51:20
+    // FORMATO TEXTO LIVRE
     // ==========================================
     let mapaLivro = linhaLimpa.match(/\b(GF|MW|GV|CCV|MM|Gf|Mw|Gv|Ccv|Mm)\b/i);
     let horas = linhaLimpa.match(/(\d{1,2}:\d{2}:\d{2})/g);
@@ -616,43 +682,29 @@ function processarTextoColado(texto) {
     for (const linha of linhas) {
         if (linha.trim().length === 0) continue;
         
-        // Debug
-        if (linha.includes('CV')) {
-            console.log('🔴 Linha CV no loop:', linha);
-        }
-        
-        // Pular linhas que contém "RESP." ou "TEMPO RESTANTE" (não são horários de morte)
-        if (linha.match(/RESP\.|TEMPO RESTANTE|RESPAWN/i)) {
-            continue;
-        }
-        
         const dados = extrairDados(linha);
         if (!dados) continue;
         
-        // Se tem mapa pendente
         if (dados.pending && dados.mapa) {
             if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
                 preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
                 encontrados += 2;
             }
             mapaAtual = dados.mapa;
-            horaGiganteAtual = null;
-            horaBandidoAtual = null;
+            horaGiganteAtual = dados.horaGigante || null;
+            horaBandidoAtual = dados.horaBandido || null;
             continue;
         }
         
-        // Acumular horas
         if (dados.horaGigante) horaGiganteAtual = dados.horaGigante;
         if (dados.horaBandido) horaBandidoAtual = dados.horaBandido;
         
-        // Se tem tudo junto
         if (dados.mapa && dados.horaGigante && dados.horaBandido) {
             preencherMapa(dados.mapa, dados.horaGigante, dados.horaBandido, mapasEncontrados);
             encontrados += 2;
             continue;
         }
         
-        // Se acumulou tudo
         if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
             preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
             encontrados += 2;
@@ -662,7 +714,6 @@ function processarTextoColado(texto) {
         }
     }
     
-    // Final pendente
     if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
         preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
         encontrados += 2;
@@ -672,13 +723,8 @@ function processarTextoColado(texto) {
     
     const container = campoColar ? campoColar.parentNode : document.body;
     const statusDiv = document.createElement('div');
-    if (encontrados > 0) {
-        statusDiv.innerHTML = `✅ ${encontrados} horários preenchidos (${mapasEncontrados.length} mapas)`;
-        statusDiv.style.color = '#4CAF50';
-    } else {
-        statusDiv.innerHTML = `❌ Nenhum horário encontrado. Tente outro formato.`;
-        statusDiv.style.color = '#ff5252';
-    }
+    statusDiv.innerHTML = encontrados > 0 ? `✅ ${encontrados} horários preenchidos (${mapasEncontrados.length} mapas)` : `❌ Nenhum horário encontrado. Tente outro formato.`;
+    statusDiv.style.color = encontrados > 0 ? '#4CAF50' : '#ff5252';
     statusDiv.style.cssText = 'font-size: 12px; margin-top: 8px; text-align: center; font-weight: bold; padding: 5px; border-radius: 8px;';
     container.appendChild(statusDiv);
     setTimeout(() => statusDiv.remove(), 5000);
