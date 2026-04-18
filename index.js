@@ -452,7 +452,54 @@ function normalizarMapa(nome) {
 }
 
 function extrairDados(linha) {
+    function extrairDados(linha) {
+    console.log('extrairDados recebeu linha:', linha);
+}
     let linhaLimpa = linha.replace(/\s+/g, ' ').trim();
+
+    // ==========================================
+// FORMATO DIRETO: GF💀 Morto01:55:36💀 Morto01:56:36
+// ==========================================
+
+// Remove todos os "💀 Morto" e deixa só o mapa e as horas
+let linhaSemMorto = linhaLimpa.replace(/💀\s*Morto/g, '');
+console.log('Linha sem 💀 Morto:', linhaSemMorto);
+
+// Extrai mapa e horas
+let matchDireto = linhaSemMorto.match(/^(GF|MW|GV|CCV|MM)\s*(\d{1,2}:\d{2}:\d{2})\s*(\d{1,2}:\d{2}:\d{2})/i);
+if (matchDireto) {
+    console.log('✅ Match direto encontrado!');
+    return {
+        mapa: normalizarMapa(matchDireto[1]),
+        horaGigante: converterHoraPara24h(matchDireto[2]),
+        horaBandido: converterHoraPara24h(matchDireto[3])
+    };
+}
+
+    // ==========================================
+// FORMATO TABELA CONDENSADA (tudo junto)
+// Ex: GF💀 Morto01:55:36💀 Morto01:56:36
+// ==========================================
+
+// Remove os "💀 Morto" e extrai as horas
+if (linhaLimpa.match(/^(GF|MW|GV|CCV|MM)/i)) {
+    // Extrai o mapa
+    let mapaMatch = linhaLimpa.match(/^(GF|MW|GV|CCV|MM)/i);
+    let mapa = normalizarMapa(mapaMatch[1]);
+    
+    // Extrai todas as horas (HH:MM:SS)
+    let horas = linhaLimpa.match(/(\d{1,2}:\d{2}:\d{2})/g);
+    
+    if (horas && horas.length >= 2) {
+        // Primeira hora = Morte Gigante
+        // Segunda hora = Morte Bandido
+        return {
+            mapa: mapa,
+            horaGigante: converterHoraPara24h(horas[0]),
+            horaBandido: converterHoraPara24h(horas[1])
+        };
+    }
+}
     
     // ==========================================
     // FORMATO TABELA ESTRUTURADA (com colunas)
@@ -672,51 +719,123 @@ function preencherMapa(mapa, horaGigante, horaBandido, mapasEncontrados) {
 
 function processarTextoColado(texto) {
     console.log('Processando texto...');
-    const linhas = texto.split('\n');
+    function processarTextoColado(texto) {
+    console.log('Processando texto...');
+    console.log('TEXTO RECEBIDO:', texto);
+    console.log('TAMANHO DO TEXTO:', texto.length);
+    
+    // ... resto do código
+}
+
+    // ==========================================
+// FORMATO TABELA VISUAL (com colunas e linhas separadas)
+// ==========================================
+
+// Verifica se o texto tem o padrão de tabela (GF, linha, hora, etc)
+let linhas = texto.split('\n');
+let mapaTemp = null;
+let horaGiganteTemp = null;
+let horaBandidoTemp = null;
+
+for (let i = 0; i < linhas.length; i++) {
+    let linha = linhas[i].trim();
+    
+    // Se é um mapa (GF, MW, GV, CCV, MM)
+    if (linha.match(/^(GF|MW|GV|CCV|MM)$/i)) {
+        // Se já tinha um mapa com horas, salva
+        if (mapaTemp && horaGiganteTemp && horaBandidoTemp) {
+            preencherMapa(mapaTemp, horaGiganteTemp, horaBandidoTemp, mapasEncontrados);
+            encontrados += 2;
+        }
+        mapaTemp = normalizarMapa(linha);
+        horaGiganteTemp = null;
+        horaBandidoTemp = null;
+    }
+    
+    // Se é uma hora (formato HH:MM:SS)
+    if (linha.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+        // Verifica a próxima linha para saber se é "💀 Morto"
+        let proximaLinha = i + 1 < linhas.length ? linhas[i + 1].trim() : '';
+        let ehHoraMorte = proximaLinha.includes('💀') || proximaLinha.includes('Morto');
+        
+        if (ehHoraMorte) {
+            // É uma hora de morte
+            if (horaGiganteTemp === null) {
+                horaGiganteTemp = converterHoraPara24h(linha);
+            } else if (horaBandidoTemp === null) {
+                horaBandidoTemp = converterHoraPara24h(linha);
+            }
+        }
+    }
+}
+
+// Salva o último mapa
+if (mapaTemp && horaGiganteTemp && horaBandidoTemp) {
+    preencherMapa(mapaTemp, horaGiganteTemp, horaBandidoTemp, mapasEncontrados);
+    encontrados += 2;
+}
+    
+    // ==========================================
+    // Junta as linhas que pertencem ao mesmo mapa
+    // ==========================================
+    const linhasOriginais = texto.split('\n');
+    const linhasJuntas = [];
+    let linhaAtual = '';
+    let mapaAtualTemp = null;
+    
+    for (let i = 0; i < linhasOriginais.length; i++) {
+        let linha = linhasOriginais[i].trim();
+        if (linha === '') continue;
+        
+        // Se é um mapa (GF, MW, GV, CCV, MM)
+        if (linha.match(/^(GF|MW|GV|CCV|MM)$/i)) {
+            // Salva a linha anterior se existir
+            if (linhaAtual) {
+                linhasJuntas.push(linhaAtual);
+            }
+            mapaAtualTemp = linha.toUpperCase();
+            linhaAtual = linha;
+        }
+        // Se tem hora (formato HH:MM:SS)
+        else if (linha.match(/^\d{1,2}:\d{2}:\d{2}$/)) {
+            linhaAtual += ' ' + linha;
+        }
+        // Ignora outras linhas (cabeçalhos, textos, etc)
+        else {
+            // Não adiciona
+        }
+    }
+    if (linhaAtual) {
+        linhasJuntas.push(linhaAtual);
+    }
+    
+    console.log('Linhas juntas:', linhasJuntas);
+    
+    // ==========================================
+    // Processa as linhas juntas
+    // ==========================================
     let encontrados = 0;
     const mapasEncontrados = [];
     let mapaAtual = null;
     let horaGiganteAtual = null;
     let horaBandidoAtual = null;
     
-    for (const linha of linhas) {
-        if (linha.trim().length === 0) continue;
+    for (const linha of linhasJuntas) {
+        console.log('Processando linha junta:', linha);
         
-        const dados = extrairDados(linha);
-        if (!dados) continue;
-        
-        if (dados.pending && dados.mapa) {
-            if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
-                preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
-                encontrados += 2;
-            }
-            mapaAtual = dados.mapa;
-            horaGiganteAtual = dados.horaGigante || null;
-            horaBandidoAtual = dados.horaBandido || null;
-            continue;
-        }
-        
-        if (dados.horaGigante) horaGiganteAtual = dados.horaGigante;
-        if (dados.horaBandido) horaBandidoAtual = dados.horaBandido;
-        
-        if (dados.mapa && dados.horaGigante && dados.horaBandido) {
-            preencherMapa(dados.mapa, dados.horaGigante, dados.horaBandido, mapasEncontrados);
+        // Extrai o mapa e as duas primeiras horas (morte gigante e morte bandido)
+        // Extrai o mapa e pega a 1ª hora (Gigante) e a 4ª hora (Bandido)
+let match = linha.match(/^(GF|MW|GV|CCV|MM)\s+(\d{1,2}:\d{2}:\d{2})\s+\d{1,2}:\d{2}:\d{2}\s+\d{1,2}:\d{2}:\d{2}\s+\d{1,2}:\d{2}:\d{2}\s+(\d{1,2}:\d{2}:\d{2})/i);
+        if (match) {
+            let mapa = normalizarMapa(match[1]);
+            let horaGigante = converterHoraPara24h(match[2]);
+            let horaBandido = converterHoraPara24h(match[3]);
+            
+            console.log(`Encontrado: Mapa=${mapa}, G=${horaGigante}, B=${horaBandido}`);
+            
+            preencherMapa(mapa, horaGigante, horaBandido, mapasEncontrados);
             encontrados += 2;
-            continue;
         }
-        
-        if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
-            preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
-            encontrados += 2;
-            mapaAtual = null;
-            horaGiganteAtual = null;
-            horaBandidoAtual = null;
-        }
-    }
-    
-    if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
-        preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
-        encontrados += 2;
     }
     
     if (typeof calcular === 'function') calcular();
