@@ -1439,36 +1439,43 @@ if (btnLimpar && modalContainer) {
         modalContainer.classList.remove('modal-oculto');
     };
 
+    // ==========================================
+    // BOTÃO CANCELAR - FECHA O MODAL
+    // ==========================================
+    modalCancelar.onclick = () => {
+        modalContainer.classList.add('modal-oculto');
+    };
+
     modalConfirmar.onclick = () => {
-    document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
-        if (input.value !== undefined) {
-            input.value = "";
-        } else {
-            input.innerText = "--:--:--";
-        }
-        delete input.dataset.colado;
-        input.classList.remove('alarme-foco'); 
-    });
-    document.querySelectorAll('.tempo-restante-gigante, .tempo-restante-bandido').forEach(celula => {
-        celula.innerText = "--:--:--";
-        celula.classList.remove('ultimo-spawn', 'critico', 'muito-critico'); 
-        delete celula.dataset.spawnado;    
-    });
-    document.querySelectorAll('tr').forEach(tr => {
-        const morteGigante = tr.querySelector('.morteGigante');
-        if (morteGigante) {
-            const mapa = morteGigante.getAttribute('data-mapa');
-            localStorage.removeItem(`morte-${mapa}-Gigante`);
-            localStorage.removeItem(`morte-${mapa}-Bandido`);
-            localStorage.removeItem(`spawn-${mapa}-G`);
-            localStorage.removeItem(`spawn-${mapa}-B`);
-            localStorage.removeItem(`foco-azul-spawn-${mapa}-G`); 
-            localStorage.removeItem(`foco-azul-spawn-${mapa}-B`); 
-        }
-    });
-    modalContainer.classList.add('modal-oculto');
-    calcular();
-};
+        document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
+            if (input.value !== undefined) {
+                input.value = "";
+            } else {
+                input.innerText = "--:--:--";
+            }
+            delete input.dataset.colado;
+            input.classList.remove('alarme-foco'); 
+        });
+        document.querySelectorAll('.tempo-restante-gigante, .tempo-restante-bandido').forEach(celula => {
+            celula.innerText = "--:--:--";
+            celula.classList.remove('ultimo-spawn', 'critico', 'muito-critico'); 
+            delete celula.dataset.spawnado;    
+        });
+        document.querySelectorAll('tr').forEach(tr => {
+            const morteGigante = tr.querySelector('.morteGigante');
+            if (morteGigante) {
+                const mapa = morteGigante.getAttribute('data-mapa');
+                localStorage.removeItem(`morte-${mapa}-Gigante`);
+                localStorage.removeItem(`morte-${mapa}-Bandido`);
+                localStorage.removeItem(`spawn-${mapa}-G`);
+                localStorage.removeItem(`spawn-${mapa}-B`);
+                localStorage.removeItem(`foco-azul-spawn-${mapa}-G`); 
+                localStorage.removeItem(`foco-azul-spawn-${mapa}-B`); 
+            }
+        });
+        modalContainer.classList.add('modal-oculto');
+        calcular();
+    };
 
     modalContainer.onclick = (e) => {
         if (e.target === modalContainer) {
@@ -1476,7 +1483,6 @@ if (btnLimpar && modalContainer) {
         }
     };
 }
-
 
 // ==========================================
 // 16. BOTÃO MORTE INSTANTÂNEA (RESETANDO O SPAWN)
