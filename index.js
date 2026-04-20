@@ -455,7 +455,55 @@ function normalizarMapa(nome) {
 
 function extrairDados(linha) {
     let linhaLimpa = linha.replace(/\s+/g, ' ').trim();
+
+    // ==========================================
+// REGRA PARA: MM bandido 12:46 selvagem 12:49
+// ==========================================
+let mapaHorasMatch2 = linhaLimpa.match(/^(MM|CCV|GV|MW|GF)\s+bandido\s+(\d{1,2}:\d{2})\s+selvagem\s+(\d{1,2}:\d{2})/i);
+if (mapaHorasMatch2) {
+    let horaBandido = mapaHorasMatch2[2];
+    let horaGigante = mapaHorasMatch2[3];
+    let segundosBandido = "00";
+    let segundosGigante = "00";
     
+    if (!horaBandido.includes(':')) horaBandido = `${horaBandido}:00`;
+    if (!horaGigante.includes(':')) horaGigante = `${horaGigante}:00`;
+    
+    return {
+        mapa: normalizarMapa(mapaHorasMatch2[1]),
+        horaGigante: converterHoraPara24h(horaGigante + ':00'),
+        horaBandido: converterHoraPara24h(horaBandido + ':00')
+    };
+}
+
+// ==========================================
+// REGRA PARA: MM bandido 12:46 selvagem 12:49
+// OU: CCV selvagem 12:56 bandido 13:02
+// ==========================================
+
+// Tenta pegar bandido primeiro, depois selvagem
+let mapaHorasBandidoSelvagem = linhaLimpa.match(/^(MM|CCV|GV|MW|GF)\s+bandido\s+(\d{1,2}:\d{2})\s+selvagem\s+(\d{1,2}:\d{2})/i);
+if (mapaHorasBandidoSelvagem) {
+    let horaBandido = mapaHorasBandidoSelvagem[2];
+    let horaGigante = mapaHorasBandidoSelvagem[3];
+    return {
+        mapa: normalizarMapa(mapaHorasBandidoSelvagem[1]),
+        horaGigante: converterHoraPara24h(`${horaGigante}:00`),
+        horaBandido: converterHoraPara24h(`${horaBandido}:00`)
+    };
+}
+
+// Tenta pegar selvagem primeiro, depois bandido
+let mapaHorasSelvagemBandido = linhaLimpa.match(/^(MM|CCV|GV|MW|GF)\s+selvagem\s+(\d{1,2}:\d{2})\s+bandido\s+(\d{1,2}:\d{2})/i);
+if (mapaHorasSelvagemBandido) {
+    let horaGigante = mapaHorasSelvagemBandido[2];
+    let horaBandido = mapaHorasSelvagemBandido[3];
+    return {
+        mapa: normalizarMapa(mapaHorasSelvagemBandido[1]),
+        horaGigante: converterHoraPara24h(`${horaGigante}:00`),
+        horaBandido: converterHoraPara24h(`${horaBandido}:00`)
+    };
+}
 
     // ==========================================
 // REGRA PARA FORMATO SEM TEMPO RESTANTE
@@ -680,6 +728,9 @@ function preencherMapa(mapa, horaGigante, horaBandido, mapasEncontrados) {
     });
 }
 
+// Dentro do for (const linha of linhasJuntas), antes de processar
+// Ou modifique a função juntarLinhasTabela para reconhecer o novo formato
+
 function juntarLinhasTabela(linhas) {
     let resultado = [];
     let linhaAtual = '';
@@ -688,27 +739,31 @@ function juntarLinhasTabela(linhas) {
         let linha = linhas[i].trim();
         if (linha === '') continue;
         
-        // Se é um mapa
-        if (linha.match(/^(GF|MW|GV|CCV|MM)$/i)) {
+        // Se é um mapa (MM, CCV, GV, MW, GF)
+        if (linha.match(/^(MM|CCV|GV|MW|GF|mm|ccv|gv|mw|gf)$/i)) {
             if (linhaAtual) {
                 resultado.push(linhaAtual);
             }
-            linhaAtual = linha;
+            linhaAtual = linha.toUpperCase();
         }
-        // Se é uma hora ou tem 💀
-        else if (linha.match(/^\d{1,2}:\d{2}:\d{2}$/) || linha.includes('💀') || linha.includes('Morto')) {
+        // Se é bandido ou selvagem
+        else if (linha.match(/^bandido|^selvagem/i)) {
             linhaAtual += ' ' + linha;
         }
         // Ignora cabeçalhos
         else if (linha.match(/^MAPA|SERVER|RESPAWN|TEMPO|RESTANTE/i)) {
             continue;
         }
+        // Outros casos
+        else if (linha.match(/^\d{1,2}:\d{2}:\d{2}$/) || linha.includes('💀') || linha.includes('Morto')) {
+            linhaAtual += ' ' + linha;
+        }
     }
     if (linhaAtual) {
         resultado.push(linhaAtual);
     }
     
-    console.log('Resultado final:', resultado);
+    console.log('Linhas processadas:', resultado);
     return resultado;
 }
 
