@@ -42,6 +42,71 @@ let ultimoSpawnado = null;
 let paginaCarregada = false; // Bloqueio para o Worker não atropelar no início
 
 // ==========================================
+// TIMER PARA SPAWNOU (HÁ QUANTO TEMPO SPAWNOU)
+// ==========================================
+
+let timersSpawn = {};
+
+function iniciarTimerSpawn(celula, mapa, tipo) {
+    const chave = `${mapa}-${tipo}`;
+    
+    // Se já existe um timer rodando, não cria outro
+    if (timersSpawn[chave]) return;
+    
+    // Verifica se já tem um horário de spawn salvo (chave ÚNICA por mapa/tipo)
+    const spawnTimeKey = `spawn_start_${chave}`;
+    let dataSpawn = localStorage.getItem(spawnTimeKey);
+    
+    if (!dataSpawn) {
+        // Primeira vez: salva o horário atual
+        dataSpawn = new Date();
+        localStorage.setItem(spawnTimeKey, dataSpawn.toISOString());
+    } else {
+        dataSpawn = new Date(dataSpawn);
+        // Se a data for inválida, recria
+        if (isNaN(dataSpawn.getTime())) {
+            console.log(`Data inválida para ${chave}, recriando...`);
+            dataSpawn = new Date();
+            localStorage.setItem(spawnTimeKey, dataSpawn.toISOString());
+        }
+    }
+    
+    // Limpa a célula e cria os elementos
+    celula.innerHTML = '';
+    
+    const spawnText = document.createElement('div');
+    spawnText.textContent = '💥 SPAWNOU!';
+    spawnText.style.fontWeight = 'bold';
+    spawnText.style.fontSize = '13px';
+    spawnText.style.color = '#ff5252';
+    spawnText.style.textAlign = 'center';
+    celula.appendChild(spawnText);
+    
+    const timerSpan = document.createElement('div');
+    timerSpan.className = 'spawn-timer';
+    celula.appendChild(timerSpan);
+    
+    // Função que atualiza o timer
+    const atualizarTimer = () => {
+        const agora = new Date();
+        const diferencaMs = agora - dataSpawn;
+        
+        // Garante que não fique negativo
+        let segundosTotal = Math.max(0, Math.floor(diferencaMs / 1000));
+        
+        const horas = Math.floor(segundosTotal / 3600);
+        const minutos = Math.floor((segundosTotal % 3600) / 60);
+        const segundos = segundosTotal % 60;
+        const texto = `${String(horas).padStart(2, '0')}:${String(minutos).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+        timerSpan.textContent = `⏱️ HÁ ${texto}`;
+    };
+    
+    // Atualiza imediatamente e cria o intervalo
+    atualizarTimer();
+    timersSpawn[chave] = setInterval(atualizarTimer, 1000);
+}
+
+// ==========================================
 // 1. TEMA (BOTÃO ALTERNAR TEMA) - EMOJIS CUSTOMIZADOS
 // ==========================================
 const btnTema = document.getElementById('toggle-tema');
@@ -1161,99 +1226,140 @@ worker.onmessage = function() {
 
         // Não usa mais destaque de linha inteira para o alarme.
         function atualizarLinha(inputHoraRespawn, celulaExibicao, celulaFoco, chaveUnica, spawnKey) {
-            if (!celulaExibicao) return;
+            // ADICIONE ESTA LINHA ABAIXO - IMPEDE SOBRESCRITA
+    if (celulaExibicao.querySelector('.spawn-timer')) return;
+    if (!celulaExibicao) return;
+    
+
+    const horaTexto = inputHoraRespawn ? inputHoraRespawn.value : "";
+    if (!horaTexto || horaTexto === "" || horaTexto === "--:--:--" || horaTexto === "HH:MM:SS") {
+        celulaExibicao.innerText = "--:--:--";
+        return;
+    }
+
+    const partes = horaTexto.split(':');
+    const hResp = parseInt(partes[0]);
+    const mResp = parseInt(partes[1]);
+    const sResp = parseInt(partes[2]);
+    const tempoRespawnSegundos = hResp * 3600 + mResp * 60 + sResp;
+    
+    let diferencaSegundos = tempoRespawnSegundos - tempoAtualServidorSegundos;
+    if (diferencaSegundos < 0) {
+        diferencaSegundos += 24 * 3600;
+    }
+
+    if (diferencaSegundos <= 0) { 
+    if (!celulaExibicao.dataset.spawnado) {
+        celulaExibicao.dataset.spawnado = "true";
+        
+        // SALVA O SPAWN
+        localStorage.setItem(spawnKey, "true");
+        
+        // SALVA O HORÁRIO DO SPAWN (se não existir)
+        const spawnTimeKey = `${spawnKey}_time`;
+        let spawnTime = localStorage.getItem(spawnTimeKey);
+        if (!spawnTime) {
+            spawnTime = new Date().toISOString();
+            localStorage.setItem(spawnTimeKey, spawnTime);
+        }
+        
+        // SALVA O START_TIME PARA O TIMER (IMPORTANTE!)
+        const chaveTimer = `${mapa}-${spawnKey.endsWith('-G') ? 'G' : 'B'}`;
+        const startTimeKey = `spawn_start_${chaveTimer}`;
+        if (!localStorage.getItem(startTimeKey)) {
+            localStorage.setItem(startTimeKey, spawnTime);
+        }
+        
+        const horasPassadas = (new Date() - new Date(spawnTime)) / (1000 * 60 * 60);
             
-            if (localStorage.getItem(spawnKey) === "true") {
-                celulaExibicao.dataset.spawnado = "true";
-                celulaExibicao.innerText = "💥 SPAWNOU!";
-                if (localStorage.getItem(`foco-azul-${spawnKey}`) === "true" && celulaFoco) {
-                    celulaFoco.classList.add('alarme-foco');
-                }
-                return;
-            }
-
-            const horaTexto = inputHoraRespawn ? inputHoraRespawn.value : "";
-            if (!horaTexto || horaTexto === "" || horaTexto === "--:--:--" || horaTexto === "HH:MM:SS") {
-                celulaExibicao.innerText = "--:--:--";
-                return;
-            }
-
-            const partes = horaTexto.split(':');
-            const hResp = parseInt(partes[0]);
-            const mResp = parseInt(partes[1]);
-            const sResp = parseInt(partes[2]);
-            const tempoRespawnSegundos = hResp * 3600 + mResp * 60 + sResp;
-            
-            let diferencaSegundos = tempoRespawnSegundos - tempoAtualServidorSegundos;
-            if (diferencaSegundos < 0) {
-                diferencaSegundos += 24 * 3600;
-            }
-
-            if (diferencaSegundos <= 0) { 
-                celulaExibicao.dataset.spawnado = "true";
-                celulaExibicao.innerText = "💥 SPAWNOU!";
+            // Se passou mais de 3 horas, mostra mensagem
+            if (horasPassadas >= 3) {
+                celulaExibicao.innerHTML = '';
                 
-                localStorage.setItem(spawnKey, "true"); 
-
-                // Adicionar classe da linha vermelha
-                const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
-                tr.classList.add(`linha-vermelha-${tipo}`);
-
-                if (ultimoSpawnado) {
-                    ultimoSpawnado.classList.remove('ultimo-spawn');
-                }
-                celulaExibicao.classList.add('ultimo-spawn');
-                ultimoSpawnado = celulaExibicao;
-
-                const tempoAtualSegundos = infoTempo.hLocal * 3600 + infoTempo.m * 60 + infoTempo.s;
-                if (ultimosAlarmesDisparados[chaveUnica] !== tempoAtualSegundos) {
-                    ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
-                    
-                    if (celulaFoco) {
-                        celulaFoco.classList.add('alarme-foco'); 
-                        localStorage.setItem(`foco-azul-${spawnKey}`, "true");
-                    }
-
-                    if (alarmeAtivo) {
-                        respawnAtivo = true;
-                        const tipoSom = chaveUnica.endsWith('-G') ? 'gigante' : 'bandido';
-                        tocarBip(duracaoAlarme, tipoSom);
-                        
-                        // Remover após a duração do alarme
-                        setTimeout(() => {
-                            // Não remover a linha vermelha aqui, deixar fixa até o usuário resetar
-                        }, duracaoAlarme * 1000);
-                    }
-                }
+                const spawnText = document.createElement('div');
+                spawnText.textContent = '💥 SPAWNOU!';
+                spawnText.style.fontWeight = 'bold';
+                spawnText.style.fontSize = '13px';
+                spawnText.style.color = '#ff5252';
+                spawnText.style.textAlign = 'center';
+                celulaExibicao.appendChild(spawnText);
+                
+                const msgText = document.createElement('div');
+                msgText.textContent = '⏰ HORÁRIO DA ÚLTIMA ROTAÇÃO';
+                msgText.style.fontSize = '10px';
+                msgText.style.color = '#FFA500';
+                msgText.style.textAlign = 'center';
+                celulaExibicao.appendChild(msgText);
+                
+                const atualizeText = document.createElement('div');
+                atualizeText.textContent = '📋 ATUALIZE USANDO "PREENCHER HORÁRIOS"';
+                atualizeText.style.fontSize = '9px';
+                atualizeText.style.color = '#888';
+                atualizeText.style.textAlign = 'center';
+                celulaExibicao.appendChild(atualizeText);
             } else {
-                if (localStorage.getItem(spawnKey) === "true") {
-                localStorage.removeItem(spawnKey);
-                localStorage.removeItem(`foco-azul-${spawnKey}`);
-                delete celulaExibicao.dataset.spawnado;
-                celulaExibicao.classList.remove('ultimo-spawn');
-                tr.classList.remove(`linha-vermelha-${tipo}`);
-                if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
+                // Mostra timer normal
+                const tipoSpawn = spawnKey.endsWith('-G') ? 'G' : 'B';
+                iniciarTimerSpawn(celulaExibicao, mapa, tipoSpawn);
             }
-    
-                const hrs = Math.floor(diferencaSegundos / 3600);
-                const mins = Math.floor((diferencaSegundos % 3600) / 60);
-                const segs = diferencaSegundos % 60;
-    
-                celulaExibicao.innerText = formatar(hrs, mins, segs);
+            
+            // Adicionar classe da linha vermelha
+            const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
+            tr.classList.add(`linha-vermelha-${tipo}`);
 
-                if (!celulaExibicao.dataset.spawnado) {
-        if (diferencaSegundos <= 60) {
-            celulaExibicao.classList.add('muito-critico');
-            celulaExibicao.classList.remove('critico');
-        } else if (diferencaSegundos <= 300) {
-            celulaExibicao.classList.add('critico');
-            celulaExibicao.classList.remove('muito-critico');
-        } else {
-            celulaExibicao.classList.remove('critico', 'muito-critico');
+            if (ultimoSpawnado) {
+                ultimoSpawnado.classList.remove('ultimo-spawn');
+            }
+            celulaExibicao.classList.add('ultimo-spawn');
+            ultimoSpawnado = celulaExibicao;
+
+            const tempoAtualSegundos = infoTempo.hLocal * 3600 + infoTempo.m * 60 + infoTempo.s;
+            if (ultimosAlarmesDisparados[chaveUnica] !== tempoAtualSegundos) {
+                ultimosAlarmesDisparados[chaveUnica] = tempoAtualSegundos;
+                
+                if (celulaFoco) {
+                    celulaFoco.classList.add('alarme-foco'); 
+                    localStorage.setItem(`foco-azul-${spawnKey}`, "true");
+                }
+
+                if (alarmeAtivo) {
+                    respawnAtivo = true;
+                    const tipoSom = chaveUnica.endsWith('-G') ? 'gigante' : 'bandido';
+                    tocarBip(duracaoAlarme, tipoSom);
+                }
+            }
+        }
+    } else {
+        if (localStorage.getItem(spawnKey) === "true") {
+            localStorage.removeItem(spawnKey);
+            localStorage.removeItem(`${spawnKey}_time`);
+            localStorage.removeItem(`spawn_start_${mapa}-${tipoSpawn}`); // CHAVE CORRETA
+            localStorage.removeItem(`foco-azul-${spawnKey}`);
+            delete celulaExibicao.dataset.spawnado;
+            celulaExibicao.classList.remove('ultimo-spawn');
+            tr.classList.remove(`linha-vermelha-${tipo}`);
+            if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
+        }
+
+        const hrs = Math.floor(diferencaSegundos / 3600);
+        const mins = Math.floor((diferencaSegundos % 3600) / 60);
+        const segs = diferencaSegundos % 60;
+
+        celulaExibicao.innerText = formatar(hrs, mins, segs);
+
+        if (!celulaExibicao.dataset.spawnado) {
+            if (diferencaSegundos <= 60) {
+                celulaExibicao.classList.add('muito-critico');
+                celulaExibicao.classList.remove('critico');
+            } else if (diferencaSegundos <= 300) {
+                celulaExibicao.classList.add('critico');
+                celulaExibicao.classList.remove('muito-critico');
+            } else {
+                celulaExibicao.classList.remove('critico', 'muito-critico');
+            }
         }
     }
-            }
-        }
+}
 
         atualizarLinha(respGS, campoTempoG, respGL, `${mapa}-G`, `spawn-${mapa}-G`);
         atualizarLinha(respBS, campoTempoB, respBL, `${mapa}-B`, `spawn-${mapa}-B`);
@@ -1560,28 +1666,44 @@ function marcarMorteInstantanea(botao) {
         const mapa = input.getAttribute('data-mapa');
         const tipo = input.classList.contains('morteGigante') ? 'G' : 'B';
         const spawnKey = `spawn-${mapa}-${tipo}`;
+        const chaveTimer = `${mapa}-${tipo}`;
         
+        // Para o timer se estiver rodando
+        if (timersSpawn[chaveTimer]) {
+            clearInterval(timersSpawn[chaveTimer]);
+            delete timersSpawn[chaveTimer];
+        }
+        
+        // Remove todos os dados do spawn
         localStorage.removeItem(spawnKey);
+        localStorage.removeItem(`${spawnKey}_time`);
+        localStorage.removeItem(`spawn_start_${chaveTimer}`);
         localStorage.removeItem(`foco-azul-${spawnKey}`);
         
+        // Limpa a célula de tempo restante
         const celulaRegressiva = tr.querySelector(tipo === 'G' ? '.tempo-restante-gigante' : '.tempo-restante-bandido');
         if (celulaRegressiva) {
             delete celulaRegressiva.dataset.spawnado;
             celulaRegressiva.classList.remove('ultimo-spawn');
-            celulaRegressiva.innerText = "--:--:--";
+            celulaRegressiva.innerHTML = '--:--:--';
         }
-
+        
+        // Remove classes de foco
         const respGL = tr.querySelector('.respGiganteLocal');
         const respBL = tr.querySelector('.respBandidoLocal');
         if (tipo === 'G' && respGL) respGL.classList.remove('alarme-foco');
         if (tipo === 'B' && respBL) respBL.classList.remove('alarme-foco'); 
-
+        
+        // Remove a linha vermelha se o outro tipo também não estiver spawnado
         const outroTipo = (tipo === 'G') ? 'B' : 'G';
         if (localStorage.getItem(`spawn-${mapa}-${outroTipo}`) !== "true") {
             tr.classList.remove(tipo === 'G' ? 'linha-vermelha-gigante' : 'linha-vermelha-bandido');
         }
-
+        
+        // Atualiza o campo de morte com a hora atual
         input.value = infoTempo.textoFormatado;
+        
+        // Força o recálculo
         calcular();
     }
 }
@@ -2067,29 +2189,60 @@ function aplicarDestaqueCritico(celula, segundosRestantes) {
 }
 
 // ==========================================
+// RECUPERAR TIMERS APÓS RECARREGAR PÁGINA
+// ==========================================
+function recuperarTimersAposRecarregar() {
+    console.log('🔁 Recuperando timers...');
+    document.querySelectorAll('tr').forEach(tr => {
+        const morteGigante = tr.querySelector('.morteGigante');
+        if (!morteGigante) return;
+        
+        const mapa = morteGigante.getAttribute('data-mapa');
+        
+        // Verifica spawn do Gigante
+        const spawnKeyG = `spawn-${mapa}-G`;
+        if (localStorage.getItem(spawnKeyG) === "true") {
+            const campoTempoG = tr.querySelector('.tempo-restante-gigante');
+            if (campoTempoG && !campoTempoG.querySelector('.spawn-timer')) {
+                const tipoSpawn = 'G';
+                iniciarTimerSpawn(campoTempoG, mapa, tipoSpawn);
+            }
+        }
+        
+        // Verifica spawn do Bandido
+        const spawnKeyB = `spawn-${mapa}-B`;
+        if (localStorage.getItem(spawnKeyB) === "true") {
+            const campoTempoB = tr.querySelector('.tempo-restante-bandido');
+            if (campoTempoB && !campoTempoB.querySelector('.spawn-timer')) {
+                const tipoSpawn = 'B';
+                iniciarTimerSpawn(campoTempoB, mapa, tipoSpawn);
+            }
+        }
+    });
+}
+
+// ==========================================
 // 20. INIT
 // ==========================================
 window.onload = function() {
     carregarDadosSalvos();
+    
     setTimeout(() => {
         paginaCarregada = true;
-    }, 100);
+        // RECUPERA OS TIMERS DEPOIS QUE A PÁGINA ESTÁ PRONTA
+        recuperarTimersAposRecarregar();
+    }, 1000);  // AUMENTE PARA 1000ms
 
     // FORÇAR tamanho inicial do textarea SEMPRE
     const campoColar = document.getElementById('campo-colar');
     if (campoColar) {
-        // Resetar qualquer estilo inline que tenha sido salvo
         campoColar.style.removeProperty('resize');
-        
-        // Garantir que não tem tamanho fixo conflitante
         campoColar.setAttribute('style', '');
         campoColar.style.width = '600px';
         campoColar.style.height = '55px';
-        
         console.log('Textarea resetado para tamanho inicial 600x55');
     }
     
-    // Também resetar o container
     const container = document.querySelector('.colar-container');
     if (container && campoColar) {
         const style = getComputedStyle(container);

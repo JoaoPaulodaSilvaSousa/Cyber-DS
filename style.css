@@ -2295,3 +2295,20 @@ th:nth-child(9) br {
     display: none;
 }
 
+.spawn-timer {
+    font-size: 11px !important;
+    font-family: monospace !important;
+    color: #FFD700 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    margin-top: 2px !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+body.light-mode .spawn-timer {
+    background: rgba(0, 0, 0, 0.1) !important;
+    color: #e65100 !important;
+}
+
