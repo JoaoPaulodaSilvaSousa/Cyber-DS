@@ -2312,3 +2312,42 @@ body.light-mode .spawn-timer {
     color: #e65100 !important;
 }
 
+/* Fundo para células com a mensagem de atualização */
+.tempo-restante-gigante:has(div:contains("HORÁRIO DA ÚLTIMA ROTAÇÃO")),
+.tempo-restante-bandido:has(div:contains("HORÁRIO DA ÚLTIMA ROTAÇÃO")) {
+    background-color: #ffebee !important;
+    border-bottom: 4px solid #c62828 !important;
+    animation: pulsar-spawn 2.5s ease-in-out infinite !important;
+}
+
+/* Fallback - adiciona uma classe específica via JavaScript */
+.tempo-restante-gigante.mensagem-atualizacao,
+.tempo-restante-bandido.mensagem-atualizacao {
+    background-color: #ffebee !important;
+    border-bottom: 4px solid #c62828 !important;
+    animation: pulsar-spawn 2.5s ease-in-out infinite !important;
+}
+
+/* Aumentar fonte da mensagem de atualização */
+.tempo-restante-gigante.mensagem-atualizacao div:first-child,
+.tempo-restante-bandido.mensagem-atualizacao div:first-child {
+    font-size: 15px !important;
+}
+
+.tempo-restante-gigante.mensagem-atualizacao div:nth-child(2),
+.tempo-restante-bandido.mensagem-atualizacao div:nth-child(2) {
+    font-size: 13px !important;
+}
+
+.tempo-restante-gigante.mensagem-atualizacao div:nth-child(3),
+.tempo-restante-bandido.mensagem-atualizacao div:nth-child(3) {
+    font-size: 11px !important;
+}
+
+/* Evitar quebra de linha nos textos principais */
+.tempo-restante-gigante.mensagem-atualizacao div:first-child,
+.tempo-restante-gigante.mensagem-atualizacao div:nth-child(2),
+.tempo-restante-bandido.mensagem-atualizacao div:first-child,
+.tempo-restante-bandido.mensagem-atualizacao div:nth-child(2) {
+    white-space: nowrap !important;
+}

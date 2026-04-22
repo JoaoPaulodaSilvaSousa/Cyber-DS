@@ -1285,14 +1285,14 @@ worker.onmessage = function() {
                 celulaExibicao.appendChild(spawnText);
                 
                 const msgText = document.createElement('div');
-                msgText.textContent = '⏰ HORÁRIO DA ÚLTIMA ROTAÇÃO';
+                msgText.textContent = '⏰ HORÁRIO DA ÚLTIMA ROTAÇÃO/ERRADA!';
                 msgText.style.fontSize = '10px';
                 msgText.style.color = '#FFA500';
                 msgText.style.textAlign = 'center';
                 celulaExibicao.appendChild(msgText);
                 
                 const atualizeText = document.createElement('div');
-                atualizeText.textContent = '📋 ATUALIZE USANDO "PREENCHER HORÁRIOS"';
+                atualizeText.textContent = '📋 ATUALIZE OS HORÁRIOS';
                 atualizeText.style.fontSize = '9px';
                 atualizeText.style.color = '#888';
                 atualizeText.style.textAlign = 'center';
@@ -1330,35 +1330,64 @@ worker.onmessage = function() {
             }
         }
     } else {
-        if (localStorage.getItem(spawnKey) === "true") {
-            localStorage.removeItem(spawnKey);
-            localStorage.removeItem(`${spawnKey}_time`);
-            localStorage.removeItem(`spawn_start_${mapa}-${tipoSpawn}`); // CHAVE CORRETA
-            localStorage.removeItem(`foco-azul-${spawnKey}`);
-            delete celulaExibicao.dataset.spawnado;
-            celulaExibicao.classList.remove('ultimo-spawn');
-            tr.classList.remove(`linha-vermelha-${tipo}`);
-            if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
-        }
+    if (localStorage.getItem(spawnKey) === "true") {
+        localStorage.removeItem(spawnKey);
+        localStorage.removeItem(`${spawnKey}_time`);
+        localStorage.removeItem(`spawn_start_${mapa}-${tipoSpawn}`);
+        localStorage.removeItem(`foco-azul-${spawnKey}`);
+        delete celulaExibicao.dataset.spawnado;
+        celulaExibicao.classList.remove('ultimo-spawn');
+        celulaExibicao.classList.remove('mensagem-atualizacao'); // ADICIONE ESTA LINHA
+        tr.classList.remove(`linha-vermelha-${tipo}`);
+        if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
+    }
 
-        const hrs = Math.floor(diferencaSegundos / 3600);
+    const hrs = Math.floor(diferencaSegundos / 3600);
+
+    // Se faltar mais de 3 horas (diferencaSegundos > 10800 segundos = 3 horas)
+    if (diferencaSegundos > 10800 && !celulaExibicao.dataset.spawnado) {
+        celulaExibicao.innerHTML = '';
+        celulaExibicao.classList.add('mensagem-atualizacao'); // ADICIONE ESTA LINHA
+        
+        const spawnText = document.createElement('div');
+        spawnText.textContent = '💥 SPAWNOU!';
+        spawnText.style.fontWeight = 'bold';
+        spawnText.style.fontSize = '13px';
+        spawnText.style.color = '#ff5252';
+        spawnText.style.textAlign = 'center';
+        celulaExibicao.appendChild(spawnText);
+        
+        const msgText = document.createElement('div');
+        msgText.textContent = '⏰ HORÁRIO DA ÚLTIMA ROTAÇÃO/ERRADA!';
+        msgText.style.fontSize = '10px';
+        msgText.style.color = '#FFA500';
+        msgText.style.textAlign = 'center';
+        celulaExibicao.appendChild(msgText);
+        
+        const atualizeText = document.createElement('div');
+        atualizeText.textContent = '📋 ATUALIZE OS HORÁRIOS';
+        atualizeText.style.fontSize = '9px';
+        atualizeText.style.color = '#888';
+        atualizeText.style.textAlign = 'center';
+        celulaExibicao.appendChild(atualizeText);
+    } else {
         const mins = Math.floor((diferencaSegundos % 3600) / 60);
         const segs = diferencaSegundos % 60;
-
         celulaExibicao.innerText = formatar(hrs, mins, segs);
+    }
 
-        if (!celulaExibicao.dataset.spawnado) {
-            if (diferencaSegundos <= 60) {
-                celulaExibicao.classList.add('muito-critico');
-                celulaExibicao.classList.remove('critico');
-            } else if (diferencaSegundos <= 300) {
-                celulaExibicao.classList.add('critico');
-                celulaExibicao.classList.remove('muito-critico');
-            } else {
-                celulaExibicao.classList.remove('critico', 'muito-critico');
-            }
+    if (!celulaExibicao.dataset.spawnado) {
+        if (diferencaSegundos <= 60) {
+            celulaExibicao.classList.add('muito-critico');
+            celulaExibicao.classList.remove('critico');
+        } else if (diferencaSegundos <= 300) {
+            celulaExibicao.classList.add('critico');
+            celulaExibicao.classList.remove('muito-critico');
+        } else {
+            celulaExibicao.classList.remove('critico', 'muito-critico');
         }
     }
+}
 }
 
         atualizarLinha(respGS, campoTempoG, respGL, `${mapa}-G`, `spawn-${mapa}-G`);
@@ -1608,35 +1637,40 @@ if (btnLimpar && modalContainer) {
     };
 
     modalConfirmar.onclick = () => {
-        document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
-            if (input.value !== undefined) {
-                input.value = "";
-            } else {
-                input.innerText = "--:--:--";
-            }
-            delete input.dataset.colado;
-            input.classList.remove('alarme-foco'); 
-        });
-        document.querySelectorAll('.tempo-restante-gigante, .tempo-restante-bandido').forEach(celula => {
-            celula.innerText = "--:--:--";
-            celula.classList.remove('ultimo-spawn', 'critico', 'muito-critico'); 
-            delete celula.dataset.spawnado;    
-        });
-        document.querySelectorAll('tr').forEach(tr => {
-            const morteGigante = tr.querySelector('.morteGigante');
-            if (morteGigante) {
-                const mapa = morteGigante.getAttribute('data-mapa');
-                localStorage.removeItem(`morte-${mapa}-Gigante`);
-                localStorage.removeItem(`morte-${mapa}-Bandido`);
-                localStorage.removeItem(`spawn-${mapa}-G`);
-                localStorage.removeItem(`spawn-${mapa}-B`);
-                localStorage.removeItem(`foco-azul-spawn-${mapa}-G`); 
-                localStorage.removeItem(`foco-azul-spawn-${mapa}-B`); 
-            }
-        });
-        modalContainer.classList.add('modal-oculto');
-        calcular();
-    };
+    document.querySelectorAll('.morteGigante, .morteBandido, .respGiganteServer, .respGiganteLocal, .respBandidoServer, .respBandidoLocal').forEach(input => {
+        if (input.value !== undefined) {
+            input.value = "";
+        } else {
+            input.innerText = "--:--:--";
+        }
+        delete input.dataset.colado;
+        input.classList.remove('alarme-foco'); 
+    });
+    
+    document.querySelectorAll('.tempo-restante-gigante, .tempo-restante-bandido').forEach(celula => {
+        celula.innerText = "--:--:--";
+        celula.classList.remove('ultimo-spawn', 'critico', 'muito-critico', 'mensagem-atualizacao'); // ADICIONE 'mensagem-atualizacao'
+        delete celula.dataset.spawnado;    
+    });
+    
+    document.querySelectorAll('tr').forEach(tr => {
+        const morteGigante = tr.querySelector('.morteGigante');
+        if (morteGigante) {
+            const mapa = morteGigante.getAttribute('data-mapa');
+            localStorage.removeItem(`morte-${mapa}-Gigante`);
+            localStorage.removeItem(`morte-${mapa}-Bandido`);
+            localStorage.removeItem(`spawn-${mapa}-G`);
+            localStorage.removeItem(`spawn-${mapa}-B`);
+            localStorage.removeItem(`spawn_start_${mapa}-G`); // ADICIONE ESTA LINHA
+            localStorage.removeItem(`spawn_start_${mapa}-B`); // ADICIONE ESTA LINHA
+            localStorage.removeItem(`foco-azul-spawn-${mapa}-G`); 
+            localStorage.removeItem(`foco-azul-spawn-${mapa}-B`); 
+        }
+    });
+    
+    modalContainer.classList.add('modal-oculto');
+    calcular();
+};
 
     modalContainer.onclick = (e) => {
         if (e.target === modalContainer) {
@@ -1685,6 +1719,7 @@ function marcarMorteInstantanea(botao) {
         if (celulaRegressiva) {
             delete celulaRegressiva.dataset.spawnado;
             celulaRegressiva.classList.remove('ultimo-spawn');
+            celulaRegressiva.classList.remove('mensagem-atualizacao'); // ADICIONE ESTA LINHA
             celulaRegressiva.innerHTML = '--:--:--';
         }
         
