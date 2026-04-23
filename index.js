@@ -522,6 +522,96 @@ function extrairDados(linha) {
     let linhaLimpa = linha.replace(/\s+/g, ' ').trim();
 
     // ==========================================
+// REGRA PARA: n mm 19:01 (letra + mapa + hora)
+// ==========================================
+let letraMapaHoraMatch = linhaLimpa.match(/^([nb])\s+(mm|ccv|gv|mk|gf)\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
+if (letraMapaHoraMatch) {
+    const letra = letraMapaHoraMatch[1].toLowerCase();
+    const mapaAbrev = letraMapaHoraMatch[2].toLowerCase();
+    // Já existe, mas garantir que 'cvv' está em todos os lugares
+const mapaAbreviado = { 
+    'mm': 'MM', 
+    'ccv': 'CCV', 
+    'cvv': 'CCV',  // ← JÁ TEM, mas garantir
+    'gv': 'GV', 
+    'mk': 'MW', 
+    'gf': 'GF' 
+};
+    const mapa = mapaAbreviado[mapaAbrev];
+    let hora = letraMapaHoraMatch[3];
+    let segundos = letraMapaHoraMatch[4] || "00";
+    let horaCompleta = converterHoraPara24h(`${hora}:${segundos}`);
+    
+    if (letra === 'n') {
+        return {
+            mapa: mapa,
+            horaGigante: horaCompleta,
+            horaBandido: null
+        };
+    } else {
+        return {
+            mapa: mapa,
+            horaGigante: null,
+            horaBandido: horaCompleta
+        };
+    }
+}
+
+// ==========================================
+// REGRA PARA: MW n 19:49 (mapa completo + letra + hora)
+// ==========================================
+let mapaCompletoLetraMatch = linhaLimpa.match(/^(MM|CCV|GV|MW|GF)\s+([nb])\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
+if (mapaCompletoLetraMatch) {
+    const mapa = mapaCompletoLetraMatch[1].toUpperCase();
+    const letra = mapaCompletoLetraMatch[2].toLowerCase();
+    let hora = mapaCompletoLetraMatch[3];
+    let segundos = mapaCompletoLetraMatch[4] || "00";
+    let horaCompleta = converterHoraPara24h(`${hora}:${segundos}`);
+    
+    if (letra === 'n') {
+        return {
+            mapa: mapa,
+            horaGigante: horaCompleta,
+            horaBandido: null
+        };
+    } else {
+        return {
+            mapa: mapa,
+            horaGigante: null,
+            horaBandido: horaCompleta
+        };
+    }
+}
+
+// ==========================================
+// REGRA PARA: gf b 20:07 (mapa abreviado + letra + hora)
+// ==========================================
+let mapaAbrevLetraMatch = linhaLimpa.match(/^(gf|mm|ccv|gv|mk)\s+([nb])\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
+if (mapaAbrevLetraMatch) {
+    const mapaAbrev = mapaAbrevLetraMatch[1].toLowerCase();
+    const letra = mapaAbrevLetraMatch[2].toLowerCase();
+    const mapaAbreviado = { 'mm': 'MM', 'ccv': 'CCV', 'gv': 'GV', 'mk': 'MW', 'gf': 'GF' };
+    const mapa = mapaAbreviado[mapaAbrev];
+    let hora = mapaAbrevLetraMatch[3];
+    let segundos = mapaAbrevLetraMatch[4] || "00";
+    let horaCompleta = converterHoraPara24h(`${hora}:${segundos}`);
+    
+    if (letra === 'n') {
+        return {
+            mapa: mapa,
+            horaGigante: horaCompleta,
+            horaBandido: null
+        };
+    } else {
+        return {
+            mapa: mapa,
+            horaGigante: null,
+            horaBandido: horaCompleta
+        };
+    }
+}
+
+    // ==========================================
 // REGRA PARA: MM bandido 12:46 selvagem 12:49
 // ==========================================
 let mapaHorasMatch2 = linhaLimpa.match(/^(MM|CCV|GV|MW|GF)\s+bandido\s+(\d{1,2}:\d{2})\s+selvagem\s+(\d{1,2}:\d{2})/i);
@@ -798,34 +888,67 @@ function preencherMapa(mapa, horaGigante, horaBandido, mapasEncontrados) {
 
 function juntarLinhasTabela(linhas) {
     let resultado = [];
-    let linhaAtual = '';
+    let ultimoMapa = '';
+    
+    // Lista de abreviações de mapas
+    const abreviacoesMapa = /^(MM|CCV|GV|MW|GF|mm|ccv|cvv|gv|mw|gf|mk)$/i;
     
     for (let i = 0; i < linhas.length; i++) {
         let linha = linhas[i].trim();
         if (linha === '') continue;
         
-        // Se é um mapa (MM, CCV, GV, MW, GF)
-        if (linha.match(/^(MM|CCV|GV|MW|GF|mm|ccv|gv|mw|gf)$/i)) {
-            if (linhaAtual) {
-                resultado.push(linhaAtual);
+        // Se é apenas um mapa (qualquer abreviatura)
+        if (linha.match(abreviacoesMapa)) {
+            // Se já tinha um mapa pendente, finaliza ele
+            if (ultimoMapa) {
+                // Não adiciona nada, apenas reseta
             }
-            linhaAtual = linha.toUpperCase();
+            ultimoMapa = linha.toUpperCase();
+            if (ultimoMapa === 'MK') ultimoMapa = 'MW';
+            if (ultimoMapa === 'CVV') ultimoMapa = 'CCV';
+            continue; // Não adiciona a linha separada, apenas guarda o mapa
         }
-        // Se é bandido ou selvagem
-        else if (linha.match(/^bandido|^selvagem/i)) {
-            linhaAtual += ' ' + linha;
+        
+        // Se é "n mm 19:01" (letra + mapa + hora)
+        else if (linha.match(/^[nb]\s+(gf|mm|ccv|cvv|gv|mk)\s+\d{1,2}:\d{2}/i)) {
+            resultado.push(linha);
+            const match = linha.match(/^[nb]\s+(gf|mm|ccv|cvv|gv|mk)/i);
+            if (match) {
+                let mapaAbrev = match[1].toLowerCase();
+                const mapaAbreviado = { 'mm': 'MM', 'ccv': 'CCV', 'cvv': 'CCV', 'gv': 'GV', 'mk': 'MW', 'gf': 'GF' };
+                ultimoMapa = mapaAbreviado[mapaAbrev];
+            }
         }
-        // Ignora cabeçalhos
-        else if (linha.match(/^MAPA|SERVER|RESPAWN|TEMPO|RESTANTE/i)) {
-            continue;
+        
+        // Se é "gf b 20:07" (mapa + letra + hora)
+        else if (linha.match(/^(gf|mm|ccv|cvv|gv|mk)\s+[nb]\s+\d{1,2}:\d{2}/i)) {
+            resultado.push(linha);
+            const match = linha.match(/^(gf|mm|ccv|cvv|gv|mk)/i);
+            if (match) {
+                let mapaAbrev = match[1].toLowerCase();
+                const mapaAbreviado = { 'mm': 'MM', 'ccv': 'CCV', 'cvv': 'CCV', 'gv': 'GV', 'mk': 'MW', 'gf': 'GF' };
+                ultimoMapa = mapaAbreviado[mapaAbrev];
+            }
         }
-        // Outros casos
-        else if (linha.match(/^\d{1,2}:\d{2}:\d{2}$/) || linha.includes('💀') || linha.includes('Morto')) {
-            linhaAtual += ' ' + linha;
+        
+        // Se é n ou b com hora (ex: "n 19:01" ou "b 19:09")
+        else if (linha.match(/^[nb]\s+\d{1,2}:\d{2}/i)) {
+            if (ultimoMapa) {
+                resultado.push(`${ultimoMapa} ${linha}`);
+            } else {
+                resultado.push(linha);
+            }
         }
-    }
-    if (linhaAtual) {
-        resultado.push(linhaAtual);
+        
+        // Linha normal (já tem mapa explícito)
+        else {
+            resultado.push(linha);
+            // Tenta extrair mapa da linha para atualizar ultimoMapa
+            const mapaMatch = linha.match(/^(MM|CCV|GV|MW|GF)/i);
+            if (mapaMatch) {
+                ultimoMapa = mapaMatch[1].toUpperCase();
+            }
+        }
     }
     
     console.log('Linhas processadas:', resultado);
@@ -834,12 +957,10 @@ function juntarLinhasTabela(linhas) {
 
 function processarTextoColado(texto) {
     console.log('🔴🔴🔴 processarTextoColado EXECUTANDO!');
+    // 🔥 NOVA LINHA - LIMPA SPAWNS ANTES DE PROCESSAR
+    limparSpawnsAntigos();
     console.log('Texto recebido (primeiros 100 caracteres):', texto.substring(0, 100));
-    console.log('Processando texto...');
-    console.log('🔴 FUNÇÃO processarTextoColado FOI CHAMADA!');
-    console.log('Texto recebido:', texto);
     
-    // Primeiro, junta as linhas da tabela
     let linhasOriginais = texto.split('\n');
     let linhasJuntas = juntarLinhasTabela(linhasOriginais);
     
@@ -851,17 +972,18 @@ function processarTextoColado(texto) {
     let horaGiganteAtual = null;
     let horaBandidoAtual = null;
     
+    // NOVO: Rastrear quais células foram realmente preenchidas (evita duplicatas)
+    const celulasPreenchidas = new Set();
+    
     for (const linha of linhasJuntas) {
         let linhaLimpa = linha.trim();
         if (linhaLimpa === '') continue;
         
-        // Pula cabeçalhos (linhas que contém MAPA e MORTE)
         if (linhaLimpa.includes('MAPA') && linhaLimpa.includes('MORTE GIGANTE')) {
             console.log('Linha de cabeçalho ignorada');
             continue;
         }
         
-        // Pula apenas cabeçalhos (não pula linhas com horas)
         if (linhaLimpa.match(/^MAPA|SERVER|RESPAWN|TEMPO|RESTANTE/i)) {
             console.log('Linha ignorada (cabeçalho)');
             continue;
@@ -874,9 +996,12 @@ function processarTextoColado(texto) {
         if (!dados) continue;
         
         if (dados.pending && dados.mapa) {
-            if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
-                preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
-                encontrados += 2;
+            if (mapaAtual && (horaGiganteAtual || horaBandidoAtual)) {
+                // Contar apenas células que realmente mudaram
+                const chaveMapa = mapaAtual;
+                const gigantePreenchido = preencherMapaComRetorno(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados, celulasPreenchidas);
+                if (horaGiganteAtual) encontrados += gigantePreenchido ? 1 : 0;
+                if (horaBandidoAtual) encontrados += gigantePreenchido ? 0 : (horaBandidoAtual ? 1 : 0);
             }
             mapaAtual = dados.mapa;
             horaGiganteAtual = dados.horaGigante || null;
@@ -887,15 +1012,17 @@ function processarTextoColado(texto) {
         if (dados.horaGigante) horaGiganteAtual = dados.horaGigante;
         if (dados.horaBandido) horaBandidoAtual = dados.horaBandido;
         
-        if (dados.mapa && dados.horaGigante && dados.horaBandido) {
-            preencherMapa(dados.mapa, dados.horaGigante, dados.horaBandido, mapasEncontrados);
-            encontrados += 2;
+        if (dados.mapa && (dados.horaGigante || dados.horaBandido)) {
+            const preenchidos = preencherMapaComRetorno(dados.mapa, dados.horaGigante, dados.horaBandido, mapasEncontrados, celulasPreenchidas);
+            if (dados.horaGigante && preenchidos.gigante) encontrados++;
+            if (dados.horaBandido && preenchidos.bandido) encontrados++;
             continue;
         }
         
         if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
-            preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
-            encontrados += 2;
+            const preenchidos = preencherMapaComRetorno(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados, celulasPreenchidas);
+            if (horaGiganteAtual && preenchidos.gigante) encontrados++;
+            if (horaBandidoAtual && preenchidos.bandido) encontrados++;
             mapaAtual = null;
             horaGiganteAtual = null;
             horaBandidoAtual = null;
@@ -903,23 +1030,75 @@ function processarTextoColado(texto) {
     }
     
     if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
-        preencherMapa(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados);
-        encontrados += 2;
+        const preenchidos = preencherMapaComRetorno(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados, celulasPreenchidas);
+        if (horaGiganteAtual && preenchidos.gigante) encontrados++;
+        if (horaBandidoAtual && preenchidos.bandido) encontrados++;
     }
     
     if (typeof calcular === 'function') calcular();
     
+    // Mensagem mais precisa
     const container = campoColar ? campoColar.parentNode : document.body;
     const statusDiv = document.createElement('div');
-    statusDiv.innerHTML = encontrados > 0 ? `✅ ${encontrados} horários preenchidos (${mapasEncontrados.length} mapas)` : `❌ Nenhum horário encontrado. Tente outro formato.`;
+    const mapaTexto = mapasEncontrados.length === 1 ? 'mapa' : 'mapas';
+    const horarioTexto = encontrados === 1 ? 'horário' : 'horários';
+    statusDiv.innerHTML = encontrados > 0 
+        ? `✅ ${encontrados} ${horarioTexto} preenchidos (${mapasEncontrados.length} ${mapaTexto})` 
+        : `❌ Nenhum horário encontrado. Tente outro formato.`;
     statusDiv.style.color = encontrados > 0 ? '#4CAF50' : '#ff5252';
     statusDiv.style.cssText = 'font-size: 12px; margin-top: 8px; text-align: center; font-weight: bold; padding: 5px; border-radius: 8px;';
     container.appendChild(statusDiv);
     setTimeout(() => statusDiv.remove(), 5000);
     
     if (campoColar) campoColar.value = '';
-    console.log(`Processamento concluído: ${encontrados} horários`);
+    console.log(`Processamento concluído: ${encontrados} horários únicos`);
     return encontrados;
+}
+
+// Função auxiliar que retorna quais células foram realmente preenchidas
+function preencherMapaComRetorno(mapa, horaGigante, horaBandido, mapasEncontrados, celulasPreenchidas) {
+    console.log(`Preenchendo ${mapa}: G=${horaGigante} B=${horaBandido}`);
+    
+    let gigantePreenchido = false;
+    let bandidoPreenchido = false;
+    
+    if (!mapasEncontrados.includes(mapa)) {
+        mapasEncontrados.push(mapa);
+    }
+    
+    document.querySelectorAll('tr').forEach(tr => {
+        const celulaMapa = tr.querySelector('td:first-child');
+        if (celulaMapa && celulaMapa.innerText.trim().toUpperCase() === mapa) {
+            const inputGigante = tr.querySelector('.morteGigante');
+            const inputBandido = tr.querySelector('.morteBandido');
+            
+            if (inputGigante && horaGigante) {
+                const chaveCelula = `${mapa}-G`;
+                if (inputGigante.value !== horaGigante) {
+                    inputGigante.value = horaGigante;
+                    inputGigante.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (!celulasPreenchidas.has(chaveCelula)) {
+                        celulasPreenchidas.add(chaveCelula);
+                        gigantePreenchido = true;
+                    }
+                }
+            }
+            
+            if (inputBandido && horaBandido) {
+                const chaveCelula = `${mapa}-B`;
+                if (inputBandido.value !== horaBandido) {
+                    inputBandido.value = horaBandido;
+                    inputBandido.dispatchEvent(new Event('input', { bubbles: true }));
+                    if (!celulasPreenchidas.has(chaveCelula)) {
+                        celulasPreenchidas.add(chaveCelula);
+                        bandidoPreenchido = true;
+                    }
+                }
+            }
+        }
+    });
+    
+    return { gigante: gigantePreenchido, bandido: bandidoPreenchido };
 }
 
 // Evento do botão PREENCHER HORÁRIOS
@@ -1226,14 +1405,15 @@ worker.onmessage = function() {
 
         // Não usa mais destaque de linha inteira para o alarme.
         function atualizarLinha(inputHoraRespawn, celulaExibicao, celulaFoco, chaveUnica, spawnKey) {
-            // ADICIONE ESTA LINHA ABAIXO - IMPEDE SOBRESCRITA
     if (celulaExibicao.querySelector('.spawn-timer')) return;
     if (!celulaExibicao) return;
-    
 
     const horaTexto = inputHoraRespawn ? inputHoraRespawn.value : "";
     if (!horaTexto || horaTexto === "" || horaTexto === "--:--:--" || horaTexto === "HH:MM:SS") {
         celulaExibicao.innerText = "--:--:--";
+        // REMOVE A CLASSE DA LINHA QUANDO NÃO HÁ HORÁRIO
+        const tipoLinha = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
+        tr.classList.remove(`linha-vermelha-${tipoLinha}`);
         return;
     }
 
@@ -1249,30 +1429,26 @@ worker.onmessage = function() {
     }
 
     if (diferencaSegundos <= 0) { 
-    if (!celulaExibicao.dataset.spawnado) {
-        celulaExibicao.dataset.spawnado = "true";
-        
-        // SALVA O SPAWN
-        localStorage.setItem(spawnKey, "true");
-        
-        // SALVA O HORÁRIO DO SPAWN (se não existir)
-        const spawnTimeKey = `${spawnKey}_time`;
-        let spawnTime = localStorage.getItem(spawnTimeKey);
-        if (!spawnTime) {
-            spawnTime = new Date().toISOString();
-            localStorage.setItem(spawnTimeKey, spawnTime);
-        }
-        
-        // SALVA O START_TIME PARA O TIMER (IMPORTANTE!)
-        const chaveTimer = `${mapa}-${spawnKey.endsWith('-G') ? 'G' : 'B'}`;
-        const startTimeKey = `spawn_start_${chaveTimer}`;
-        if (!localStorage.getItem(startTimeKey)) {
-            localStorage.setItem(startTimeKey, spawnTime);
-        }
-        
-        const horasPassadas = (new Date() - new Date(spawnTime)) / (1000 * 60 * 60);
+        if (!celulaExibicao.dataset.spawnado) {
+            celulaExibicao.dataset.spawnado = "true";
             
-            // Se passou mais de 3 horas, mostra mensagem
+            localStorage.setItem(spawnKey, "true");
+            
+            const spawnTimeKey = `${spawnKey}_time`;
+            let spawnTime = localStorage.getItem(spawnTimeKey);
+            if (!spawnTime) {
+                spawnTime = new Date().toISOString();
+                localStorage.setItem(spawnTimeKey, spawnTime);
+            }
+            
+            const chaveTimer = `${mapa}-${spawnKey.endsWith('-G') ? 'G' : 'B'}`;
+            const startTimeKey = `spawn_start_${chaveTimer}`;
+            if (!localStorage.getItem(startTimeKey)) {
+                localStorage.setItem(startTimeKey, spawnTime);
+            }
+            
+            const horasPassadas = (new Date() - new Date(spawnTime)) / (1000 * 60 * 60);
+                
             if (horasPassadas >= 3) {
                 celulaExibicao.innerHTML = '';
                 
@@ -1297,15 +1473,18 @@ worker.onmessage = function() {
                 atualizeText.style.color = '#888';
                 atualizeText.style.textAlign = 'center';
                 celulaExibicao.appendChild(atualizeText);
+                
+                // REMOVE A LINHA VERMELHA QUANDO PASSA DE 3 HORAS
+                const tipoLinha = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
+                tr.classList.remove(`linha-vermelha-${tipoLinha}`);
             } else {
-                // Mostra timer normal
                 const tipoSpawn = spawnKey.endsWith('-G') ? 'G' : 'B';
                 iniciarTimerSpawn(celulaExibicao, mapa, tipoSpawn);
+                
+                // SÓ ADICIONA A LINHA VERMELHA SE NÃO PASSOU DE 3 HORAS
+                const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
+                tr.classList.add(`linha-vermelha-${tipo}`);
             }
-            
-            // Adicionar classe da linha vermelha
-            const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
-            tr.classList.add(`linha-vermelha-${tipo}`);
 
             if (ultimoSpawnado) {
                 ultimoSpawnado.classList.remove('ultimo-spawn');
@@ -1330,66 +1509,75 @@ worker.onmessage = function() {
             }
         }
     } else {
+    const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
+    const tipoSpawn = spawnKey.endsWith('-G') ? 'G' : 'B';
+
+    // FORÇA A REMOÇÃO DA CLASSE VERMELHA QUANDO O RESPAWN AINDA NÃO ACONTECEU
+    tr.classList.remove(`linha-vermelha-${tipo}`);
+    
     if (localStorage.getItem(spawnKey) === "true") {
         localStorage.removeItem(spawnKey);
         localStorage.removeItem(`${spawnKey}_time`);
         localStorage.removeItem(`spawn_start_${mapa}-${tipoSpawn}`);
         localStorage.removeItem(`foco-azul-${spawnKey}`);
         delete celulaExibicao.dataset.spawnado;
-        celulaExibicao.classList.remove('ultimo-spawn');
-        celulaExibicao.classList.remove('mensagem-atualizacao'); // ADICIONE ESTA LINHA
+        celulaExibicao.classList.remove('ultimo-spawn', 'mensagem-atualizacao');
+        
+        // REMOVE A CLASSE DA LINHA VERMELHA (já removemos acima, mas manter por segurança)
         tr.classList.remove(`linha-vermelha-${tipo}`);
+        
         if (celulaFoco) celulaFoco.classList.remove('alarme-foco');
     }
 
-    const hrs = Math.floor(diferencaSegundos / 3600);
+        const hrs = Math.floor(diferencaSegundos / 3600);
 
-    // Se faltar mais de 3 horas (diferencaSegundos > 10800 segundos = 3 horas)
-    if (diferencaSegundos > 10800 && !celulaExibicao.dataset.spawnado) {
-        celulaExibicao.innerHTML = '';
-        celulaExibicao.classList.add('mensagem-atualizacao'); // ADICIONE ESTA LINHA
-        
-        const spawnText = document.createElement('div');
-        spawnText.textContent = '💥 SPAWNOU!';
-        spawnText.style.fontWeight = 'bold';
-        spawnText.style.fontSize = '13px';
-        spawnText.style.color = '#ff5252';
-        spawnText.style.textAlign = 'center';
-        celulaExibicao.appendChild(spawnText);
-        
-        const msgText = document.createElement('div');
-        msgText.textContent = '⏰ HORÁRIO DA ÚLTIMA ROTAÇÃO/ERRADA!';
-        msgText.style.fontSize = '10px';
-        msgText.style.color = '#FFA500';
-        msgText.style.textAlign = 'center';
-        celulaExibicao.appendChild(msgText);
-        
-        const atualizeText = document.createElement('div');
-        atualizeText.textContent = '📋 ATUALIZE OS HORÁRIOS';
-        atualizeText.style.fontSize = '9px';
-        atualizeText.style.color = '#888';
-        atualizeText.style.textAlign = 'center';
-        celulaExibicao.appendChild(atualizeText);
-    } else {
-        const mins = Math.floor((diferencaSegundos % 3600) / 60);
-        const segs = diferencaSegundos % 60;
-        celulaExibicao.innerText = formatar(hrs, mins, segs);
-    }
-
-    if (!celulaExibicao.dataset.spawnado) {
-        if (diferencaSegundos <= 60) {
-            celulaExibicao.classList.add('muito-critico');
-            celulaExibicao.classList.remove('critico');
-        } else if (diferencaSegundos <= 300) {
-            celulaExibicao.classList.add('critico');
-            celulaExibicao.classList.remove('muito-critico');
+        if (diferencaSegundos > 10800 && !celulaExibicao.dataset.spawnado) {
+            celulaExibicao.innerHTML = '';
+            celulaExibicao.classList.add('mensagem-atualizacao');
+            
+            const spawnText = document.createElement('div');
+            spawnText.textContent = '💥 SPAWNOU!';
+            spawnText.style.fontWeight = 'bold';
+            spawnText.style.fontSize = '13px';
+            spawnText.style.color = '#ff5252';
+            spawnText.style.textAlign = 'center';
+            celulaExibicao.appendChild(spawnText);
+            
+            const msgText = document.createElement('div');
+            msgText.textContent = '⏰ HORÁRIO DA ÚLTIMA ROTAÇÃO/ERRADA!';
+            msgText.style.fontSize = '10px';
+            msgText.style.color = '#FFA500';
+            msgText.style.textAlign = 'center';
+            celulaExibicao.appendChild(msgText);
+            
+            const atualizeText = document.createElement('div');
+            atualizeText.textContent = '📋 ATUALIZE OS HORÁRIOS';
+            atualizeText.style.fontSize = '9px';
+            atualizeText.style.color = '#888';
+            atualizeText.style.textAlign = 'center';
+            celulaExibicao.appendChild(atualizeText);
+            
+            // GARANTE QUE A LINHA NÃO FICA VERMELHA
+            tr.classList.remove(`linha-vermelha-${tipo}`);
         } else {
-            celulaExibicao.classList.remove('critico', 'muito-critico');
+            const mins = Math.floor((diferencaSegundos % 3600) / 60);
+            const segs = diferencaSegundos % 60;
+            celulaExibicao.innerText = formatar(hrs, mins, segs);
+        }
+
+        if (!celulaExibicao.dataset.spawnado) {
+            if (diferencaSegundos <= 60) {
+                celulaExibicao.classList.add('muito-critico');
+                celulaExibicao.classList.remove('critico');
+            } else if (diferencaSegundos <= 300) {
+                celulaExibicao.classList.add('critico');
+                celulaExibicao.classList.remove('muito-critico');
+            } else {
+                celulaExibicao.classList.remove('critico', 'muito-critico');
+            }
         }
     }
 }
-}
-
         atualizarLinha(respGS, campoTempoG, respGL, `${mapa}-G`, `spawn-${mapa}-G`);
         atualizarLinha(respBS, campoTempoB, respBL, `${mapa}-B`, `spawn-${mapa}-B`);
     });
@@ -1506,47 +1694,84 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     });
 
     input.addEventListener('input', (e) => {
-        if (e.detail && e.detail.isUndo) return;
+    if (e.detail && e.detail.isUndo) return;
 
-        // Limpar futuro quando faz nova digitação
-        limparFuturo();
-
-        let cursorPosition = e.target.selectionStart;
-        let valorOriginal = e.target.value;
-        let valorNumerico = valorOriginal.replace(/\D/g, ""); 
-
-        if (valorNumerico.length > 6) {
-            valorNumerico = valorNumerico.slice(0, 6); 
+    // ==========================================
+    // 🔥 NOVO: FORÇA LIMPEZA DO SPAWN AO DIGITAR
+    // ==========================================
+    const mapa = input.getAttribute('data-mapa');
+    const tipo = input.classList.contains('morteGigante') ? 'G' : 'B';
+    const spawnKey = `spawn-${mapa}-${tipo}`;
+    const tr = input.closest('tr');
+    const campoTempo = tr.querySelector(tipo === 'G' ? '.tempo-restante-gigante' : '.tempo-restante-bandido');
+    
+    // Remove do localStorage
+    localStorage.removeItem(spawnKey);
+    localStorage.removeItem(`${spawnKey}_time`);
+    localStorage.removeItem(`spawn_start_${mapa}-${tipo}`);
+    localStorage.removeItem(`foco-azul-${spawnKey}`);
+    
+    // Limpa a célula de tempo
+    if (campoTempo) {
+        delete campoTempo.dataset.spawnado;
+        campoTempo.classList.remove('ultimo-spawn', 'mensagem-atualizacao', 'critico', 'muito-critico');
+        if (!campoTempo.querySelector('.spawn-timer')) {
+            campoTempo.innerText = '--:--:--';
         }
+    }
+    
+    // Remove a classe vermelha da linha
+    if (tr) {
+        tr.classList.remove('linha-vermelha-gigante', 'linha-vermelha-bandido');
+    }
+    
+    // Para o timer se estiver rodando
+    const chaveTimer = `${mapa}-${tipo}`;
+    if (timersSpawn && timersSpawn[chaveTimer]) {
+        clearInterval(timersSpawn[chaveTimer]);
+        delete timersSpawn[chaveTimer];
+    }
+    // ==========================================
 
-        let pedacos = [];
-        if (valorNumerico.length > 0) pedacos.push(valorNumerico.slice(0, 2));
-        if (valorNumerico.length > 2) pedacos.push(valorNumerico.slice(2, 4));
-        if (valorNumerico.length > 4) pedacos.push(valorNumerico.slice(4, 6));
+    // Limpar futuro quando faz nova digitação
+    limparFuturo();
 
-        if (pedacos[0] && pedacos[0].length === 2 && parseInt(pedacos[0]) > 23) pedacos[0] = "23";
-        if (pedacos[1] && pedacos[1].length === 2 && parseInt(pedacos[1]) > 59) pedacos[1] = "59";
-        if (pedacos[2] && pedacos[2].length === 2 && parseInt(pedacos[2]) > 59) pedacos[2] = "59";
+    let cursorPosition = e.target.selectionStart;
+    let valorOriginal = e.target.value;
+    let valorNumerico = valorOriginal.replace(/\D/g, ""); 
 
-        let formatado = pedacos.join(":");
-        let digitandoNoFim = (cursorPosition >= valorOriginal.length);
-        
-        e.target.value = formatado;
+    if (valorNumerico.length > 6) {
+        valorNumerico = valorNumerico.slice(0, 6); 
+    }
 
-        if (digitandoNoFim) {
-            let tamanhoFinal = formatado.length;
-            e.target.setSelectionRange(tamanhoFinal, tamanhoFinal);
-        } else {
-            e.target.setSelectionRange(cursorPosition, cursorPosition);
-        }
+    let pedacos = [];
+    if (valorNumerico.length > 0) pedacos.push(valorNumerico.slice(0, 2));
+    if (valorNumerico.length > 2) pedacos.push(valorNumerico.slice(2, 4));
+    if (valorNumerico.length > 4) pedacos.push(valorNumerico.slice(4, 6));
 
-        // Salvar no histórico após formatação
-        if (formatado) {
-            salvarNoHistorico(formatado);
-        }
-        
-        calcular();
-    });
+    if (pedacos[0] && pedacos[0].length === 2 && parseInt(pedacos[0]) > 23) pedacos[0] = "23";
+    if (pedacos[1] && pedacos[1].length === 2 && parseInt(pedacos[1]) > 59) pedacos[1] = "59";
+    if (pedacos[2] && pedacos[2].length === 2 && parseInt(pedacos[2]) > 59) pedacos[2] = "59";
+
+    let formatado = pedacos.join(":");
+    let digitandoNoFim = (cursorPosition >= valorOriginal.length);
+    
+    e.target.value = formatado;
+
+    if (digitandoNoFim) {
+        let tamanhoFinal = formatado.length;
+        e.target.setSelectionRange(tamanhoFinal, tamanhoFinal);
+    } else {
+        e.target.setSelectionRange(cursorPosition, cursorPosition);
+    }
+
+    // Salvar no histórico após formatação
+    if (formatado) {
+        salvarNoHistorico(formatado);
+    }
+    
+    calcular();
+});
 
     // Teclas de atalho
     input.addEventListener('keydown', (e) => {
@@ -1652,6 +1877,10 @@ if (btnLimpar && modalContainer) {
         celula.classList.remove('ultimo-spawn', 'critico', 'muito-critico', 'mensagem-atualizacao'); // ADICIONE 'mensagem-atualizacao'
         delete celula.dataset.spawnado;    
     });
+
+    document.querySelectorAll('tr').forEach(tr => {
+        tr.classList.remove('linha-vermelha-gigante', 'linha-vermelha-bandido');
+    });
     
     document.querySelectorAll('tr').forEach(tr => {
         const morteGigante = tr.querySelector('.morteGigante');
@@ -1701,6 +1930,9 @@ function marcarMorteInstantanea(botao) {
         const tipo = input.classList.contains('morteGigante') ? 'G' : 'B';
         const spawnKey = `spawn-${mapa}-${tipo}`;
         const chaveTimer = `${mapa}-${tipo}`;
+
+        // Remove a linha vermelha (os dois tipos)
+        tr.classList.remove('linha-vermelha-gigante', 'linha-vermelha-bandido');
         
         // Para o timer se estiver rodando
         if (timersSpawn[chaveTimer]) {
@@ -2257,17 +2489,116 @@ function recuperarTimersAposRecarregar() {
 }
 
 // ==========================================
+// BOTÕES DESFAZER E REMOVER
+// ==========================================
+const btnDesfazer = document.getElementById('btn-desfazer');
+const btnRefazer = document.getElementById('btn-refazer');
+
+if (btnDesfazer) {
+    btnDesfazer.onclick = () => {
+        // Simula Ctrl+Z no campo ativo ou no último campo editado
+        const activeElement = document.activeElement;
+        if (activeElement && (activeElement.classList.contains('morteGigante') || activeElement.classList.contains('morteBandido'))) {
+            const idCampo = activeElement.dataset.mapa + "-" + (activeElement.classList.contains('morteGigante') ? 'G' : 'B');
+            const pilha = historicoCampos[idCampo];
+            const pilhaFuturo = historicoFuturoCampos[idCampo];
+            
+            if (pilha && pilha.length > 1) {
+                const valorAtual = activeElement.value;
+                if (valorAtual) pilhaFuturo.push(valorAtual);
+                pilha.pop();
+                const valorAnterior = pilha[pilha.length - 1];
+                activeElement.value = valorAnterior || "";
+                activeElement.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+                calcular();
+            }
+        } else {
+            // Se nenhum campo estiver focado, tenta desfazer no último campo editado
+            for (const [id, pilha] of Object.entries(historicoCampos)) {
+                if (pilha.length > 1) {
+                    const [mapa, tipo] = id.split('-');
+                    const seletor = tipo === 'G' ? '.morteGigante' : '.morteBandido';
+                    const input = document.querySelector(`${seletor}[data-mapa="${mapa}"]`);
+                    if (input) {
+                        const pilhaFuturo = historicoFuturoCampos[id];
+                        const valorAtual = input.value;
+                        if (valorAtual) pilhaFuturo.push(valorAtual);
+                        pilha.pop();
+                        const valorAnterior = pilha[pilha.length - 1];
+                        input.value = valorAnterior || "";
+                        input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+                        calcular();
+                        break;
+                    }
+                }
+            }
+        }
+    };
+}
+
+if (btnRefazer) {
+    btnRefazer.onclick = () => {
+        const activeElement = document.activeElement;
+        if (activeElement && (activeElement.classList.contains('morteGigante') || activeElement.classList.contains('morteBandido'))) {
+            const idCampo = activeElement.dataset.mapa + "-" + (activeElement.classList.contains('morteGigante') ? 'G' : 'B');
+            const pilhaFuturo = historicoFuturoCampos[idCampo];
+            
+            if (pilhaFuturo && pilhaFuturo.length > 0) {
+                const valorProximo = pilhaFuturo.pop();
+                const pilha = historicoCampos[idCampo];
+                const valorAtual = activeElement.value;
+                if (valorAtual) pilha.push(valorAtual);
+                activeElement.value = valorProximo;
+                activeElement.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+                calcular();
+            }
+        } else {
+            for (const [id, pilhaFuturo] of Object.entries(historicoFuturoCampos)) {
+                if (pilhaFuturo.length > 0) {
+                    const [mapa, tipo] = id.split('-');
+                    const seletor = tipo === 'G' ? '.morteGigante' : '.morteBandido';
+                    const input = document.querySelector(`${seletor}[data-mapa="${mapa}"]`);
+                    if (input) {
+                        const valorProximo = pilhaFuturo.pop();
+                        const pilha = historicoCampos[id];
+                        const valorAtual = input.value;
+                        if (valorAtual) pilha.push(valorAtual);
+                        input.value = valorProximo;
+                        input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+                        calcular();
+                        break;
+                    }
+                }
+            }
+        }
+    };
+}
+
+// ==========================================
+// FORÇAR LIMPEZA DE SPAWNS ANTIGOS AO CARREGAR
+// ==========================================
+function limparSpawnsAntigos() {
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('spawn-') || key.startsWith('spawn_start_') || key.startsWith('foco-azul-'))) {
+            localStorage.removeItem(key);
+            console.log('🗑️ Spawn antigo removido:', key);
+        }
+    }
+}
+
+// ==========================================
 // 20. INIT
 // ==========================================
 window.onload = function() {
+    limparSpawnsAntigos(); // ← ADICIONE ESTA LINHA AQUI
+    
     carregarDadosSalvos();
     
     setTimeout(() => {
         paginaCarregada = true;
-        // RECUPERA OS TIMERS DEPOIS QUE A PÁGINA ESTÁ PRONTA
         recuperarTimersAposRecarregar();
-    }, 1000);  // AUMENTE PARA 1000ms
-
+    }, 1000);
     // FORÇAR tamanho inicial do textarea SEMPRE
     const campoColar = document.getElementById('campo-colar');
     if (campoColar) {

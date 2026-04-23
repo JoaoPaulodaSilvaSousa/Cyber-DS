@@ -2370,3 +2370,17 @@ body.light-mode .spawn-timer {
     font-size: 19px !important;
     font-weight: bold !important;
 }
+
+
+body.light-mode #btn-desfazer,
+body.light-mode #btn-refazer {
+    background-color: #ffffff;
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+body.light-mode #btn-desfazer:hover,
+body.light-mode #btn-refazer:hover {
+    background-color: #4CAF50;
+    color: #ffffff;
+}
