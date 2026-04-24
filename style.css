@@ -2372,15 +2372,42 @@ body.light-mode .spawn-timer {
 }
 
 
+/* Botões Desfazer/Refazer no modo escuro (padrão) */
+#btn-desfazer, #btn-refazer {
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    background-color: rgba(30, 30, 30, 0.75);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+    transition: all 0.2s ease;
+}
+
+/* Modo claro - fundo branco */
 body.light-mode #btn-desfazer,
 body.light-mode #btn-refazer {
-    background-color: #ffffff;
+    background-color: rgb(255, 255, 255);
+    color: #2c7a2c;
+    border: 1px solid #2c7a2c;
+}
+
+/* Botão Limpar Horários no modo claro */
+body.light-mode #limpar-dados {
+    color: #4CAF50;
+}
+
+/* Botão Ocultar Tempo Restante no modo claro */
+body.light-mode #toggle-restante {
+    background-color: rgb(255, 255, 255);
     color: #4CAF50;
     border: 1px solid #4CAF50;
 }
 
-body.light-mode #btn-desfazer:hover,
-body.light-mode #btn-refazer:hover {
+#btn-desfazer:hover, #btn-refazer:hover {
     background-color: #4CAF50;
-    color: #ffffff;
+    color: #121212;
+}
+body.light-mode #btn-desfazer:hover, body.light-mode #btn-refazer:hover {
+    background-color: #4CAF50;
+    color: #121212;
 }

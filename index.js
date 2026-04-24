@@ -1,4 +1,4 @@
-// ==========================================
+ // ==========================================
 // DESBLOQUEAR ÁUDIO NO PRIMEIRO TOQUE/CLIQUE
 // ==========================================
 let audioDesbloqueado = false;
@@ -1688,10 +1688,10 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     }
 
     input.addEventListener('focus', () => {
-        if (historicoCampos[idCampo].length === 0 && input.value) {
-            historicoCampos[idCampo].push(input.value);
-        }
-    });
+    if (historicoCampos[idCampo].length === 0 && input.value) {
+        historicoCampos[idCampo].push(input.value);
+    }
+});
 
     input.addEventListener('input', (e) => {
     if (e.detail && e.detail.isUndo) return;
@@ -1764,11 +1764,6 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     } else {
         e.target.setSelectionRange(cursorPosition, cursorPosition);
     }
-
-    // Salvar no histórico após formatação
-    if (formatado) {
-        salvarNoHistorico(formatado);
-    }
     
     calcular();
 });
@@ -1805,33 +1800,37 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     });
 
     input.addEventListener('change', (e) => {
-        let valorNumerico = e.target.value.replace(/\D/g, "");
-        if (valorNumerico.length > 0 && valorNumerico.length < 6) {
-            let completo = valorNumerico;
-            
-            if (valorNumerico.length === 1) {
-                completo = "0" + valorNumerico + "0000";
-            } 
-            else if (valorNumerico.length === 2) completo = valorNumerico + "0000";
-            else if (valorNumerico.length === 3) completo = valorNumerico.slice(0,2) + "0" + valorNumerico.slice(2) + "00";
-            else if (valorNumerico.length === 4) completo = valorNumerico + "00";
-            else if (valorNumerico.length === 5) completo = valorNumerico.slice(0,4) + "0" + valorNumerico.slice(4);
+    let valorNumerico = e.target.value.replace(/\D/g, "");
+    if (valorNumerico.length > 0 && valorNumerico.length < 6) {
+        let completo = valorNumerico;
+        
+        if (valorNumerico.length === 1) {
+            completo = "0" + valorNumerico + "0000";
+        } 
+        else if (valorNumerico.length === 2) completo = valorNumerico + "0000";
+        else if (valorNumerico.length === 3) completo = valorNumerico.slice(0,2) + "0" + valorNumerico.slice(2) + "00";
+        else if (valorNumerico.length === 4) completo = valorNumerico + "00";
+        else if (valorNumerico.length === 5) completo = valorNumerico.slice(0,4) + "0" + valorNumerico.slice(4);
 
-            let h = parseInt(completo.slice(0, 2));
-            let m = parseInt(completo.slice(2, 4));
-            let s = parseInt(completo.slice(4, 6));
+        let h = parseInt(completo.slice(0, 2));
+        let m = parseInt(completo.slice(2, 4));
+        let s = parseInt(completo.slice(4, 6));
 
-            if (h > 23) h = 23;
-            if (m > 59) m = 59;
-            if (s > 59) s = 59;
+        if (h > 23) h = 23;
+        if (m > 59) m = 59;
+        if (s > 59) s = 59;
 
-            e.target.value = formatar(h, m, s);
-            calcular();
-        }
+        e.target.value = formatar(h, m, s);
+        calcular();
+    }
 
-        salvarNoHistorico(e.target.value);
-        limparFuturo();
-    });
+    // 🔥 SALVA APENAS O ESTADO FINAL (quando o campo perde o foco)
+    const valorFinal = e.target.value;
+    if (valorFinal && valorFinal !== '--:--:--') {
+        salvarNoHistorico(valorFinal);
+    }
+    limparFuturo();
+});
 });
 
 // Função para debug (opcional - digitar no console)
@@ -2637,5 +2636,3 @@ if (campoColar && colarContainer && typeof ResizeObserver !== 'undefined') {
     const resizeObserver = new ResizeObserver(updateContainerWidth);
     resizeObserver.observe(campoColar);
 }
-
-
