@@ -1639,16 +1639,17 @@ document.querySelectorAll('.morteGigante, .morteBandido').forEach(input => {
     historicoFuturoCampos[idCampo] = [];
 
     // Salvar valor no histórico (desfazer)
-    // Salvar valor no histórico (desfazer)
 function salvarNoHistorico(valor) {
-    console.log("🔵 SALVANDO NO HISTÓRICO:", idCampo, valor);
     const pilha = historicoCampos[idCampo];
-    if (pilha.length === 0 || pilha[pilha.length - 1] !== valor) {
-        pilha.push(valor);
+    const valorParaSalvar = valor === "" ? "" : valor;
+    
+    if (pilha.length === 0 || pilha[pilha.length - 1] !== valorParaSalvar) {
+        pilha.push(valorParaSalvar);
         if (pilha.length > 30) pilha.shift();
-        console.log("✅ Histórico atualizado:", idCampo, pilha);
-    } else {
-        console.log("⚠️ Valor duplicado, não salvou:", valor);
+        console.log(`📝 Histórico [${idCampo}]:`, pilha);
+        
+        // Salva no localStorage imediatamente
+        localStorage.setItem(`historico_${idCampo}`, JSON.stringify(pilha));
     }
 }
 
@@ -1726,43 +1727,43 @@ function forcarLimpezaSpawn(inputElement) {
     }
 }  // ← SÓ UMA CHAVE AQUI, NADA MAIS!
 
-    // Desfazer (Ctrl+Z)
-    // Desfazer (Ctrl+Z)
 function desfazer() {
     const pilha = historicoCampos[idCampo];
     const pilhaFuturo = historicoFuturoCampos[idCampo];
     
+    console.log(`🔄 Desfazer em ${idCampo} - Pilha atual:`, pilha);
+    
     if (pilha.length > 1) {
-        // Salvar valor atual no futuro antes de desfazer
+        // Salva valor atual no futuro
         const valorAtual = input.value;
-        if (valorAtual) {
-            pilhaFuturo.push(valorAtual);
-        }
+        pilhaFuturo.push(valorAtual === "" ? "" : valorAtual);
         
-        // 🔥 SÓ LIMPA A MENSAGEM, NÃO O SPAWN
-        // Remove a mensagem "ATUALIZE OS HORÁRIOS" se estiver visível
+        // Remove o atual e pega o anterior
+        pilha.pop();
+        const valorAnterior = pilha[pilha.length - 1];
+        input.value = valorAnterior;  // Pode ser "" vazio
+        
+        // Limpa a mensagem de spawn se existir
         const mapa = input.getAttribute('data-mapa');
         const tipo = input.classList.contains('morteGigante') ? 'G' : 'B';
         const tr = input.closest('tr');
         const campoTempo = tr.querySelector(tipo === 'G' ? '.tempo-restante-gigante' : '.tempo-restante-bandido');
         if (campoTempo && campoTempo.classList.contains('mensagem-atualizacao')) {
             campoTempo.classList.remove('mensagem-atualizacao');
-            campoTempo.innerHTML = '';
+            campoTempo.innerHTML = '--:--:--';
         }
         
-        // Voltar para o anterior
-        pilha.pop();
-        const valorAnterior = pilha[pilha.length - 1];
-        input.value = valorAnterior || "";
-        
-        // Forçar atualização
-        input.dispatchEvent(new CustomEvent('input', { detail: { isUndo: true } }));
+        // Força atualização
+        input.dispatchEvent(new Event('input', { bubbles: true }));
         calcular();
-
-        // 🔥 SALVA O HISTÓRICO NO STORAGE
-       // CORRETO:
-localStorage.setItem(`historico_${idCampo}`, JSON.stringify(historicoCampos[idCampo]));
-localStorage.setItem(`futuro_${idCampo}`, JSON.stringify(pilhaFuturo));
+        
+        // Salva no localStorage
+        localStorage.setItem(`historico_${idCampo}`, JSON.stringify(pilha));
+        localStorage.setItem(`futuro_${idCampo}`, JSON.stringify(pilhaFuturo));
+        
+        console.log(`✅ Desfazer: novo valor = "${valorAnterior}"`);
+    } else {
+        console.log("⚠️ Não há mais histórico para desfazer");
     }
 }
 
@@ -1813,11 +1814,11 @@ function refazer() {
     }
 });
 
-    input.addEventListener('input', (e) => {
+input.addEventListener('input', (e) => {
     if (e.detail && e.detail.isUndo) return;
 
     // ==========================================
-    // 🔥 NOVO: FORÇA LIMPEZA DO SPAWN AO DIGITAR
+    // FORÇA LIMPEZA DO SPAWN AO DIGITAR
     // ==========================================
     const mapa = input.getAttribute('data-mapa');
     const tipo = input.classList.contains('morteGigante') ? 'G' : 'B';
@@ -1825,13 +1826,11 @@ function refazer() {
     const tr = input.closest('tr');
     const campoTempo = tr.querySelector(tipo === 'G' ? '.tempo-restante-gigante' : '.tempo-restante-bandido');
     
-    // Remove do localStorage
     localStorage.removeItem(spawnKey);
     localStorage.removeItem(`${spawnKey}_time`);
     localStorage.removeItem(`spawn_start_${mapa}-${tipo}`);
     localStorage.removeItem(`foco-azul-${spawnKey}`);
     
-    // Limpa a célula de tempo
     if (campoTempo) {
         delete campoTempo.dataset.spawnado;
         campoTempo.classList.remove('ultimo-spawn', 'mensagem-atualizacao', 'critico', 'muito-critico');
@@ -1840,21 +1839,15 @@ function refazer() {
         }
     }
     
-    // Remove a classe vermelha da linha
     if (tr) {
         tr.classList.remove('linha-vermelha-gigante', 'linha-vermelha-bandido');
     }
     
-    // Para o timer se estiver rodando
     const chaveTimer = `${mapa}-${tipo}`;
     if (timersSpawn && timersSpawn[chaveTimer]) {
         clearInterval(timersSpawn[chaveTimer]);
         delete timersSpawn[chaveTimer];
     }
-    // ==========================================
-
-    // Limpar futuro quando faz nova digitação
-    //limparFuturo();
 
     let cursorPosition = e.target.selectionStart;
     let valorOriginal = e.target.value;
@@ -1886,6 +1879,9 @@ function refazer() {
     }
     
     calcular();
+    
+    // 🔥 ADICIONE ESTA LINHA AQUI - SALVA NO HISTÓRICO
+    salvarNoHistorico(formatado === "" ? "" : formatado);
 });
 
     // Teclas de atalho
@@ -1944,11 +1940,8 @@ function refazer() {
         calcular();
     }
 
-    // 🔥 SALVA APENAS O ESTADO FINAL (quando o campo perde o foco)
     const valorFinal = e.target.value;
-    if (valorFinal && valorFinal !== '--:--:--') {
-        salvarNoHistorico(valorFinal);
-    }
+salvarNoHistorico(valorFinal === "" ? "" : valorFinal);
     //limparFuturo();
 });
 
