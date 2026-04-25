@@ -2411,3 +2411,14 @@ body.light-mode #btn-desfazer:hover, body.light-mode #btn-refazer:hover {
     background-color: #4CAF50;
     color: #121212;
 }
+
+
+/* Forçar remoção de fundo */
+tr.linha-vermelha-gigante,
+tr.linha-vermelha-bandido {
+    background-color: #5a1e1e !important;
+}
+
+tr:not(.linha-vermelha-gigante):not(.linha-vermelha-bandido) {
+    background-color: transparent !important;
+}
