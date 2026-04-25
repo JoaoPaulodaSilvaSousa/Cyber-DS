@@ -2361,7 +2361,7 @@ body.light-mode .spawn-timer {
 
 .tempo-restante-gigante[data-spawnado="true"] .spawn-timer,
 .tempo-restante-bandido[data-spawnado="true"] .spawn-timer {
-    font-size: 18px !important;
+    font-size: 17px !important;
     font-weight: bold !important;
 }
 
