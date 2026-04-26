@@ -332,10 +332,6 @@ tr.alarme-linha {
     animation: none !important;
 }
 
-/* Linha vermelha na metade do Gigante (colunas 2-5) */
-tr.linha-vermelha-gigante {
-    background-color: transparent;
-}
 
 tr.linha-vermelha-gigante td:nth-child(2),
 tr.linha-vermelha-gigante td:nth-child(3),
@@ -397,10 +393,7 @@ tr.linha-vermelha-gigante td:nth-child(2) .btn-morto {
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.15) !important;
 }
 
-/* Linha vermelha na metade do Bandido (colunas 6-9) */
-tr.linha-vermelha-bandido {
-    background-color: transparent;
-}
+
 
 tr.linha-vermelha-bandido td:nth-child(6),
 tr.linha-vermelha-bandido td:nth-child(7),
@@ -2413,12 +2406,48 @@ body.light-mode #btn-desfazer:hover, body.light-mode #btn-refazer:hover {
 }
 
 
-/* Forçar remoção de fundo */
-tr.linha-vermelha-gigante,
-tr.linha-vermelha-bandido {
-    background-color: #5a1e1e !important;
+tr:not(.linha-vermelha-gigante):not(.linha-vermelha-bandido) {
+    background-color: transparent !important;
 }
 
-tr:not(.linha-vermelha-gigante):not(.linha-vermelha-bandido) {
+/* ==========================================
+   LINHA VERMELHA - APENAS NAS CÉLULAS CERTAS
+   ========================================== */
+
+/* Quando SÓ o Gigante spawnou - Afeta apenas colunas 2,3,4,5 */
+tr.linha-vermelha-gigante:not(.linha-vermelha-bandido) td:nth-child(2),
+tr.linha-vermelha-gigante:not(.linha-vermelha-bandido) td:nth-child(3),
+tr.linha-vermelha-gigante:not(.linha-vermelha-bandido) td:nth-child(4),
+tr.linha-vermelha-gigante:not(.linha-vermelha-bandido) td:nth-child(5) {
+    background-color: #8B0000 !important;
+    animation: pulsar-vermelho 2.5s ease-in-out infinite !important;
+}
+
+/* Quando SÓ o Bandido spawnou - Afeta apenas colunas 6,7,8,9 */
+tr.linha-vermelha-bandido:not(.linha-vermelha-gigante) td:nth-child(6),
+tr.linha-vermelha-bandido:not(.linha-vermelha-gigante) td:nth-child(7),
+tr.linha-vermelha-bandido:not(.linha-vermelha-gigante) td:nth-child(8),
+tr.linha-vermelha-bandido:not(.linha-vermelha-gigante) td:nth-child(9) {
+    background-color: #8B0000 !important;
+    animation: pulsar-vermelho 2.5s ease-in-out infinite !important;
+}
+
+/* Quando OS DOIS spawnaram juntos */
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:nth-child(2),
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:nth-child(3),
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:nth-child(4),
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:nth-child(5),
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:nth-child(6),
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:nth-child(7),
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:nth-child(8),
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:nth-child(9) {
+    background-color: #8B0000 !important;
+    animation: pulsar-vermelho 2.5s ease-in-out infinite !important;
+}
+
+/* A coluna do MAPA (1) NUNCA fica vermelha */
+tr.linha-vermelha-gigante td:first-child,
+tr.linha-vermelha-bandido td:first-child,
+tr.linha-vermelha-gigante.linha-vermelha-bandido td:first-child {
     background-color: transparent !important;
 }
