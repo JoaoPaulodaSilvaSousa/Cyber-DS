@@ -2020,78 +2020,149 @@ if (btnLimpar && modalContainer) {
 }
 
 // ==========================================
-// 16. BOTÃO MORTE INSTANTÂNEA (RESETANDO O SPAWN)
-// ==========================================
-
-function marcarMorteInstantanea(tipo, mapa) {
-    // Adicione esta linha no inicio da funcao:
-    onMortoButtonClicked(`${tipo}-${mapa}`);
-    
-    // ... resto do codigo existente ...
-}
-
-// ==========================================
-// BOTÃO MORTE INSTANTÂNEA
+// BOTÃO MORTE INSTANTÂNEA - CORRIGIDO
 // ==========================================
 function marcarMorteInstantanea(botao) {
+    console.log('🔴 Botão Morto clicado!');
+    
     const container = botao.closest('.container-morto');
-    if (!container) return;
+    if (!container) {
+        console.error('❌ Container não encontrado');
+        return;
+    }
     
     const input = container.querySelector('input');
-    if (!input) return;
+    if (!input) {
+        console.error('❌ Input não encontrado');
+        return;
+    }
     
     const tr = botao.closest('tr');
-    if (!input || !tr) return;
+    if (!tr) {
+        console.error('❌ Tr não encontrado');
+        return;
+    }
     
     const infoTempo = obterHoraServerAtual();
     const mapa = input.getAttribute('data-mapa');
     const tipo = input.classList.contains('morteGigante') ? 'G' : 'B';
     const spawnKey = `spawn-${mapa}-${tipo}`;
     const chaveTimer = `${mapa}-${tipo}`;
-
-    // Remove a linha vermelha
-    tr.classList.remove('linha-vermelha-gigante', 'linha-vermelha-bandido');
     
-    // Para o timer se estiver rodando
-    if (timersSpawn[chaveTimer]) {
-        clearInterval(timersSpawn[chaveTimer]);
-        delete timersSpawn[chaveTimer];
-    }
+    console.log(`🎯 Processando morte: Mapa=${mapa}, Tipo=${tipo}, Hora=${infoTempo.textoFormatado}`);
     
-    // Remove todos os dados do spawn
+    // ==========================================
+    // 1. REMOVE TODOS OS ESTADOS DE SPAWN
+    // ==========================================
+    
+    // Remove do localStorage
     localStorage.removeItem(spawnKey);
     localStorage.removeItem(`${spawnKey}_time`);
     localStorage.removeItem(`spawn_start_${chaveTimer}`);
     localStorage.removeItem(`foco-azul-${spawnKey}`);
     
-    // Limpa a célula de tempo restante
+    // Para o timer se estiver rodando
+    if (timersSpawn && timersSpawn[chaveTimer]) {
+        clearInterval(timersSpawn[chaveTimer]);
+        delete timersSpawn[chaveTimer];
+        console.log(`⏹️ Timer parado para ${chaveTimer}`);
+    }
+    
+    // ==========================================
+    // 2. LIMPA A CÉLULA DE TEMPO RESTANTE
+    // ==========================================
+    
     const celulaRegressiva = tr.querySelector(tipo === 'G' ? '.tempo-restante-gigante' : '.tempo-restante-bandido');
     if (celulaRegressiva) {
+        // Remove todas as classes e flags
         delete celulaRegressiva.dataset.spawnado;
         celulaRegressiva.classList.remove('ultimo-spawn', 'mensagem-atualizacao', 'critico', 'muito-critico');
-        celulaRegressiva.innerHTML = '--:--:--';
+        
+        // Limpa o HTML interno (remove qualquer div de spawn)
+        celulaRegressiva.innerHTML = '';
+        
+        // Reseta para o texto padrão
+        celulaRegressiva.innerText = '--:--:--';
+        console.log(`🧹 Célula de tempo restante limpa`);
     }
     
-    // Remove classes de foco
+    // ==========================================
+    // 3. REMOVE CLASSE DE FOCO DO CAMPO LOCAL
+    // ==========================================
+    
     const respLocal = tr.querySelector(tipo === 'G' ? '.respGiganteLocal' : '.respBandidoLocal');
-    if (respLocal) respLocal.classList.remove('alarme-foco');
-    
-    // Remove a linha vermelha se o outro tipo também não estiver spawnado
-    const outroTipo = (tipo === 'G') ? 'B' : 'G';
-    const outroSpawnKey = `spawn-${mapa}-${outroTipo}`;
-    if (localStorage.getItem(outroSpawnKey) !== "true") {
-        tr.classList.remove(tipo === 'G' ? 'linha-vermelha-gigante' : 'linha-vermelha-bandido');
+    if (respLocal) {
+        respLocal.classList.remove('alarme-foco');
     }
     
-    // Atualiza o campo de morte com a hora atual
-    input.value = infoTempo.textoFormatado;
+    // ==========================================
+    // 4. REMOVE A LINHA VERMELHA (se o outro tipo também não estiver spawnado)
+    // ==========================================
+    
+    const outroTipo = tipo === 'G' ? 'B' : 'G';
+    const outroSpawnKey = `spawn-${mapa}-${outroTipo}`;
+    const outroSpawnAtivo = localStorage.getItem(outroSpawnKey) === "true";
+    
+    if (!outroSpawnAtivo) {
+        // Remove a classe de linha vermelha específica deste tipo
+        const classeVermelha = tipo === 'G' ? 'linha-vermelha-gigante' : 'linha-vermelha-bandido';
+        tr.classList.remove(classeVermelha);
+        console.log(`🟢 Linha vermelha removida para ${tipo === 'G' ? 'Gigante' : 'Bandido'}`);
+    } else {
+        console.log(`⚠️ Outro tipo (${outroTipo}) ainda está spawnado, mantendo linha vermelha parcial`);
+    }
+    
+    // ==========================================
+    // 5. ATUALIZA O CAMPO DE MORTE COM A HORA ATUAL
+    // ==========================================
+    
+    // Salva o valor atual no histórico antes de mudar
+    const idCampo = mapa + "-" + tipo;
+    if (historicoCampos && historicoCampos[idCampo]) {
+        const valorAtual = input.value;
+        if (valorAtual && valorAtual !== '--:--:--' && valorAtual !== '') {
+            historicoCampos[idCampo].push(valorAtual);
+            localStorage.setItem(`historico_${idCampo}`, JSON.stringify(historicoCampos[idCampo]));
+        }
+    }
+    
+    // Atualiza o valor do input
+    const novaHora = infoTempo.textoFormatado;
+    input.value = novaHora;
+    console.log(`📝 Novo horário de morte: ${novaHora}`);
+    
+    // Dispara o evento para recalcular tudo
     input.dispatchEvent(new Event('input', { bubbles: true }));
     
-    // Força o recálculo
-    calcular();
+    // ==========================================
+    // 6. FORÇA O RECÁLCULO COMPLETO
+    // ==========================================
+    
+    if (typeof calcular === 'function') {
+        calcular();
+        console.log(`🔄 Recálculo forçado`);
+    }
+    
+    // ==========================================
+    // 7. PEQUENO ATRASO PARA GARANTIR QUE O DOM ATUALIZOU
+    // ==========================================
+    
+    setTimeout(() => {
+        // Verifica se a célula realmente foi limpa
+        if (celulaRegressiva && celulaRegressiva.innerText === '--:--:--') {
+            console.log(`✅ Limpeza confirmada para ${mapa}-${tipo}`);
+        } else if (celulaRegressiva) {
+            console.warn(`⚠️ Limpeza pode não ter funcionado para ${mapa}-${tipo}, forçando novamente...`);
+            celulaRegressiva.innerText = '--:--:--';
+            celulaRegressiva.innerHTML = '';
+            delete celulaRegressiva.dataset.spawnado;
+        }
+    }, 50);
+    
+    console.log(`✅ Processo de morte finalizado para ${mapa}-${tipo}`);
 }
 
-// 🔥 ADICIONE ESTA LINHA AQUI 🔥
+// Garantir que a função está disponível globalmente
 window.marcarMorteInstantanea = marcarMorteInstantanea;
 
 // Adicione event listeners para os botões de morte após o carregamento

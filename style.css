@@ -2451,3 +2451,23 @@ tr.linha-vermelha-bandido td:first-child,
 tr.linha-vermelha-gigante.linha-vermelha-bandido td:first-child {
     background-color: transparent !important;
 }
+
+/* Força a célula de tempo a mostrar o texto corretamente */
+.tempo-restante-gigante, 
+.tempo-restante-bandido {
+    min-width: 100px !important;
+    text-align: center !important;
+}
+
+/* Garante que o texto "SPAWNOU!" seja substituído */
+.tempo-restante-gigante[data-spawnado="true"],
+.tempo-restante-bandido[data-spawnado="true"] {
+    background-color: #FFEBEE !important;
+    color: #D32F2F !important;
+}
+
+/* Quando não spawnado, mostra o tempo normal */
+.tempo-restante-gigante:not([data-spawnado]),
+.tempo-restante-bandido:not([data-spawnado]) {
+    color: white !important;
+}
