@@ -522,6 +522,80 @@ function extrairDados(linha) {
     let linhaLimpa = linha.replace(/\s+/g, ' ').trim();
 
     // ==========================================
+// REGRA PARA TABELA: "18:19 | mm | selvagem" (hora | mapa | tipo)
+// ==========================================
+let tabelaPipeMatch = linhaLimpa.match(/^(\d{1,2}:\d{2})\s*\|\s*(mm|ccv|gv|mw|gf|MM|CCV|GV|MW|GF)\s*\|\s*(selvagem|bandido)/i);
+if (tabelaPipeMatch) {
+    let hora = tabelaPipeMatch[1];
+    let mapaAbrev = tabelaPipeMatch[2].toLowerCase();
+    let tipo = tabelaPipeMatch[3].toLowerCase();
+    
+    // Mapeamento de mapas
+    const mapaAbreviado = { 
+        'mm': 'MM', 'ccv': 'CCV', 'gv': 'GV', 
+        'mw': 'MW', 'gf': 'GF', 'mk': 'MW' 
+    };
+    const mapa = mapaAbreviado[mapaAbrev] || mapaAbrev.toUpperCase();
+    
+    // Adiciona segundos ":00" se não tiver
+    let horaCompleta = `${hora}:00`;
+    horaCompleta = converterHoraPara24h(horaCompleta);
+    
+    console.log(`🎯 REGRA TABELA PIPE: ${horaCompleta} ${mapa} ${tipo}`);
+    
+    if (tipo === 'selvagem') {
+        return {
+            mapa: mapa,
+            horaGigante: horaCompleta,
+            horaBandido: null
+        };
+    } else { // bandido
+        return {
+            mapa: mapa,
+            horaGigante: null,
+            horaBandido: horaCompleta
+        };
+    }
+}
+
+    // ==========================================
+// NOVA REGRA: "15:19 mm selvagem" (hora + mapa + tipo em português)
+// ==========================================
+let horaMapaTipoMatch = linhaLimpa.match(/^(\d{1,2}:\d{2})\s+(mm|ccv|gv|mw|gf|MM|CCV|GV|MW|GF)\s+(selvagem|bandido)/i);
+if (horaMapaTipoMatch) {
+    let hora = horaMapaTipoMatch[1];
+    let mapaAbrev = horaMapaTipoMatch[2].toLowerCase();
+    let tipo = horaMapaTipoMatch[3].toLowerCase();
+    
+    // Mapeamento de mapas
+    const mapaAbreviado = { 
+        'mm': 'MM', 'ccv': 'CCV', 'gv': 'GV', 
+        'mw': 'MW', 'gf': 'GF', 'mk': 'MW' 
+    };
+    const mapa = mapaAbreviado[mapaAbrev] || mapaAbrev.toUpperCase();
+    
+    // Adiciona segundos ":00" se não tiver
+    let horaCompleta = hora.includes(':') ? `${hora}:00` : `${hora}:00:00`;
+    horaCompleta = converterHoraPara24h(horaCompleta);
+    
+    console.log(`🎯 REGRA HORA+MAPA+TIPO: ${horaCompleta} ${mapa} ${tipo}`);
+    
+    if (tipo === 'selvagem') {
+        return {
+            mapa: mapa,
+            horaGigante: horaCompleta,
+            horaBandido: null
+        };
+    } else { // bandido
+        return {
+            mapa: mapa,
+            horaGigante: null,
+            horaBandido: horaCompleta
+        };
+    }
+}
+
+    // ==========================================
 // REGRA PARA: n mm 19:01 (letra + mapa + hora)
 // ==========================================
 let letraMapaHoraMatch = linhaLimpa.match(/^([nb])\s+(mm|ccv|gv|mk|gf)\s+(\d{1,2}:\d{2})(?::(\d{2}))?$/i);
@@ -988,7 +1062,19 @@ function processarTextoColado(texto) {
             console.log('Linha ignorada (cabeçalho)');
             continue;
         }
-        
+
+        // Pular linha de cabeçalho "NOVO HORÁRIO | CATEGORIA | TIPO"
+    if (linhaLimpa.includes('NOVO HORÁRIO') || linhaLimpa.includes('CATEGORIA') || linhaLimpa.includes('TIPO')) {
+        console.log('Cabeçalho ignorado');
+        continue;
+    }
+    
+    // Pular linha do título
+if (linhaLimpa.includes('CRONOGRAMA') || linhaLimpa.includes('ADIANTADO') || linhaLimpa.includes('+3 HORAS')) {
+    console.log('Título ignorado');
+    continue;
+}
+
         console.log('Processando linha junta:', linhaLimpa);
         
         const dados = extrairDados(linhaLimpa);
@@ -1013,11 +1099,19 @@ function processarTextoColado(texto) {
         if (dados.horaBandido) horaBandidoAtual = dados.horaBandido;
         
         if (dados.mapa && (dados.horaGigante || dados.horaBandido)) {
-            const preenchidos = preencherMapaComRetorno(dados.mapa, dados.horaGigante, dados.horaBandido, mapasEncontrados, celulasPreenchidas);
-            if (dados.horaGigante && preenchidos.gigante) encontrados++;
-            if (dados.horaBandido && preenchidos.bandido) encontrados++;
-            continue;
-        }
+    const preenchidos = preencherMapaComRetorno(dados.mapa, dados.horaGigante, dados.horaBandido, mapasEncontrados, celulasPreenchidas);
+    
+    // Conta de forma mais simples
+    if (dados.horaGigante) {
+        encontrados++;
+        console.log(`✅ Contagem +1 para Gigante ${dados.mapa}`);
+    }
+    if (dados.horaBandido) {
+        encontrados++;
+        console.log(`✅ Contagem +1 para Bandido ${dados.mapa}`);
+    }
+    continue;
+}
         
         if (mapaAtual && horaGiganteAtual && horaBandidoAtual) {
             const preenchidos = preencherMapaComRetorno(mapaAtual, horaGiganteAtual, horaBandidoAtual, mapasEncontrados, celulasPreenchidas);
