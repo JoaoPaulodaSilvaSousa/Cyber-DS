@@ -958,7 +958,7 @@ function juntarLinhasTabela(linhas) {
 function processarTextoColado(texto) {
     console.log('🔴🔴🔴 processarTextoColado EXECUTANDO!');
     // 🔥 NOVA LINHA - LIMPA SPAWNS ANTES DE PROCESSAR
-    limparSpawnsAntigos();
+    //limparSpawnsAntigos();
     console.log('Texto recebido (primeiros 100 caracteres):', texto.substring(0, 100));
     
     let linhasOriginais = texto.split('\n');
