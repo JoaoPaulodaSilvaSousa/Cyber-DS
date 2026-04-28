@@ -2471,3 +2471,43 @@ tr.linha-vermelha-gigante.linha-vermelha-bandido td:first-child {
 .tempo-restante-bandido:not([data-spawnado]) {
     color: white !important;
 }
+
+
+/* Força a linha vermelha baseado no data-spawnado da CÉLULA */
+/* MAS preserve o estilo do SPAWNOU e timer */
+
+/* Linha vermelha para GIGANTE - exceto a célula do tempo restante */
+tr:has(.tempo-restante-gigante[data-spawnado="true"]) td:nth-child(2),
+tr:has(.tempo-restante-gigante[data-spawnado="true"]) td:nth-child(3),
+tr:has(.tempo-restante-gigante[data-spawnado="true"]) td:nth-child(4) {
+    background-color: #8B0000 !important;
+    animation: pulsar-vermelho 2.5s ease-in-out infinite !important;
+}
+
+/* Linha vermelha para BANDIDO - exceto a célula do tempo restante */
+tr:has(.tempo-restante-bandido[data-spawnado="true"]) td:nth-child(6),
+tr:has(.tempo-restante-bandido[data-spawnado="true"]) td:nth-child(7),
+tr:has(.tempo-restante-bandido[data-spawnado="true"]) td:nth-child(8) {
+    background-color: #8B0000 !important;
+    animation: pulsar-vermelho 2.5s ease-in-out infinite !important;
+}
+
+/* Mantém o estilo original da célula SPAWNOU (NÃO força fundo vermelho escuro) */
+.tempo-restante-gigante[data-spawnado="true"],
+.tempo-restante-bandido[data-spawnado="true"] {
+    background-color: #FFEBEE !important;
+    color: #D32F2F !important;
+    animation: pulsar-spawn 2.5s ease-in-out infinite !important;
+}
+
+/* Mantém o estilo do timer dentro do SPAWNOU */
+.tempo-restante-gigante[data-spawnado="true"] .spawn-timer,
+.tempo-restante-bandido[data-spawnado="true"] .spawn-timer {
+    font-size: 17px !important;
+    color: #FFD700 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    margin-top: 2px !important;
+    text-align: center !important;
+}
