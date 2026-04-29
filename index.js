@@ -2943,7 +2943,526 @@ calcular = function() {
     setTimeout(forcarLimpezaTotalBackground, 50);
 };
 
+// ==========================================
+// TABELA DE SPAWNS (GIGANTES + BANDIDOS)
+// ==========================================
 
+// Gigantes
+const gigantes = [
+    { nome: 'Coelophysis', imagem: 'imagens/coeloc.jpeg' },
+    { nome: 'Centrosaurus', imagem: 'imagens/centroc.jpeg' },
+    { nome: 'Carnotaurus', imagem: 'imagens/carnoc.jpeg' },
+    { nome: 'Paquicefalossauro', imagem: 'imagens/pachyc.jpeg' },
+    { nome: 'Brachiosaurus', imagem: 'imagens/brachyc.jpeg' },
+    { nome: 'Parasaurolophus', imagem: 'imagens/parac.jpeg' },
+    { nome: 'Ankylosaurus', imagem: 'imagens/ankyc.jpeg' },
+    { nome: 'T-rex', imagem: 'imagens/rexc.jpeg' }
+];
+
+// Bandidos
+const bandidos = [
+    { nome: 'Martelo', imagem: 'imagens/martelos.jpeg' },
+    { nome: 'Colt', imagem: 'imagens/colts.jpeg' },
+    { nome: 'Paci', imagem: 'imagens/pacis.jpeg' },
+    { nome: 'Gat', imagem: 'imagens/gats.jpeg' },
+    { nome: 'Yager', imagem: 'imagens/yagers.jpeg' },
+    { nome: 'Show', imagem: 'imagens/shows.jpeg' }
+];
+
+// ==========================================
+// LOCALSTORAGE
+// ==========================================
+
+function getChaveGigante(giganteIndex) {
+    return `spawn_gigante_${giganteIndex}`;
+}
+
+function getChaveBandido(giganteIndex, bandidoIndex) {
+    return `spawn_bandido_${giganteIndex}_${bandidoIndex}`;
+}
+
+function carregarGigante(giganteIndex) {
+    const chave = getChaveGigante(giganteIndex);
+    const salvo = localStorage.getItem(chave);
+    return salvo === null ? 0 : Number(salvo);
+}
+
+function salvarGigante(giganteIndex, valor) {
+    const chave = getChaveGigante(giganteIndex);
+    if (valor <= 0) {
+        localStorage.removeItem(chave);
+    } else {
+        localStorage.setItem(chave, valor.toString());
+    }
+}
+
+function carregarBandido(giganteIndex, bandidoIndex) {
+    const chave = getChaveBandido(giganteIndex, bandidoIndex);
+    const salvo = localStorage.getItem(chave);
+    return salvo === null ? 0 : Number(salvo);
+}
+
+function salvarBandido(giganteIndex, bandidoIndex, valor) {
+    const chave = getChaveBandido(giganteIndex, bandidoIndex);
+    if (valor <= 0) {
+        localStorage.removeItem(chave);
+    } else {
+        localStorage.setItem(chave, valor.toString());
+    }
+}
+
+function limparTodos() {
+    if (confirm('⚠️ TEM CERTEZA? Isso vai apagar TODOS os contadores!')) {
+        for (let i = 0; i < gigantes.length; i++) {
+            localStorage.removeItem(getChaveGigante(i));
+            for (let j = 0; j < bandidos.length; j++) {
+                localStorage.removeItem(getChaveBandido(i, j));
+            }
+        }
+        alert('✅ Todos os dados foram limpos!');
+        location.reload();
+    }
+}
+
+// ==========================================
+// BOTÃO FLUTUANTE (MAIOR)
+// ==========================================
+
+function criarBotaoFlutuante() {
+    const botao = document.createElement('button');
+    botao.innerHTML = '📋';
+    botao.style.position = 'fixed';
+    botao.style.right = '25px';
+    botao.style.top = '50%';
+    botao.style.transform = 'translateY(-50%)';
+    botao.style.width = '75px';
+    botao.style.height = '75px';
+    botao.style.borderRadius = '50%';
+    botao.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
+    botao.style.border = 'none';
+    botao.style.fontSize = '38px';
+    botao.style.cursor = 'pointer';
+    botao.style.zIndex = '999';
+    botao.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+    botao.style.transition = 'all 0.3s ease';
+    
+    botao.onmouseenter = () => {
+        botao.style.transform = 'translateY(-50%) scale(1.1)';
+        botao.style.boxShadow = '0 6px 20px rgba(255, 152, 0, 0.6)';
+    };
+    botao.onmouseleave = () => {
+        botao.style.transform = 'translateY(-50%) scale(1)';
+        botao.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+    };
+    
+    botao.onclick = abrirModal;
+    document.body.appendChild(botao);
+}
+
+// ==========================================
+// MODAL COM DUAS TABELAS
+// ==========================================
+
+function abrirModal() {
+    const modalAntigo = document.getElementById('modal-spawns');
+    if (modalAntigo) modalAntigo.remove();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'modal-spawns';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.92)';
+    overlay.style.backdropFilter = 'blur(5px)';
+    overlay.style.zIndex = '10000';
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    
+    const modal = document.createElement('div');
+    modal.style.backgroundColor = '#1a1a2e';
+    modal.style.borderRadius = '24px';
+    modal.style.padding = '25px 30px';
+    modal.style.border = '3px solid #FF9800';
+    modal.style.width = '95%';
+    modal.style.maxWidth = '1600px';
+    modal.style.height = '92vh';
+    modal.style.overflow = 'auto';
+    modal.style.boxShadow = '0 25px 50px rgba(0,0,0,0.5)';
+    
+    // TÍTULO PRINCIPAL (MAIOR)
+    const titulo = document.createElement('h2');
+    titulo.innerHTML = '🦖 CONTROLE DE SPAWNS 🗡️';
+    titulo.style.textAlign = 'center';
+    titulo.style.color = '#FF9800';
+    titulo.style.fontSize = '42px';
+    titulo.style.margin = '0 0 15px 0';
+    titulo.style.fontWeight = 'bold';
+    modal.appendChild(titulo);
+    
+    // INSTRUÇÕES (MAIOR)
+    const instrucoes = document.createElement('div');
+    instrucoes.innerHTML = '💡 Clique = +1 | Clique com BOTÃO DIREITO = -1 | Botão vermelho = LIMPAR TUDO';
+    instrucoes.style.textAlign = 'center';
+    instrucoes.style.color = '#ccc';
+    instrucoes.style.fontSize = '18px';
+    instrucoes.style.marginBottom = '25px';
+    instrucoes.style.padding = '12px';
+    instrucoes.style.backgroundColor = '#16213e';
+    instrucoes.style.borderRadius = '12px';
+    modal.appendChild(instrucoes);
+    
+    // ==========================================
+    // TABELA 1: GIGANTES
+    // ==========================================
+    
+    const tituloGigantes = document.createElement('h3');
+    tituloGigantes.innerHTML = '🦕 GIGANTES';
+    tituloGigantes.style.color = '#FF9800';
+    tituloGigantes.style.fontSize = '34px';
+    tituloGigantes.style.margin = '30px 0 20px 0';
+    tituloGigantes.style.textAlign = 'center';
+    modal.appendChild(tituloGigantes);
+    
+    const tabelaGigantes = document.createElement('table');
+    tabelaGigantes.style.width = 'auto';
+    tabelaGigantes.style.minWidth = '600px';
+    tabelaGigantes.style.margin = '0 auto';
+    tabelaGigantes.style.borderCollapse = 'collapse';
+    tabelaGigantes.style.backgroundColor = '#0f0f1a';
+    tabelaGigantes.style.borderRadius = '16px';
+    tabelaGigantes.style.overflow = 'hidden';
+    tabelaGigantes.style.marginBottom = '40px';
+    
+    const theadG = document.createElement('thead');
+    const linhaHeadG = document.createElement('tr');
+    
+    const thNomeG = document.createElement('th');
+    thNomeG.textContent = 'GIGANTE';
+    thNomeG.style.padding = '20px 30px';
+    thNomeG.style.backgroundColor = '#FF9800';
+    thNomeG.style.color = '#1a1a2e';
+    thNomeG.style.fontSize = '24px';
+    thNomeG.style.fontWeight = 'bold';
+    thNomeG.style.textAlign = 'left';
+    linhaHeadG.appendChild(thNomeG);
+    
+    const thContG = document.createElement('th');
+    thContG.textContent = 'SPAWNS';
+    thContG.style.padding = '20px 30px';
+    thContG.style.backgroundColor = '#FF9800';
+    thContG.style.color = '#1a1a2e';
+    thContG.style.fontSize = '24px';
+    thContG.style.fontWeight = 'bold';
+    thContG.style.textAlign = 'center';
+    linhaHeadG.appendChild(thContG);
+    
+    theadG.appendChild(linhaHeadG);
+    tabelaGigantes.appendChild(theadG);
+    
+    const tbodyG = document.createElement('tbody');
+    
+    for (let i = 0; i < gigantes.length; i++) {
+        const linha = document.createElement('tr');
+        
+        const celulaDino = document.createElement('td');
+        celulaDino.style.display = 'flex';
+        celulaDino.style.alignItems = 'center';
+        celulaDino.style.gap = '25px';
+        celulaDino.style.padding = '18px 25px';
+        celulaDino.style.backgroundColor = '#16213e';
+        celulaDino.style.border = '1px solid #FF9800';
+        
+        const imgDino = document.createElement('img');
+        imgDino.src = gigantes[i].imagem;
+        imgDino.style.width = '90px';
+        imgDino.style.height = '90px';
+        imgDino.style.objectFit = 'cover';
+        imgDino.style.borderRadius = '16px';
+        imgDino.style.border = '2px solid #FF9800';
+        
+        const nomeDino = document.createElement('span');
+        nomeDino.textContent = gigantes[i].nome;
+        nomeDino.style.fontSize = '22px';
+        nomeDino.style.fontWeight = 'bold';
+        nomeDino.style.color = '#FF9800';
+        
+        celulaDino.appendChild(imgDino);
+        celulaDino.appendChild(nomeDino);
+        linha.appendChild(celulaDino);
+        
+        const celulaCont = document.createElement('td');
+        celulaCont.style.padding = '18px 25px';
+        celulaCont.style.textAlign = 'center';
+        celulaCont.style.backgroundColor = '#16213e';
+        celulaCont.style.border = '1px solid #FF9800';
+        
+        const contador = document.createElement('div');
+        const valorInicial = carregarGigante(i);
+        
+        contador.textContent = valorInicial;
+        contador.style.width = '110px';
+        contador.style.height = '110px';
+        contador.style.display = 'flex';
+        contador.style.alignItems = 'center';
+        contador.style.justifyContent = 'center';
+        contador.style.backgroundColor = valorInicial > 0 ? '#4CAF50' : '#2a2a3a';
+        contador.style.borderRadius = '20px';
+        contador.style.fontSize = '42px';
+        contador.style.fontWeight = 'bold';
+        contador.style.color = 'white';
+        contador.style.cursor = 'pointer';
+        contador.style.border = valorInicial > 0 ? '3px solid #FF9800' : '2px solid #555';
+        contador.style.margin = '0 auto';
+        
+        contador.dataset.index = i;
+        
+        contador.onclick = function() {
+            const idx = Number(this.dataset.index);
+            let valor = carregarGigante(idx);
+            valor++;
+            salvarGigante(idx, valor);
+            this.textContent = valor;
+            this.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
+            this.style.borderColor = valor > 0 ? '#FF9800' : '#555';
+        };
+        
+        contador.oncontextmenu = function(e) {
+            e.preventDefault();
+            const idx = Number(this.dataset.index);
+            let valor = carregarGigante(idx);
+            if (valor > 0) {
+                valor--;
+                salvarGigante(idx, valor);
+                this.textContent = valor;
+                this.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
+                this.style.borderColor = valor > 0 ? '#FF9800' : '#555';
+            }
+            return false;
+        };
+        
+        celulaCont.appendChild(contador);
+        linha.appendChild(celulaCont);
+        tbodyG.appendChild(linha);
+    }
+    tabelaGigantes.appendChild(tbodyG);
+    modal.appendChild(tabelaGigantes);
+    
+    // ==========================================
+    // TABELA 2: BANDIDOS
+    // ==========================================
+    
+    const tituloBandidos = document.createElement('h3');
+    tituloBandidos.innerHTML = '🗡️ BANDIDOS 🗡️';
+    tituloBandidos.style.color = '#FF9800';
+    tituloBandidos.style.fontSize = '34px';
+    tituloBandidos.style.margin = '30px 0 20px 0';
+    tituloBandidos.style.textAlign = 'center';
+    modal.appendChild(tituloBandidos);
+    
+    const tabelaBandidos = document.createElement('table');
+    tabelaBandidos.style.width = '100%';
+    tabelaBandidos.style.borderCollapse = 'collapse';
+    tabelaBandidos.style.backgroundColor = '#0f0f1a';
+    tabelaBandidos.style.borderRadius = '16px';
+    tabelaBandidos.style.overflow = 'hidden';
+    
+    const theadB = document.createElement('thead');
+    const linhaHeadB = document.createElement('tr');
+    
+    const thNomeB = document.createElement('th');
+    thNomeB.textContent = 'GIGANTE';
+    thNomeB.style.padding = '20px';
+    thNomeB.style.backgroundColor = '#FF9800';
+    thNomeB.style.color = '#1a1a2e';
+    thNomeB.style.fontSize = '22px';
+    thNomeB.style.fontWeight = 'bold';
+    thNomeB.style.width = '300px';
+    thNomeB.style.textAlign = 'left';
+    linhaHeadB.appendChild(thNomeB);
+    
+    for (let i = 0; i < bandidos.length; i++) {
+        const th = document.createElement('th');
+        th.style.padding = '18px 12px';
+        th.style.backgroundColor = '#FF9800';
+        th.style.textAlign = 'center';
+        th.style.width = '140px';
+        
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+        container.style.alignItems = 'center';
+        container.style.gap = '12px';
+        
+        const imgArma = document.createElement('img');
+        imgArma.src = bandidos[i].imagem;
+        imgArma.style.width = '65px';
+        imgArma.style.height = '65px';
+        imgArma.style.objectFit = 'cover';
+        imgArma.style.borderRadius = '14px';
+        imgArma.style.border = '2px solid #fff';
+        
+        const nomeArma = document.createElement('span');
+        nomeArma.textContent = bandidos[i].nome;
+        nomeArma.style.fontSize = '16px';
+        nomeArma.style.fontWeight = 'bold';
+        nomeArma.style.color = '#1a1a2e';
+        
+        container.appendChild(imgArma);
+        container.appendChild(nomeArma);
+        th.appendChild(container);
+        linhaHeadB.appendChild(th);
+    }
+    theadB.appendChild(linhaHeadB);
+    tabelaBandidos.appendChild(theadB);
+    
+    const tbodyB = document.createElement('tbody');
+    
+    for (let i = 0; i < gigantes.length; i++) {
+        const linha = document.createElement('tr');
+        
+        const celulaDino = document.createElement('td');
+        celulaDino.style.display = 'flex';
+        celulaDino.style.alignItems = 'center';
+        celulaDino.style.gap = '20px';
+        celulaDino.style.padding = '16px 20px';
+        celulaDino.style.backgroundColor = '#16213e';
+        celulaDino.style.border = '1px solid #FF9800';
+        
+        const imgDino = document.createElement('img');
+        imgDino.src = gigantes[i].imagem;
+        imgDino.style.width = '70px';
+        imgDino.style.height = '70px';
+        imgDino.style.objectFit = 'cover';
+        imgDino.style.borderRadius = '14px';
+        imgDino.style.border = '2px solid #FF9800';
+        
+        const nomeDino = document.createElement('span');
+        nomeDino.textContent = gigantes[i].nome;
+        nomeDino.style.fontSize = '18px';
+        nomeDino.style.fontWeight = 'bold';
+        nomeDino.style.color = '#FF9800';
+        
+        celulaDino.appendChild(imgDino);
+        celulaDino.appendChild(nomeDino);
+        linha.appendChild(celulaDino);
+        
+        for (let j = 0; j < bandidos.length; j++) {
+            const celulaContador = document.createElement('td');
+            celulaContador.style.padding = '14px';
+            celulaContador.style.border = '1px solid #FF9800';
+            celulaContador.style.textAlign = 'center';
+            celulaContador.style.backgroundColor = '#16213e';
+            
+            const contador = document.createElement('div');
+            const valorInicial = carregarBandido(i, j);
+            
+            contador.textContent = valorInicial;
+            contador.style.width = '80px';
+            contador.style.height = '80px';
+            contador.style.display = 'flex';
+            contador.style.alignItems = 'center';
+            contador.style.justifyContent = 'center';
+            contador.style.backgroundColor = valorInicial > 0 ? '#4CAF50' : '#2a2a3a';
+            contador.style.borderRadius = '18px';
+            contador.style.fontSize = '32px';
+            contador.style.fontWeight = 'bold';
+            contador.style.color = 'white';
+            contador.style.cursor = 'pointer';
+            contador.style.border = valorInicial > 0 ? '3px solid #FF9800' : '2px solid #555';
+            contador.style.margin = '0 auto';
+            
+            contador.dataset.gigante = i;
+            contador.dataset.bandido = j;
+            
+            contador.onclick = function() {
+                const g = Number(this.dataset.gigante);
+                const b = Number(this.dataset.bandido);
+                let valor = carregarBandido(g, b);
+                valor++;
+                salvarBandido(g, b, valor);
+                this.textContent = valor;
+                this.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
+                this.style.borderColor = valor > 0 ? '#FF9800' : '#555';
+            };
+            
+            contador.oncontextmenu = function(e) {
+                e.preventDefault();
+                const g = Number(this.dataset.gigante);
+                const b = Number(this.dataset.bandido);
+                let valor = carregarBandido(g, b);
+                if (valor > 0) {
+                    valor--;
+                    salvarBandido(g, b, valor);
+                    this.textContent = valor;
+                    this.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
+                    this.style.borderColor = valor > 0 ? '#FF9800' : '#555';
+                }
+                return false;
+            };
+            
+            celulaContador.appendChild(contador);
+            linha.appendChild(celulaContador);
+        }
+        
+        tbodyB.appendChild(linha);
+    }
+    tabelaBandidos.appendChild(tbodyB);
+    modal.appendChild(tabelaBandidos);
+    
+    // BOTÕES DO RODAPÉ (MAIORES)
+    const containerBotoes = document.createElement('div');
+    containerBotoes.style.display = 'flex';
+    containerBotoes.style.gap = '20px';
+    containerBotoes.style.marginTop = '40px';
+    
+    const btnLimpar = document.createElement('button');
+    btnLimpar.textContent = '🗑️ LIMPAR TUDO';
+    btnLimpar.style.flex = '1';
+    btnLimpar.style.padding = '18px';
+    btnLimpar.style.borderRadius = '40px';
+    btnLimpar.style.backgroundColor = '#ff5252';
+    btnLimpar.style.color = 'white';
+    btnLimpar.style.border = 'none';
+    btnLimpar.style.fontSize = '20px';
+    btnLimpar.style.fontWeight = 'bold';
+    btnLimpar.style.cursor = 'pointer';
+    btnLimpar.style.transition = 'all 0.2s ease';
+    btnLimpar.onmouseenter = () => btnLimpar.style.opacity = '0.9';
+    btnLimpar.onmouseleave = () => btnLimpar.style.opacity = '1';
+    btnLimpar.onclick = limparTodos;
+    containerBotoes.appendChild(btnLimpar);
+    
+    const btnFechar = document.createElement('button');
+    btnFechar.textContent = '✖️ FECHAR';
+    btnFechar.style.flex = '1';
+    btnFechar.style.padding = '18px';
+    btnFechar.style.borderRadius = '40px';
+    btnFechar.style.backgroundColor = '#555';
+    btnFechar.style.color = 'white';
+    btnFechar.style.border = 'none';
+    btnFechar.style.fontSize = '20px';
+    btnFechar.style.fontWeight = 'bold';
+    btnFechar.style.cursor = 'pointer';
+    btnFechar.style.transition = 'all 0.2s ease';
+    btnFechar.onmouseenter = () => btnFechar.style.backgroundColor = '#777';
+    btnFechar.onmouseleave = () => btnFechar.style.backgroundColor = '#555';
+    btnFechar.onclick = () => overlay.remove();
+    containerBotoes.appendChild(btnFechar);
+    
+    modal.appendChild(containerBotoes);
+    overlay.appendChild(modal);
+    
+    overlay.onclick = (e) => {
+        if (e.target === overlay) overlay.remove();
+    };
+    
+    document.body.appendChild(overlay);
+}
+
+window.addEventListener('load', criarBotaoFlutuante);
 // ==========================================
 // 20. INIT
 // ==========================================
