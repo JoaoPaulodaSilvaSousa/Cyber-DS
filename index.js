@@ -2982,6 +2982,23 @@ function criarBotaoFlutuante() {
 // MODAL
 // ==========================================
 
+
+// Adicione isso no início da função abrirModal()
+const style = document.createElement('style');
+style.textContent = `
+    .th-gigante-grande {
+        font-size: 60px !important;
+        padding: 20px !important;
+        height: 80px !important;
+        background-color: #FF9800 !important;
+        color: #1a1a2e !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+`;
+document.head.appendChild(style);
+
+
 function abrirModal() {
     const modalAntigo = document.getElementById('modal-spawns');
     if (modalAntigo) modalAntigo.remove();
@@ -3187,14 +3204,10 @@ function abrirModal() {
     const theadB = document.createElement('thead');
     const trB = document.createElement('tr');
     
-    const thGigante = document.createElement('th');
-    thGigante.textContent = 'GIGANTE';
-    thGigante.style.padding = '12px';
-    thGigante.style.backgroundColor = '#FF9800';
-    thGigante.style.color = '#1a1a2e';
-    thGigante.style.fontSize = '50px !important';
-    thGigante.style.textAlign = 'center';
-    trB.appendChild(thGigante);
+ const thGigante = document.createElement('th');
+thGigante.textContent = 'BANDIDO';
+thGigante.setAttribute('style', 'font-size: 60px !important; padding: 20px !important; background-color:color: #1a1a2e !important; text-align: center !important;');
+trB.appendChild(thGigante);
     
     for (let i = 0; i < bandidos.length; i++) {
         const th = document.createElement('th');
