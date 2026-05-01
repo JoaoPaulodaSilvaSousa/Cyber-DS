@@ -2954,12 +2954,12 @@ function criarBotaoFlutuante() {
     botao.style.right = '20px';
     botao.style.top = '50%';
     botao.style.transform = 'translateY(-50%)';
-    botao.style.width = '65px';
-    botao.style.height = '65px';
+    botao.style.width = '70px';
+    botao.style.height = '70px';
     botao.style.borderRadius = '50%';
     botao.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
     botao.style.border = 'none';
-    botao.style.fontSize = '32px';
+    botao.style.fontSize = '35px';
     botao.style.cursor = 'pointer';
     botao.style.zIndex = '999';
     botao.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
@@ -3001,43 +3001,112 @@ function abrirModal() {
     overlay.style.alignItems = 'center';
     
     const modal = document.createElement('div');
+    modal.id = 'modal-conteudo';
     modal.style.backgroundColor = '#1a1a2e';
     modal.style.borderRadius = '20px';
-    modal.style.padding = '20px 30px';
+    modal.style.padding = '20px 25px';
     modal.style.border = '3px solid #FF9800';
     modal.style.width = '95%';
     modal.style.maxWidth = '1200px';
     modal.style.maxHeight = '90vh';
     modal.style.overflow = 'auto';
     modal.style.boxShadow = '0 25px 50px rgba(0,0,0,0.5)';
+    modal.style.transition = 'all 0.2s ease';
+    
+    // BARRA DE ZOOM
+    const barraZoom = document.createElement('div');
+    barraZoom.style.display = 'flex';
+    barraZoom.style.justifyContent = 'flex-end';
+    barraZoom.style.alignItems = 'center';
+    barraZoom.style.gap = '10px';
+    barraZoom.style.marginBottom = '15px';
+    barraZoom.style.padding = '5px';
+    
+    const btnZoomOut = document.createElement('button');
+    btnZoomOut.innerHTML = '🔍−';
+    btnZoomOut.style.width = '40px';
+    btnZoomOut.style.height = '40px';
+    btnZoomOut.style.borderRadius = '50%';
+    btnZoomOut.style.backgroundColor = '#FF9800';
+    btnZoomOut.style.border = 'none';
+    btnZoomOut.style.fontSize = '20px';
+    btnZoomOut.style.fontWeight = 'bold';
+    btnZoomOut.style.cursor = 'pointer';
+    btnZoomOut.style.color = '#1a1a2e';
+    
+    const zoomText = document.createElement('span');
+    zoomText.textContent = '100%';
+    zoomText.style.color = '#FF9800';
+    zoomText.style.fontSize = '16px';
+    zoomText.style.fontWeight = 'bold';
+    zoomText.style.backgroundColor = '#16213e';
+    zoomText.style.padding = '5px 12px';
+    zoomText.style.borderRadius = '20px';
+    
+    const btnZoomIn = document.createElement('button');
+    btnZoomIn.innerHTML = '🔍+';
+    btnZoomIn.style.width = '40px';
+    btnZoomIn.style.height = '40px';
+    btnZoomIn.style.borderRadius = '50%';
+    btnZoomIn.style.backgroundColor = '#FF9800';
+    btnZoomIn.style.border = 'none';
+    btnZoomIn.style.fontSize = '20px';
+    btnZoomIn.style.fontWeight = 'bold';
+    btnZoomIn.style.cursor = 'pointer';
+    btnZoomIn.style.color = '#1a1a2e';
+    
+    let zoomLevel = 1;
+    
+    btnZoomIn.onclick = () => {
+        if (zoomLevel < 1.5) {
+            zoomLevel += 0.1;
+            modal.style.transform = `scale(${zoomLevel})`;
+            modal.style.transformOrigin = 'center center';
+            zoomText.textContent = `${Math.round(zoomLevel * 100)}%`;
+        }
+    };
+    
+    btnZoomOut.onclick = () => {
+        if (zoomLevel > 0.6) {
+            zoomLevel -= 0.1;
+            modal.style.transform = `scale(${zoomLevel})`;
+            modal.style.transformOrigin = 'center center';
+            zoomText.textContent = `${Math.round(zoomLevel * 100)}%`;
+        }
+    };
+    
+    barraZoom.appendChild(btnZoomOut);
+    barraZoom.appendChild(zoomText);
+    barraZoom.appendChild(btnZoomIn);
+    modal.appendChild(barraZoom);
     
     const titulo = document.createElement('h1');
     titulo.innerHTML = '🦖 CONTROLE DE SPAWNS 🗡️';
     titulo.style.textAlign = 'center';
     titulo.style.color = '#FF9800';
     titulo.style.fontSize = '32px';
-    titulo.style.margin = '0 0 15px 0';
+    titulo.style.margin = '0 0 10px 0';
     modal.appendChild(titulo);
     
     const instrucoes = document.createElement('div');
-    instrucoes.innerHTML = '💡 Clique = +1 | Clique com BOTÃO DIREITO = -1 | Botão vermelho = LIMPAR TUDO';
+    instrucoes.innerHTML = '💡 Clique = +1 | Clique com BOTÃO DIREITO = -1 | Botão vermelho = LIMPAR TUDO | 🔍 Use os botões de zoom para aumentar/diminuir';
     instrucoes.style.textAlign = 'center';
-    instrucoes.style.color = '#aaa';
+    instrucoes.style.color = '#ccc';
     instrucoes.style.fontSize = '14px';
-    instrucoes.style.marginBottom = '25px';
+    instrucoes.style.marginBottom = '20px';
     instrucoes.style.padding = '8px';
     instrucoes.style.backgroundColor = '#16213e';
     instrucoes.style.borderRadius = '10px';
     modal.appendChild(instrucoes);
     
     // ==========================================
-    // GIGANTES (COM SCROLL)
+    // GIGANTES
     // ==========================================
     
     const tituloGigantes = document.createElement('h2');
     tituloGigantes.innerHTML = '🦕 GIGANTES';
     tituloGigantes.style.color = '#FF9800';
-    tituloGigantes.style.fontSize = '28px';
+    tituloGigantes.style.fontSize = '26px';
     tituloGigantes.style.margin = '20px 0 15px 0';
     tituloGigantes.style.textAlign = 'center';
     modal.appendChild(tituloGigantes);
@@ -3051,32 +3120,31 @@ function abrirModal() {
     tabelaGigantes.style.borderCollapse = 'collapse';
     tabelaGigantes.style.backgroundColor = '#0f0f1a';
     tabelaGigantes.style.borderRadius = '12px';
-    tabelaGigantes.style.minWidth = '600px';
+    tabelaGigantes.style.minWidth = '550px';
     
     const theadG = document.createElement('thead');
     const trG = document.createElement('tr');
     
     const th1 = document.createElement('th');
     th1.textContent = 'GIGANTE';
-    th1.style.padding = '15px';
+    th1.style.padding = '12px';
     th1.style.backgroundColor = '#FF9800';
     th1.style.color = '#1a1a2e';
-    th1.style.fontSize = '22px';
+    th1.style.fontSize = '20px';
     th1.style.textAlign = 'center';
     th1.style.position = 'sticky';
     th1.style.left = '0';
-    th1.style.backgroundColor = '#FF9800';
     th1.style.zIndex = '2';
     trG.appendChild(th1);
     
     const th2 = document.createElement('th');
     th2.textContent = 'SPAWNS';
-    th2.style.padding = '15px';
+    th2.style.padding = '12px';
     th2.style.backgroundColor = '#FF9800';
     th2.style.color = '#1a1a2e';
-    th2.style.fontSize = '22px';
+    th2.style.fontSize = '20px';
     th2.style.textAlign = 'center';
-    th2.style.width = '140px';
+    th2.style.width = '120px';
     trG.appendChild(th2);
     
     theadG.appendChild(trG);
@@ -3088,7 +3156,7 @@ function abrirModal() {
         const linha = document.createElement('tr');
         
         const celulaNome = document.createElement('td');
-        celulaNome.style.padding = '15px 20px';
+        celulaNome.style.padding = '12px 15px';
         celulaNome.style.backgroundColor = '#16213e';
         celulaNome.style.border = '1px solid #FF9800';
         celulaNome.style.textAlign = 'center';
@@ -3097,18 +3165,18 @@ function abrirModal() {
         celulaNome.style.left = '0';
         celulaNome.style.backgroundColor = '#16213e';
         celulaNome.style.zIndex = '1';
-        celulaNome.style.minWidth = '280px';
+        celulaNome.style.minWidth = '250px';
         
         const container = document.createElement('div');
         container.style.display = 'flex';
         container.style.alignItems = 'center';
         container.style.justifyContent = 'flex-start';
-        container.style.gap = '15px';
+        container.style.gap = '12px';
         
         const img = document.createElement('img');
         img.src = gigantes[i].imagem;
-        img.style.width = '60px';
-        img.style.height = '60px';
+        img.style.width = '50px';
+        img.style.height = '50px';
         img.style.objectFit = 'cover';
         img.style.borderRadius = '12px';
         img.style.border = '2px solid #FF9800';
@@ -3125,7 +3193,7 @@ function abrirModal() {
         linha.appendChild(celulaNome);
         
         const celulaCont = document.createElement('td');
-        celulaCont.style.padding = '15px';
+        celulaCont.style.padding = '10px';
         celulaCont.style.textAlign = 'center';
         celulaCont.style.backgroundColor = '#16213e';
         celulaCont.style.border = '1px solid #FF9800';
@@ -3133,18 +3201,18 @@ function abrirModal() {
         const contador = document.createElement('div');
         const valor = carregarGigante(i);
         contador.textContent = valor;
-        contador.style.width = '80px';
-        contador.style.height = '80px';
+        contador.style.width = '70px';
+        contador.style.height = '70px';
         contador.style.display = 'flex';
         contador.style.alignItems = 'center';
         contador.style.justifyContent = 'center';
         contador.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
-        contador.style.borderRadius = '16px';
-        contador.style.fontSize = '32px';
+        contador.style.borderRadius = '14px';
+        contador.style.fontSize = '28px';
         contador.style.fontWeight = 'bold';
         contador.style.color = 'white';
         contador.style.cursor = 'pointer';
-        contador.style.border = valor > 0 ? '3px solid #FF9800' : '2px solid #555';
+        contador.style.border = valor > 0 ? '2px solid #FF9800' : '1px solid #555';
         contador.style.margin = '0 auto';
         
         contador.dataset.index = i;
@@ -3182,13 +3250,13 @@ function abrirModal() {
     modal.appendChild(containerGigantes);
     
     // ==========================================
-    // BANDIDOS (COM SCROLL)
+    // BANDIDOS
     // ==========================================
     
     const tituloBandidos = document.createElement('h2');
     tituloBandidos.innerHTML = '🗡️ BANDIDOS 🗡️';
     tituloBandidos.style.color = '#FF9800';
-    tituloBandidos.style.fontSize = '28px';
+    tituloBandidos.style.fontSize = '26px';
     tituloBandidos.style.margin = '20px 0 15px 0';
     tituloBandidos.style.textAlign = 'center';
     modal.appendChild(tituloBandidos);
@@ -3201,38 +3269,37 @@ function abrirModal() {
     tabelaBandidos.style.borderCollapse = 'collapse';
     tabelaBandidos.style.backgroundColor = '#0f0f1a';
     tabelaBandidos.style.borderRadius = '12px';
-    tabelaBandidos.style.minWidth = '800px';
+    tabelaBandidos.style.minWidth = '700px';
     
     const theadB = document.createElement('thead');
     const trB = document.createElement('tr');
     
     const thGigante = document.createElement('th');
     thGigante.textContent = 'GIGANTE';
-    thGigante.style.padding = '15px';
+    thGigante.style.padding = '12px';
     thGigante.style.backgroundColor = '#FF9800';
     thGigante.style.color = '#1a1a2e';
-    thGigante.style.fontSize = '20px';
+    thGigante.style.fontSize = '18px';
     thGigante.style.textAlign = 'center';
     thGigante.style.position = 'sticky';
     thGigante.style.left = '0';
-    thGigante.style.backgroundColor = '#FF9800';
     thGigante.style.zIndex = '2';
-    thGigante.style.minWidth = '250px';
+    thGigante.style.minWidth = '220px';
     trB.appendChild(thGigante);
     
     for (let i = 0; i < bandidos.length; i++) {
         const th = document.createElement('th');
-        th.style.padding = '12px 5px';
+        th.style.padding = '10px 5px';
         th.style.backgroundColor = '#FF9800';
         th.style.textAlign = 'center';
-        th.style.width = '100px';
+        th.style.width = '90px';
         
         const img = document.createElement('img');
         img.src = bandidos[i].imagem;
-        img.style.width = '50px';
-        img.style.height = '50px';
+        img.style.width = '45px';
+        img.style.height = '45px';
         img.style.objectFit = 'cover';
-        img.style.borderRadius = '12px';
+        img.style.borderRadius = '10px';
         img.style.border = '2px solid #FF9800';
         img.style.display = 'block';
         img.style.margin = '0 auto 8px auto';
@@ -3255,7 +3322,7 @@ function abrirModal() {
         const linha = document.createElement('tr');
         
         const celulaNome = document.createElement('td');
-        celulaNome.style.padding = '12px 15px';
+        celulaNome.style.padding = '10px 12px';
         celulaNome.style.backgroundColor = '#16213e';
         celulaNome.style.border = '1px solid #FF9800';
         celulaNome.style.textAlign = 'center';
@@ -3264,18 +3331,18 @@ function abrirModal() {
         celulaNome.style.left = '0';
         celulaNome.style.backgroundColor = '#16213e';
         celulaNome.style.zIndex = '1';
-        celulaNome.style.minWidth = '250px';
+        celulaNome.style.minWidth = '220px';
         
         const container = document.createElement('div');
         container.style.display = 'flex';
         container.style.alignItems = 'center';
         container.style.justifyContent = 'flex-start';
-        container.style.gap = '12px';
+        container.style.gap = '10px';
         
         const img = document.createElement('img');
         img.src = gigantes[i].imagem;
-        img.style.width = '45px';
-        img.style.height = '45px';
+        img.style.width = '40px';
+        img.style.height = '40px';
         img.style.objectFit = 'cover';
         img.style.borderRadius = '10px';
         img.style.border = '2px solid #FF9800';
@@ -3354,16 +3421,17 @@ function abrirModal() {
     containerBandidos.appendChild(tabelaBandidos);
     modal.appendChild(containerBandidos);
     
-    const botoes = document.createElement('div');
-    botoes.style.display = 'flex';
-    botoes.style.gap = '15px';
-    botoes.style.marginTop = '30px';
-    botoes.style.marginBottom = '10px';
+    // BOTÕES
+    const containerBotoes = document.createElement('div');
+    containerBotoes.style.display = 'flex';
+    containerBotoes.style.gap = '15px';
+    containerBotoes.style.marginTop = '30px';
+    containerBotoes.style.marginBottom = '10px';
     
     const btnLimpar = document.createElement('button');
     btnLimpar.textContent = '🗑️ LIMPAR TUDO';
     btnLimpar.style.flex = '1';
-    btnLimpar.style.padding = '14px';
+    btnLimpar.style.padding = '12px';
     btnLimpar.style.borderRadius = '30px';
     btnLimpar.style.backgroundColor = '#ff5252';
     btnLimpar.style.color = 'white';
@@ -3372,12 +3440,12 @@ function abrirModal() {
     btnLimpar.style.fontWeight = 'bold';
     btnLimpar.style.cursor = 'pointer';
     btnLimpar.onclick = limparTodos;
-    botoes.appendChild(btnLimpar);
+    containerBotoes.appendChild(btnLimpar);
     
     const btnFechar = document.createElement('button');
     btnFechar.textContent = '✖️ FECHAR';
     btnFechar.style.flex = '1';
-    btnFechar.style.padding = '14px';
+    btnFechar.style.padding = '12px';
     btnFechar.style.borderRadius = '30px';
     btnFechar.style.backgroundColor = '#555';
     btnFechar.style.color = 'white';
@@ -3386,9 +3454,9 @@ function abrirModal() {
     btnFechar.style.fontWeight = 'bold';
     btnFechar.style.cursor = 'pointer';
     btnFechar.onclick = () => overlay.remove();
-    botoes.appendChild(btnFechar);
+    containerBotoes.appendChild(btnFechar);
     
-    modal.appendChild(botoes);
+    modal.appendChild(containerBotoes);
     overlay.appendChild(modal);
     
     overlay.onclick = (e) => {
