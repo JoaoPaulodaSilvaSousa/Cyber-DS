@@ -3016,6 +3016,33 @@ function abrirModal() {
     overlay.style.display = 'flex';
     overlay.style.justifyContent = 'center';
     overlay.style.alignItems = 'center';
+
+        const style = document.createElement('style');
+    style.textContent = `
+        .th-gigante-grande {
+            font-size: 60px !important;
+            padding: 20px !important;
+            height: 80px !important;
+            background-color: #FF9800 !important;
+            color: #1a1a2e !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+        .th-gigante-tabela1 {
+            font-size: 40px !important;
+            padding: 15px 20px !important;
+            color: #4CAF50 !important
+            text-align: center !important;
+        }
+        .th-spawns-tabela1 {
+            font-size: 40px !important;
+            padding: 15px 20px !important;
+            color: #4CAF50 !important
+            text-align: center !important;
+            width: 150px !important;
+        }
+    `;
+    document.head.appendChild(style);
     
     const modal = document.createElement('div');
     modal.style.backgroundColor = '#1a1a2e';
@@ -3029,10 +3056,10 @@ function abrirModal() {
     modal.style.boxShadow = '0 25px 50px rgba(0,0,0,0.5)';
     
     const titulo = document.createElement('h1');
-    titulo.innerHTML = '🦖 CONTROLE DE SPAWNS 🗡️';
+    titulo.innerHTML = 'CONTROLE DE SPAWNS ';
     titulo.style.textAlign = 'center';
     titulo.style.color = '#FF9800';
-    titulo.style.fontSize = '30px';
+    titulo.style.fontSize = '50px';
     titulo.style.margin = '0 0 12px 0';
     modal.appendChild(titulo);
     
@@ -3054,7 +3081,7 @@ function abrirModal() {
     const tituloGigantes = document.createElement('h2');
     tituloGigantes.innerHTML = '🦕 GIGANTES';
     tituloGigantes.style.color = '#FF9800';
-    tituloGigantes.style.fontSize = '26px';
+    tituloGigantes.style.fontSize = '50px';
     tituloGigantes.style.margin = '15px 0 12px 0';
     tituloGigantes.style.textAlign = 'center';
     modal.appendChild(tituloGigantes);
@@ -3071,6 +3098,7 @@ function abrirModal() {
     
     const th1 = document.createElement('th');
     th1.textContent = 'GIGANTE';
+    th1.className = 'th-gigante-tabela1';
     th1.style.padding = '12px';
     th1.style.backgroundColor = '#FF9800';
     th1.style.color = '#1a1a2e';
@@ -3080,6 +3108,7 @@ function abrirModal() {
     
     const th2 = document.createElement('th');
     th2.textContent = 'SPAWNS';
+    th2.className = 'th-spawns-tabela1';
     th2.style.padding = '12px';
     th2.style.backgroundColor = '#FF9800';
     th2.style.color = '#1a1a2e';
@@ -3190,7 +3219,7 @@ function abrirModal() {
     const tituloBandidos = document.createElement('h2');
     tituloBandidos.innerHTML = '🗡️ BANDIDOS 🗡️';
     tituloBandidos.style.color = '#FF9800';
-    tituloBandidos.style.fontSize = '26px';
+    tituloBandidos.style.fontSize = '50px';
     tituloBandidos.style.margin = '15px 0 12px 0';
     tituloBandidos.style.textAlign = 'center';
     modal.appendChild(tituloBandidos);
