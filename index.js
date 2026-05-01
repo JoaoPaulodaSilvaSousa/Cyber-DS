@@ -1,4 +1,10 @@
- // ==========================================
+// ========== ADICIONE ESTAS LINHAS ==========
+let runTime = 0;
+let runInterval = null;
+let runActive = false;
+// ===========================================
+
+// ==========================================
 // DESBLOQUEAR ÁUDIO NO PRIMEIRO TOQUE/CLIQUE
 // ==========================================
 let audioDesbloqueado = false;
@@ -2421,16 +2427,19 @@ function play() {
         if (runActive) {
             runTime++;
             updateDisplay();
+            salvarEstadoCronometro();  // ← LINHA ADICIONADA
         }
     }, 1000);
     
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
-    animarLabel('INICIADA:');  // ← Com animação
+    animarLabel('ROTA INICIADA:');
     
     if (cronometroSide) {
         cronometroSide.classList.add('run-ativo');
         cronometroSide.classList.remove('run-pausado', 'finalizado');
     }
+    
+    salvarEstadoCronometro();  // ← LINHA ADICIONADA
 }
 
 function retomar() {
@@ -2465,12 +2474,14 @@ function pause() {
     runActive = false;
     
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
-    animarLabel('PAUSADA:');  // ← Com animação
+    animarLabel('ROTA PAUSADA:');
     
     if (cronometroSide) {
         cronometroSide.classList.remove('run-ativo');
         cronometroSide.classList.add('run-pausado');
     }
+    
+    salvarEstadoCronometro();  // ← LINHA ADICIONADA
 }
 
 function finalizar() {
@@ -2494,35 +2505,34 @@ function finalizar() {
     }
 }
 
-function resetar() {
+function pause() {
+    if (!runActive) return;
+    
     if (runInterval) {
         clearInterval(runInterval);
         runInterval = null;
     }
     runActive = false;
-    runTime = 0;
-    updateDisplay();
     
-    animarLabel('REINICIADA:');  // ← Com animação
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
+    animarLabel('ROTA PAUSADA:');
+    
     if (cronometroSide) {
-        cronometroSide.classList.remove('run-ativo', 'run-pausado', 'finalizado');
+        cronometroSide.classList.remove('run-ativo');
+        cronometroSide.classList.add('run-pausado');
     }
     
-    // Volta para "TEMPO:" após 2 segundos
-    setTimeout(() => {
-        if (runLabel && !runActive && runTime === 0) {
-            animarLabel('TEMPO:');
-        }
-    }, 2000);
+    salvarEstadoCronometro();  // ← LINHA ADICIONADA
 }
+// ==========================================
+// CRONÔMETRO - VERSÃO COMPLETA COM TEXTOS E ESTADO
+// ==========================================
 
-// ==========================================
-// CRONÔMETRO - VERSÃO COM TEXTOS "ROTA" E PADRÃO "TEMPO:"
-// ==========================================
 let runTime = 0;
 let runInterval = null;
 let runActive = false;
+let runFinalizado = false;
+let runPausado = false;  // ← NOVO: indica se está pausado
 
 const runTimeDisplay = document.getElementById('runTimeDisplay');
 const runLabel = document.getElementById('runLabel');
@@ -2550,7 +2560,6 @@ function animarLabel(novoTexto, corEspecial = false) {
     runLabel.style.animation = 'fadeSlideIn 0.3s ease-out';
     runLabel.textContent = novoTexto;
     
-    // Se for finalizado, aplica cor amarela
     if (corEspecial) {
         runLabel.style.color = '#FFD700';
     } else {
@@ -2562,25 +2571,118 @@ function animarLabel(novoTexto, corEspecial = false) {
     }, 300);
 }
 
+// FUNÇÃO PARA SALVAR
+function salvarEstadoCronometro() {
+    let labelTexto = 'TEMPO:';
+    if (runLabel) labelTexto = runLabel.textContent;
+    
+    const estado = {
+        runTime: runTime,
+        runActive: runActive,
+        runFinalizado: runFinalizado,
+        runPausado: runPausado,
+        labelTexto: labelTexto,
+        ultimoRegistro: Date.now()
+    };
+    localStorage.setItem('cronometro_estado', JSON.stringify(estado));
+    console.log('💾 Estado salvo:', estado);
+}
+
+// FUNÇÃO PARA CARREGAR
+function carregarEstadoCronometro() {
+    const salvo = localStorage.getItem('cronometro_estado');
+    if (!salvo) return;
+    
+    try {
+        const estado = JSON.parse(salvo);
+        const tempoDecorrido = Math.floor((Date.now() - estado.ultimoRegistro) / 1000);
+        
+        runTime = estado.runTime + (estado.runActive ? tempoDecorrido : 0);
+        runActive = estado.runActive;
+        runFinalizado = estado.runFinalizado || false;
+        runPausado = estado.runPausado || false;
+        
+        updateDisplay();
+        
+        // Restaura o label
+        if (runLabel && estado.labelTexto) {
+            runLabel.textContent = estado.labelTexto;
+            if (estado.labelTexto.includes('FINALIZADA')) {
+                runLabel.style.color = '#FFD700';
+            }
+        }
+        
+        // Restaura o estilo do cronômetro
+        if (cronometroSide) {
+            cronometroSide.classList.remove('run-ativo', 'run-pausado', 'finalizado');
+            if (runActive) {
+                cronometroSide.classList.add('run-ativo');
+            } else if (runFinalizado) {
+                cronometroSide.classList.add('finalizado');
+            } else if (runPausado && runTime > 0) {
+                cronometroSide.classList.add('run-pausado');
+            }
+        }
+        
+        // Restaura o botão
+        if (runPlayPauseBtn) {
+            if (runActive) {
+                runPlayPauseBtn.textContent = '⏸';
+            } else {
+                runPlayPauseBtn.textContent = '▶';
+            }
+        }
+        
+        // Restaura a cor do tempo se finalizado
+        if (runTimeDisplay && runFinalizado) {
+            runTimeDisplay.style.color = '#FFD700';
+        }
+        
+        // Reinicia o intervalo se estiver ativo
+        if (runActive) {
+            if (runInterval) clearInterval(runInterval);
+            runInterval = setInterval(() => {
+                if (runActive) {
+                    runTime++;
+                    updateDisplay();
+                    salvarEstadoCronometro();
+                }
+            }, 1000);
+        }
+        
+        console.log('🔄 Cronômetro carregado:', { runTime, runActive, runFinalizado, runPausado, label: estado.labelTexto });
+    } catch(e) {
+        console.log('Erro ao carregar cronômetro:', e);
+    }
+}
+
 function play() {
     if (runActive) return;
     
     runActive = true;
+    runFinalizado = false;
+    runPausado = false;
     
     if (runInterval) clearInterval(runInterval);
     runInterval = setInterval(() => {
         if (runActive) {
             runTime++;
             updateDisplay();
+            salvarEstadoCronometro();
         }
     }, 1000);
     
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
     animarLabel('ROTA INICIADA:');
     
-    // Remove a cor amarela se tiver
-    if (runLabel) runLabel.style.color = '';
+    if (cronometroSide) {
+        cronometroSide.classList.add('run-ativo');
+        cronometroSide.classList.remove('run-pausado', 'finalizado');
+    }
+    
     if (runTimeDisplay) runTimeDisplay.style.color = '';
+    
+    salvarEstadoCronometro();
 }
 
 function pause() {
@@ -2591,42 +2693,46 @@ function pause() {
         runInterval = null;
     }
     runActive = false;
+    runPausado = true;
     
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
     animarLabel('ROTA PAUSADA:');
+    
+    if (cronometroSide) {
+        cronometroSide.classList.remove('run-ativo');
+        cronometroSide.classList.add('run-pausado');
+    }
+    
+    salvarEstadoCronometro();
 }
 
 function retomar() {
     if (runActive) return;
     
     runActive = true;
+    runFinalizado = false;
+    runPausado = false;
     
     if (runInterval) clearInterval(runInterval);
     runInterval = setInterval(() => {
         if (runActive) {
             runTime++;
             updateDisplay();
+            salvarEstadoCronometro();
         }
     }, 1000);
     
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
     animarLabel('ROTA RETOMADA:');
     
-    // Remove a cor amarela se tiver
-    if (runLabel) runLabel.style.color = '';
-    if (runTimeDisplay) runTimeDisplay.style.color = '';
-}
-
-function playPause() {
-    if (runActive) {
-        pause();
-    } else {
-        if (runTime > 0) {
-            retomar();
-        } else {
-            play();
-        }
+    if (cronometroSide) {
+        cronometroSide.classList.add('run-ativo');
+        cronometroSide.classList.remove('run-pausado', 'finalizado');
     }
+    
+    if (runTimeDisplay) runTimeDisplay.style.color = '';
+    
+    salvarEstadoCronometro();
 }
 
 function finalizar() {
@@ -2637,15 +2743,24 @@ function finalizar() {
         runInterval = null;
     }
     runActive = false;
+    runFinalizado = true;
+    runPausado = false;
     
     const tempoFinal = formatRunTime(runTime);
     
-    animarLabel('ROTA FINALIZADA:', true); // true = cor amarela
+    animarLabel('ROTA FINALIZADA:', true);
     if (runTimeDisplay) {
         runTimeDisplay.textContent = `${tempoFinal}`;
-        runTimeDisplay.style.color = '#FFD700'; // Deixa o tempo também em amarelo
+        runTimeDisplay.style.color = '#FFD700';
     }
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
+    
+    if (cronometroSide) {
+        cronometroSide.classList.remove('run-ativo', 'run-pausado');
+        cronometroSide.classList.add('finalizado');
+    }
+    
+    salvarEstadoCronometro();
 }
 
 function resetar() {
@@ -2654,19 +2769,24 @@ function resetar() {
         runInterval = null;
     }
     runActive = false;
+    runFinalizado = false;
+    runPausado = false;
     runTime = 0;
     updateDisplay();
     
     animarLabel('ROTA REINICIADA:');
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
     
-    // Remove a cor amarela se tiver
-    if (runLabel) runLabel.style.color = '';
+    if (cronometroSide) {
+        cronometroSide.classList.remove('run-ativo', 'run-pausado', 'finalizado');
+    }
+    
     if (runTimeDisplay) runTimeDisplay.style.color = '';
     
-    // Volta para "TEMPO:" após 2 segundos
+    localStorage.removeItem('cronometro_estado');
+    
     setTimeout(() => {
-        if (runLabel && !runActive && runTime === 0) {
+        if (runLabel && !runActive && runTime === 0 && !runFinalizado) {
             runLabel.textContent = 'TEMPO:';
             runLabel.style.animation = '';
         }
@@ -2674,15 +2794,14 @@ function resetar() {
 }
 
 function comecarDoZero() {
-    // Reseta o tempo
     runTime = 0;
+    runFinalizado = false;
+    runPausado = false;
     updateDisplay();
     
-    // Remove cor amarela
     if (runLabel) runLabel.style.color = '';
     if (runTimeDisplay) runTimeDisplay.style.color = '';
     
-    // Inicia o cronômetro
     runActive = true;
     
     if (runInterval) clearInterval(runInterval);
@@ -2690,19 +2809,25 @@ function comecarDoZero() {
         if (runActive) {
             runTime++;
             updateDisplay();
+            salvarEstadoCronometro();
         }
     }, 1000);
     
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
     animarLabel('ROTA INICIADA:');
+    
+    if (cronometroSide) {
+        cronometroSide.classList.add('run-ativo');
+        cronometroSide.classList.remove('run-pausado', 'finalizado');
+    }
+    
+    salvarEstadoCronometro();
 }
 
 function playPauseAtualizado() {
-    // Verifica se está finalizado (tempo parado, não ativo, e tempo > 0)
-    const estaFinalizado = !runActive && runTime > 0 && runLabel.textContent.includes('FINALIZADA');
+    const estaFinalizado = !runActive && runTime > 0 && runFinalizado;
     
     if (estaFinalizado) {
-        // Se finalizado, começar do zero
         comecarDoZero();
     } else if (runActive) {
         pause();
@@ -2715,7 +2840,7 @@ function playPauseAtualizado() {
     }
 }
 
-// Eventos
+// EVENTOS
 if (runPlayPauseBtn) runPlayPauseBtn.onclick = playPauseAtualizado;
 if (runStopBtn) runStopBtn.onclick = finalizar;
 if (runResetBtn) runResetBtn.onclick = resetar;
@@ -3459,6 +3584,55 @@ const bandidos = [
 ];
 
 window.addEventListener('load', criarBotaoFlutuante);
+
+
+// ==========================================
+// SALVAR E CARREGAR ESTADO DO CRONÔMETRO
+// ==========================================
+
+function salvarEstadoCronometro() {
+    const estado = {
+        runTime: runTime,
+        runActive: runActive,
+        ultimoRegistro: Date.now()
+    };
+    localStorage.setItem('cronometro_estado', JSON.stringify(estado));
+    console.log('💾 Estado do cronômetro salvo:', estado);
+}
+
+function carregarEstadoCronometro() {
+    const salvo = localStorage.getItem('cronometro_estado');
+    if (!salvo) return;
+    
+    try {
+        const estado = JSON.parse(salvo);
+        const tempoDecorrido = Math.floor((Date.now() - estado.ultimoRegistro) / 1000);
+        
+        runTime = estado.runTime + (estado.runActive ? tempoDecorrido : 0);
+        runActive = estado.runActive;
+        
+        updateDisplay();
+        
+        if (runActive) {
+            if (runInterval) clearInterval(runInterval);
+            runInterval = setInterval(() => {
+                if (runActive) {
+                    runTime++;
+                    updateDisplay();
+                    salvarEstadoCronometro();
+                }
+            }, 1000);
+            if (runPlayPauseBtn) runPlayPauseBtn.textContent = '⏸';
+        }
+        
+        console.log('🔄 Cronômetro carregado:', { runTime, runActive });
+    } catch(e) {
+        console.log('Erro:', e);
+    }
+}
+
+
+
 // ==========================================
 // 20. INIT
 // ==========================================
@@ -3466,6 +3640,7 @@ window.onload = function() {
     // limparSpawnsAntigos(); // ← ADICIONE ESTA LINHA AQUI
 
     carregarDadosSalvos(); // ← ADICIONE ESTA LINHA
+    carregarEstadoCronometro();
     
     
     setTimeout(() => {
