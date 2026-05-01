@@ -2525,14 +2525,14 @@ function pause() {
     salvarEstadoCronometro();  // ← LINHA ADICIONADA
 }
 // ==========================================
-// CRONÔMETRO - VERSÃO COMPLETA COM TEXTOS E ESTADO
+// CRONÔMETRO - VERSÃO CORRIGIDA
 // ==========================================
 
 let runTime = 0;
 let runInterval = null;
 let runActive = false;
 let runFinalizado = false;
-let runPausado = false;  // ← NOVO: indica se está pausado
+let runPausado = false;
 
 const runTimeDisplay = document.getElementById('runTimeDisplay');
 const runLabel = document.getElementById('runLabel');
@@ -2569,6 +2569,9 @@ function animarLabel(novoTexto, corEspecial = false) {
     setTimeout(() => {
         if (runLabel) runLabel.style.animation = '';
     }, 300);
+    
+    // SALVA DEPOIS DE MUDAR O TEXTO
+    salvarEstadoCronometro();
 }
 
 // FUNÇÃO PARA SALVAR
@@ -2585,7 +2588,7 @@ function salvarEstadoCronometro() {
         ultimoRegistro: Date.now()
     };
     localStorage.setItem('cronometro_estado', JSON.stringify(estado));
-    console.log('💾 Estado salvo:', estado);
+    console.log('💾 Estado salvo:', { runTime, runActive, label: labelTexto });
 }
 
 // FUNÇÃO PARA CARREGAR
@@ -2609,6 +2612,8 @@ function carregarEstadoCronometro() {
             runLabel.textContent = estado.labelTexto;
             if (estado.labelTexto.includes('FINALIZADA')) {
                 runLabel.style.color = '#FFD700';
+            } else {
+                runLabel.style.color = '';
             }
         }
         
@@ -2636,6 +2641,8 @@ function carregarEstadoCronometro() {
         // Restaura a cor do tempo se finalizado
         if (runTimeDisplay && runFinalizado) {
             runTimeDisplay.style.color = '#FFD700';
+        } else if (runTimeDisplay) {
+            runTimeDisplay.style.color = '';
         }
         
         // Reinicia o intervalo se estiver ativo
@@ -2650,7 +2657,7 @@ function carregarEstadoCronometro() {
             }, 1000);
         }
         
-        console.log('🔄 Cronômetro carregado:', { runTime, runActive, runFinalizado, runPausado, label: estado.labelTexto });
+        console.log('🔄 Cronômetro carregado:', { runTime, runActive, runPausado, label: estado.labelTexto });
     } catch(e) {
         console.log('Erro ao carregar cronômetro:', e);
     }
@@ -2696,14 +2703,12 @@ function pause() {
     runPausado = true;
     
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
-    animarLabel('ROTA PAUSADA:');
+    animarLabel('ROTA PAUSADA:');  // ← O animarLabel já salva
     
     if (cronometroSide) {
         cronometroSide.classList.remove('run-ativo');
         cronometroSide.classList.add('run-pausado');
     }
-    
-    salvarEstadoCronometro();
 }
 
 function retomar() {
@@ -2748,7 +2753,10 @@ function finalizar() {
     
     const tempoFinal = formatRunTime(runTime);
     
-    animarLabel('ROTA FINALIZADA:', true);
+    if (runLabel) {
+        runLabel.textContent = 'ROTA FINALIZADA:';
+        runLabel.style.color = '#FFD700';
+    }
     if (runTimeDisplay) {
         runTimeDisplay.textContent = `${tempoFinal}`;
         runTimeDisplay.style.color = '#FFD700';
@@ -2774,7 +2782,9 @@ function resetar() {
     runTime = 0;
     updateDisplay();
     
-    animarLabel('ROTA REINICIADA:');
+    if (runLabel) {
+        runLabel.textContent = 'ROTA REINICIADA:';
+    }
     if (runPlayPauseBtn) runPlayPauseBtn.textContent = '▶';
     
     if (cronometroSide) {
@@ -2788,7 +2798,6 @@ function resetar() {
     setTimeout(() => {
         if (runLabel && !runActive && runTime === 0 && !runFinalizado) {
             runLabel.textContent = 'TEMPO:';
-            runLabel.style.animation = '';
         }
     }, 2000);
 }
@@ -2820,8 +2829,6 @@ function comecarDoZero() {
         cronometroSide.classList.add('run-ativo');
         cronometroSide.classList.remove('run-pausado', 'finalizado');
     }
-    
-    salvarEstadoCronometro();
 }
 
 function playPauseAtualizado() {
@@ -3187,6 +3194,102 @@ function abrirModal() {
     titulo.style.fontSize = '50px';
     titulo.style.margin = '0 0 12px 0';
     modal.appendChild(titulo);
+
+    // ==========================================
+// TOTAIS DE SPAWNS
+// ==========================================
+const containerTotais = document.createElement('div');
+containerTotais.style.display = 'flex';
+containerTotais.style.justifyContent = 'center';
+containerTotais.style.gap = '30px';
+containerTotais.style.marginBottom = '20px';
+containerTotais.style.padding = '10px';
+containerTotais.style.backgroundColor = '#16213e';
+containerTotais.style.borderRadius = '12px';
+containerTotais.style.border = '1px solid #FF9800';
+
+// Total Gigantes
+const totalGigantesDiv = document.createElement('div');
+totalGigantesDiv.style.textAlign = 'center';
+const totalGigantesLabel = document.createElement('div');
+totalGigantesLabel.textContent = '🦕 TOTAL GIGANTES';
+totalGigantesLabel.style.color = '#FF9800';
+totalGigantesLabel.style.fontSize = '16px';
+totalGigantesLabel.style.fontWeight = 'bold';
+const totalGigantesValor = document.createElement('div');
+totalGigantesValor.id = 'total-gigantes-valor';
+totalGigantesValor.textContent = '0';
+totalGigantesValor.style.color = '#4CAF50';
+totalGigantesValor.style.fontSize = '32px';
+totalGigantesValor.style.fontWeight = 'bold';
+totalGigantesDiv.appendChild(totalGigantesLabel);
+totalGigantesDiv.appendChild(totalGigantesValor);
+
+// Total Bandidos
+const totalBandidosDiv = document.createElement('div');
+totalBandidosDiv.style.textAlign = 'center';
+const totalBandidosLabel = document.createElement('div');
+totalBandidosLabel.textContent = '🗡️ TOTAL BANDIDOS';
+totalBandidosLabel.style.color = '#FF9800';
+totalBandidosLabel.style.fontSize = '16px';
+totalBandidosLabel.style.fontWeight = 'bold';
+const totalBandidosValor = document.createElement('div');
+totalBandidosValor.id = 'total-bandidos-valor';
+totalBandidosValor.textContent = '0';
+totalBandidosValor.style.color = '#4CAF50';
+totalBandidosValor.style.fontSize = '32px';
+totalBandidosValor.style.fontWeight = 'bold';
+totalBandidosDiv.appendChild(totalBandidosLabel);
+totalBandidosDiv.appendChild(totalBandidosValor);
+
+// Total Geral
+const totalGeralDiv = document.createElement('div');
+totalGeralDiv.style.textAlign = 'center';
+const totalGeralLabel = document.createElement('div');
+totalGeralLabel.textContent = '📊 TOTAL GERAL';
+totalGeralLabel.style.color = '#FF9800';
+totalGeralLabel.style.fontSize = '16px';
+totalGeralLabel.style.fontWeight = 'bold';
+const totalGeralValor = document.createElement('div');
+totalGeralValor.id = 'total-geral-valor';
+totalGeralValor.textContent = '0';
+totalGeralValor.style.color = '#FFD700';
+totalGeralValor.style.fontSize = '32px';
+totalGeralValor.style.fontWeight = 'bold';
+totalGeralDiv.appendChild(totalGeralLabel);
+totalGeralDiv.appendChild(totalGeralValor);
+
+containerTotais.appendChild(totalGigantesDiv);
+containerTotais.appendChild(totalBandidosDiv);
+containerTotais.appendChild(totalGeralDiv);
+modal.appendChild(containerTotais);
+
+function atualizarTotais() {
+    let totalGigantes = 0;
+    let totalBandidos = 0;
+    
+    // Soma os gigantes
+    for (let i = 0; i < gigantes.length; i++) {
+        totalGigantes += carregarGigante(i);
+    }
+    
+    // Soma os bandidos
+    for (let i = 0; i < gigantes.length; i++) {
+        for (let j = 0; j < bandidos.length; j++) {
+            totalBandidos += carregarBandido(i, j);
+        }
+    }
+    
+    const totalGeral = totalGigantes + totalBandidos;
+    
+    const totalGigantesEl = document.getElementById('total-gigantes-valor');
+    const totalBandidosEl = document.getElementById('total-bandidos-valor');
+    const totalGeralEl = document.getElementById('total-geral-valor');
+    
+    if (totalGigantesEl) totalGigantesEl.textContent = totalGigantes;
+    if (totalBandidosEl) totalBandidosEl.textContent = totalBandidos;
+    if (totalGeralEl) totalGeralEl.textContent = totalGeral;
+}
     
     const instrucoes = document.createElement('div');
     instrucoes.innerHTML = '💡 Clique = +1 | Clique com BOTÃO DIREITO = -1 | Botão vermelho = LIMPAR TUDO';
@@ -3314,6 +3417,7 @@ function abrirModal() {
             this.textContent = v;
             this.style.backgroundColor = v > 0 ? '#4CAF50' : '#2a2a3a';
             this.style.borderColor = v > 0 ? '#FF9800' : '#555';
+             atualizarTotais();
         };
         
         contador.oncontextmenu = function(e) {
@@ -3326,6 +3430,7 @@ function abrirModal() {
                 this.textContent = v;
                 this.style.backgroundColor = v > 0 ? '#4CAF50' : '#2a2a3a';
                 this.style.borderColor = v > 0 ? '#FF9800' : '#555';
+                atualizarTotais();
             }
             return false;
         };
@@ -3465,6 +3570,7 @@ trB.appendChild(thGigante);
                 this.textContent = v;
                 this.style.backgroundColor = v > 0 ? '#4CAF50' : '#2a2a3a';
                 this.style.borderColor = v > 0 ? '#FF9800' : '#555';
+                 atualizarTotais();
             };
             
             contador.oncontextmenu = function(e) {
@@ -3478,6 +3584,7 @@ trB.appendChild(thGigante);
                     this.textContent = v;
                     this.style.backgroundColor = v > 0 ? '#4CAF50' : '#2a2a3a';
                     this.style.borderColor = v > 0 ? '#FF9800' : '#555';
+                    atualizarTotais();
                 }
                 return false;
             };
@@ -3533,6 +3640,7 @@ trB.appendChild(thGigante);
         if (e.target === overlay) overlay.remove();
     };
     
+    atualizarTotais();
     document.body.appendChild(overlay);
 }
 
