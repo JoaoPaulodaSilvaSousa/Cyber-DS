@@ -2511,3 +2511,17 @@ tr:has(.tempo-restante-bandido[data-spawnado="true"]) td:nth-child(8) {
     margin-top: 2px !important;
     text-align: center !important;
 }
+
+/* MODO CLARO - FONTE DO TEMPO RESTANTE PRETA */
+body.light-mode .tempo-restante-gigante,
+body.light-mode .tempo-restante-bandido {
+    color: #000000 !important;
+}
+
+/* MODO CLARO - FONTE DO TEMPO RESTANTE CRÍTICO TAMBÉM PRETA */
+body.light-mode .tempo-restante-gigante.critico,
+body.light-mode .tempo-restante-bandido.critico,
+body.light-mode .tempo-restante-gigante.muito-critico,
+body.light-mode .tempo-restante-bandido.muito-critico {
+    color: #333333 !important;
+}
