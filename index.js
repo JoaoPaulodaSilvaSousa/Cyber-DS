@@ -2944,103 +2944,22 @@ calcular = function() {
 };
 
 // ==========================================
-// TABELA DE SPAWNS (GIGANTES + BANDIDOS)
-// ==========================================
-
-// Gigantes
-const gigantes = [
-    { nome: 'Coelophysis', imagem: 'imagens/coeloc.jpeg' },
-    { nome: 'Centrosaurus', imagem: 'imagens/centroc.jpeg' },
-    { nome: 'Carnotaurus', imagem: 'imagens/carnoc.jpeg' },
-    { nome: 'Paquicefalossauro', imagem: 'imagens/pachyc.jpeg' },
-    { nome: 'Brachiosaurus', imagem: 'imagens/brachyc.jpeg' },
-    { nome: 'Parasaurolophus', imagem: 'imagens/parac.jpeg' },
-    { nome: 'Ankylosaurus', imagem: 'imagens/ankyc.jpeg' },
-    { nome: 'T-rex', imagem: 'imagens/rexc.jpeg' }
-];
-
-// Bandidos
-const bandidos = [
-    { nome: 'Martelo', imagem: 'imagens/martelos.jpeg' },
-    { nome: 'Colt', imagem: 'imagens/colts.jpeg' },
-    { nome: 'Paci', imagem: 'imagens/pacis.jpeg' },
-    { nome: 'Gat', imagem: 'imagens/gats.jpeg' },
-    { nome: 'Yager', imagem: 'imagens/yagers.jpeg' },
-    { nome: 'Show', imagem: 'imagens/shows.jpeg' }
-];
-
-// ==========================================
-// LOCALSTORAGE
-// ==========================================
-
-function getChaveGigante(giganteIndex) {
-    return `spawn_gigante_${giganteIndex}`;
-}
-
-function getChaveBandido(giganteIndex, bandidoIndex) {
-    return `spawn_bandido_${giganteIndex}_${bandidoIndex}`;
-}
-
-function carregarGigante(giganteIndex) {
-    const chave = getChaveGigante(giganteIndex);
-    const salvo = localStorage.getItem(chave);
-    return salvo === null ? 0 : Number(salvo);
-}
-
-function salvarGigante(giganteIndex, valor) {
-    const chave = getChaveGigante(giganteIndex);
-    if (valor <= 0) {
-        localStorage.removeItem(chave);
-    } else {
-        localStorage.setItem(chave, valor.toString());
-    }
-}
-
-function carregarBandido(giganteIndex, bandidoIndex) {
-    const chave = getChaveBandido(giganteIndex, bandidoIndex);
-    const salvo = localStorage.getItem(chave);
-    return salvo === null ? 0 : Number(salvo);
-}
-
-function salvarBandido(giganteIndex, bandidoIndex, valor) {
-    const chave = getChaveBandido(giganteIndex, bandidoIndex);
-    if (valor <= 0) {
-        localStorage.removeItem(chave);
-    } else {
-        localStorage.setItem(chave, valor.toString());
-    }
-}
-
-function limparTodos() {
-    if (confirm('⚠️ TEM CERTEZA? Isso vai apagar TODOS os contadores!')) {
-        for (let i = 0; i < gigantes.length; i++) {
-            localStorage.removeItem(getChaveGigante(i));
-            for (let j = 0; j < bandidos.length; j++) {
-                localStorage.removeItem(getChaveBandido(i, j));
-            }
-        }
-        alert('✅ Todos os dados foram limpos!');
-        location.reload();
-    }
-}
-
-// ==========================================
-// BOTÃO FLUTUANTE (MAIOR)
+// BOTÃO FLUTUANTE
 // ==========================================
 
 function criarBotaoFlutuante() {
     const botao = document.createElement('button');
-    botao.innerHTML = '📋';
+    botao.innerHTML = '🦖';
     botao.style.position = 'fixed';
-    botao.style.right = '25px';
+    botao.style.right = '20px';
     botao.style.top = '50%';
     botao.style.transform = 'translateY(-50%)';
-    botao.style.width = '75px';
-    botao.style.height = '75px';
+    botao.style.width = '65px';
+    botao.style.height = '65px';
     botao.style.borderRadius = '50%';
     botao.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
     botao.style.border = 'none';
-    botao.style.fontSize = '38px';
+    botao.style.fontSize = '32px';
     botao.style.cursor = 'pointer';
     botao.style.zIndex = '999';
     botao.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
@@ -3060,7 +2979,7 @@ function criarBotaoFlutuante() {
 }
 
 // ==========================================
-// MODAL COM DUAS TABELAS
+// MODAL
 // ==========================================
 
 function abrirModal() {
@@ -3074,7 +2993,7 @@ function abrirModal() {
     overlay.style.left = '0';
     overlay.style.width = '100%';
     overlay.style.height = '100%';
-    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.92)';
+    overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
     overlay.style.backdropFilter = 'blur(5px)';
     overlay.style.zIndex = '10000';
     overlay.style.display = 'flex';
@@ -3083,83 +3002,84 @@ function abrirModal() {
     
     const modal = document.createElement('div');
     modal.style.backgroundColor = '#1a1a2e';
-    modal.style.borderRadius = '24px';
-    modal.style.padding = '25px 30px';
+    modal.style.borderRadius = '20px';
+    modal.style.padding = '20px 30px';
     modal.style.border = '3px solid #FF9800';
     modal.style.width = '95%';
-    modal.style.maxWidth = '1600px';
-    modal.style.height = '92vh';
+    modal.style.maxWidth = '1200px';
+    modal.style.maxHeight = '90vh';
     modal.style.overflow = 'auto';
     modal.style.boxShadow = '0 25px 50px rgba(0,0,0,0.5)';
     
-    // TÍTULO PRINCIPAL (MAIOR)
-    const titulo = document.createElement('h2');
+    const titulo = document.createElement('h1');
     titulo.innerHTML = '🦖 CONTROLE DE SPAWNS 🗡️';
     titulo.style.textAlign = 'center';
     titulo.style.color = '#FF9800';
-    titulo.style.fontSize = '42px';
+    titulo.style.fontSize = '32px';
     titulo.style.margin = '0 0 15px 0';
-    titulo.style.fontWeight = 'bold';
     modal.appendChild(titulo);
     
-    // INSTRUÇÕES (MAIOR)
     const instrucoes = document.createElement('div');
     instrucoes.innerHTML = '💡 Clique = +1 | Clique com BOTÃO DIREITO = -1 | Botão vermelho = LIMPAR TUDO';
     instrucoes.style.textAlign = 'center';
-    instrucoes.style.color = '#ccc';
-    instrucoes.style.fontSize = '18px';
+    instrucoes.style.color = '#aaa';
+    instrucoes.style.fontSize = '14px';
     instrucoes.style.marginBottom = '25px';
-    instrucoes.style.padding = '12px';
+    instrucoes.style.padding = '8px';
     instrucoes.style.backgroundColor = '#16213e';
-    instrucoes.style.borderRadius = '12px';
+    instrucoes.style.borderRadius = '10px';
     modal.appendChild(instrucoes);
     
     // ==========================================
-    // TABELA 1: GIGANTES
+    // GIGANTES (COM SCROLL)
     // ==========================================
     
-    const tituloGigantes = document.createElement('h3');
+    const tituloGigantes = document.createElement('h2');
     tituloGigantes.innerHTML = '🦕 GIGANTES';
     tituloGigantes.style.color = '#FF9800';
-    tituloGigantes.style.fontSize = '34px';
-    tituloGigantes.style.margin = '30px 0 20px 0';
+    tituloGigantes.style.fontSize = '28px';
+    tituloGigantes.style.margin = '20px 0 15px 0';
     tituloGigantes.style.textAlign = 'center';
     modal.appendChild(tituloGigantes);
     
+    const containerGigantes = document.createElement('div');
+    containerGigantes.style.overflowX = 'auto';
+    containerGigantes.style.marginBottom = '30px';
+    
     const tabelaGigantes = document.createElement('table');
-    tabelaGigantes.style.width = 'auto';
-    tabelaGigantes.style.minWidth = '600px';
-    tabelaGigantes.style.margin = '0 auto';
+    tabelaGigantes.style.width = '100%';
     tabelaGigantes.style.borderCollapse = 'collapse';
     tabelaGigantes.style.backgroundColor = '#0f0f1a';
-    tabelaGigantes.style.borderRadius = '16px';
-    tabelaGigantes.style.overflow = 'hidden';
-    tabelaGigantes.style.marginBottom = '40px';
+    tabelaGigantes.style.borderRadius = '12px';
+    tabelaGigantes.style.minWidth = '600px';
     
     const theadG = document.createElement('thead');
-    const linhaHeadG = document.createElement('tr');
+    const trG = document.createElement('tr');
     
-    const thNomeG = document.createElement('th');
-    thNomeG.textContent = 'GIGANTE';
-    thNomeG.style.padding = '20px 30px';
-    thNomeG.style.backgroundColor = '#FF9800';
-    thNomeG.style.color = '#1a1a2e';
-    thNomeG.style.fontSize = '24px';
-    thNomeG.style.fontWeight = 'bold';
-    thNomeG.style.textAlign = 'left';
-    linhaHeadG.appendChild(thNomeG);
+    const th1 = document.createElement('th');
+    th1.textContent = 'GIGANTE';
+    th1.style.padding = '15px';
+    th1.style.backgroundColor = '#FF9800';
+    th1.style.color = '#1a1a2e';
+    th1.style.fontSize = '22px';
+    th1.style.textAlign = 'center';
+    th1.style.position = 'sticky';
+    th1.style.left = '0';
+    th1.style.backgroundColor = '#FF9800';
+    th1.style.zIndex = '2';
+    trG.appendChild(th1);
     
-    const thContG = document.createElement('th');
-    thContG.textContent = 'SPAWNS';
-    thContG.style.padding = '20px 30px';
-    thContG.style.backgroundColor = '#FF9800';
-    thContG.style.color = '#1a1a2e';
-    thContG.style.fontSize = '24px';
-    thContG.style.fontWeight = 'bold';
-    thContG.style.textAlign = 'center';
-    linhaHeadG.appendChild(thContG);
+    const th2 = document.createElement('th');
+    th2.textContent = 'SPAWNS';
+    th2.style.padding = '15px';
+    th2.style.backgroundColor = '#FF9800';
+    th2.style.color = '#1a1a2e';
+    th2.style.fontSize = '22px';
+    th2.style.textAlign = 'center';
+    th2.style.width = '140px';
+    trG.appendChild(th2);
     
-    theadG.appendChild(linhaHeadG);
+    theadG.appendChild(trG);
     tabelaGigantes.appendChild(theadG);
     
     const tbodyG = document.createElement('tbody');
@@ -3167,78 +3087,88 @@ function abrirModal() {
     for (let i = 0; i < gigantes.length; i++) {
         const linha = document.createElement('tr');
         
-        const celulaDino = document.createElement('td');
-        celulaDino.style.display = 'flex';
-        celulaDino.style.alignItems = 'center';
-        celulaDino.style.gap = '25px';
-        celulaDino.style.padding = '18px 25px';
-        celulaDino.style.backgroundColor = '#16213e';
-        celulaDino.style.border = '1px solid #FF9800';
+        const celulaNome = document.createElement('td');
+        celulaNome.style.padding = '15px 20px';
+        celulaNome.style.backgroundColor = '#16213e';
+        celulaNome.style.border = '1px solid #FF9800';
+        celulaNome.style.textAlign = 'center';
+        celulaNome.style.verticalAlign = 'middle';
+        celulaNome.style.position = 'sticky';
+        celulaNome.style.left = '0';
+        celulaNome.style.backgroundColor = '#16213e';
+        celulaNome.style.zIndex = '1';
+        celulaNome.style.minWidth = '280px';
         
-        const imgDino = document.createElement('img');
-        imgDino.src = gigantes[i].imagem;
-        imgDino.style.width = '90px';
-        imgDino.style.height = '90px';
-        imgDino.style.objectFit = 'cover';
-        imgDino.style.borderRadius = '16px';
-        imgDino.style.border = '2px solid #FF9800';
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'flex-start';
+        container.style.gap = '15px';
         
-        const nomeDino = document.createElement('span');
-        nomeDino.textContent = gigantes[i].nome;
-        nomeDino.style.fontSize = '22px';
-        nomeDino.style.fontWeight = 'bold';
-        nomeDino.style.color = '#FF9800';
+        const img = document.createElement('img');
+        img.src = gigantes[i].imagem;
+        img.style.width = '60px';
+        img.style.height = '60px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '12px';
+        img.style.border = '2px solid #FF9800';
         
-        celulaDino.appendChild(imgDino);
-        celulaDino.appendChild(nomeDino);
-        linha.appendChild(celulaDino);
+        const nome = document.createElement('div');
+        nome.textContent = gigantes[i].nome;
+        nome.style.fontSize = '16px';
+        nome.style.fontWeight = 'bold';
+        nome.style.color = '#FF9800';
+        
+        container.appendChild(img);
+        container.appendChild(nome);
+        celulaNome.appendChild(container);
+        linha.appendChild(celulaNome);
         
         const celulaCont = document.createElement('td');
-        celulaCont.style.padding = '18px 25px';
+        celulaCont.style.padding = '15px';
         celulaCont.style.textAlign = 'center';
         celulaCont.style.backgroundColor = '#16213e';
         celulaCont.style.border = '1px solid #FF9800';
         
         const contador = document.createElement('div');
-        const valorInicial = carregarGigante(i);
-        
-        contador.textContent = valorInicial;
-        contador.style.width = '110px';
-        contador.style.height = '110px';
+        const valor = carregarGigante(i);
+        contador.textContent = valor;
+        contador.style.width = '80px';
+        contador.style.height = '80px';
         contador.style.display = 'flex';
         contador.style.alignItems = 'center';
         contador.style.justifyContent = 'center';
-        contador.style.backgroundColor = valorInicial > 0 ? '#4CAF50' : '#2a2a3a';
-        contador.style.borderRadius = '20px';
-        contador.style.fontSize = '42px';
+        contador.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
+        contador.style.borderRadius = '16px';
+        contador.style.fontSize = '32px';
         contador.style.fontWeight = 'bold';
         contador.style.color = 'white';
         contador.style.cursor = 'pointer';
-        contador.style.border = valorInicial > 0 ? '3px solid #FF9800' : '2px solid #555';
+        contador.style.border = valor > 0 ? '3px solid #FF9800' : '2px solid #555';
         contador.style.margin = '0 auto';
         
         contador.dataset.index = i;
         
         contador.onclick = function() {
             const idx = Number(this.dataset.index);
-            let valor = carregarGigante(idx);
-            valor++;
-            salvarGigante(idx, valor);
-            this.textContent = valor;
-            this.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
-            this.style.borderColor = valor > 0 ? '#FF9800' : '#555';
+            let v = carregarGigante(idx);
+            v++;
+            salvarGigante(idx, v);
+            this.textContent = v;
+            this.style.backgroundColor = v > 0 ? '#4CAF50' : '#2a2a3a';
+            this.style.borderColor = v > 0 ? '#FF9800' : '#555';
         };
         
         contador.oncontextmenu = function(e) {
             e.preventDefault();
             const idx = Number(this.dataset.index);
-            let valor = carregarGigante(idx);
-            if (valor > 0) {
-                valor--;
-                salvarGigante(idx, valor);
-                this.textContent = valor;
-                this.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
-                this.style.borderColor = valor > 0 ? '#FF9800' : '#555';
+            let v = carregarGigante(idx);
+            if (v > 0) {
+                v--;
+                salvarGigante(idx, v);
+                this.textContent = v;
+                this.style.backgroundColor = v > 0 ? '#4CAF50' : '#2a2a3a';
+                this.style.borderColor = v > 0 ? '#FF9800' : '#555';
             }
             return false;
         };
@@ -3248,74 +3178,75 @@ function abrirModal() {
         tbodyG.appendChild(linha);
     }
     tabelaGigantes.appendChild(tbodyG);
-    modal.appendChild(tabelaGigantes);
+    containerGigantes.appendChild(tabelaGigantes);
+    modal.appendChild(containerGigantes);
     
     // ==========================================
-    // TABELA 2: BANDIDOS
+    // BANDIDOS (COM SCROLL)
     // ==========================================
     
-    const tituloBandidos = document.createElement('h3');
+    const tituloBandidos = document.createElement('h2');
     tituloBandidos.innerHTML = '🗡️ BANDIDOS 🗡️';
     tituloBandidos.style.color = '#FF9800';
-    tituloBandidos.style.fontSize = '34px';
-    tituloBandidos.style.margin = '30px 0 20px 0';
+    tituloBandidos.style.fontSize = '28px';
+    tituloBandidos.style.margin = '20px 0 15px 0';
     tituloBandidos.style.textAlign = 'center';
     modal.appendChild(tituloBandidos);
+    
+    const containerBandidos = document.createElement('div');
+    containerBandidos.style.overflowX = 'auto';
     
     const tabelaBandidos = document.createElement('table');
     tabelaBandidos.style.width = '100%';
     tabelaBandidos.style.borderCollapse = 'collapse';
     tabelaBandidos.style.backgroundColor = '#0f0f1a';
-    tabelaBandidos.style.borderRadius = '16px';
-    tabelaBandidos.style.overflow = 'hidden';
+    tabelaBandidos.style.borderRadius = '12px';
+    tabelaBandidos.style.minWidth = '800px';
     
     const theadB = document.createElement('thead');
-    const linhaHeadB = document.createElement('tr');
+    const trB = document.createElement('tr');
     
-    const thNomeB = document.createElement('th');
-    thNomeB.textContent = 'GIGANTE';
-    thNomeB.style.padding = '20px';
-    thNomeB.style.backgroundColor = '#FF9800';
-    thNomeB.style.color = '#1a1a2e';
-    thNomeB.style.fontSize = '22px';
-    thNomeB.style.fontWeight = 'bold';
-    thNomeB.style.width = '300px';
-    thNomeB.style.textAlign = 'left';
-    linhaHeadB.appendChild(thNomeB);
+    const thGigante = document.createElement('th');
+    thGigante.textContent = 'GIGANTE';
+    thGigante.style.padding = '15px';
+    thGigante.style.backgroundColor = '#FF9800';
+    thGigante.style.color = '#1a1a2e';
+    thGigante.style.fontSize = '20px';
+    thGigante.style.textAlign = 'center';
+    thGigante.style.position = 'sticky';
+    thGigante.style.left = '0';
+    thGigante.style.backgroundColor = '#FF9800';
+    thGigante.style.zIndex = '2';
+    thGigante.style.minWidth = '250px';
+    trB.appendChild(thGigante);
     
     for (let i = 0; i < bandidos.length; i++) {
         const th = document.createElement('th');
-        th.style.padding = '18px 12px';
+        th.style.padding = '12px 5px';
         th.style.backgroundColor = '#FF9800';
         th.style.textAlign = 'center';
-        th.style.width = '140px';
+        th.style.width = '100px';
         
-        const container = document.createElement('div');
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
-        container.style.alignItems = 'center';
-        container.style.gap = '12px';
+        const img = document.createElement('img');
+        img.src = bandidos[i].imagem;
+        img.style.width = '50px';
+        img.style.height = '50px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '12px';
+        img.style.border = '2px solid #FF9800';
+        img.style.display = 'block';
+        img.style.margin = '0 auto 8px auto';
         
-        const imgArma = document.createElement('img');
-        imgArma.src = bandidos[i].imagem;
-        imgArma.style.width = '65px';
-        imgArma.style.height = '65px';
-        imgArma.style.objectFit = 'cover';
-        imgArma.style.borderRadius = '14px';
-        imgArma.style.border = '2px solid #fff';
+        const nome = document.createElement('div');
+        nome.textContent = bandidos[i].nome;
+        nome.style.fontSize = '12px';
+        nome.style.fontWeight = 'bold';
         
-        const nomeArma = document.createElement('span');
-        nomeArma.textContent = bandidos[i].nome;
-        nomeArma.style.fontSize = '16px';
-        nomeArma.style.fontWeight = 'bold';
-        nomeArma.style.color = '#1a1a2e';
-        
-        container.appendChild(imgArma);
-        container.appendChild(nomeArma);
-        th.appendChild(container);
-        linhaHeadB.appendChild(th);
+        th.appendChild(img);
+        th.appendChild(nome);
+        trB.appendChild(th);
     }
-    theadB.appendChild(linhaHeadB);
+    theadB.appendChild(trB);
     tabelaBandidos.appendChild(theadB);
     
     const tbodyB = document.createElement('tbody');
@@ -3323,55 +3254,65 @@ function abrirModal() {
     for (let i = 0; i < gigantes.length; i++) {
         const linha = document.createElement('tr');
         
-        const celulaDino = document.createElement('td');
-        celulaDino.style.display = 'flex';
-        celulaDino.style.alignItems = 'center';
-        celulaDino.style.gap = '20px';
-        celulaDino.style.padding = '16px 20px';
-        celulaDino.style.backgroundColor = '#16213e';
-        celulaDino.style.border = '1px solid #FF9800';
+        const celulaNome = document.createElement('td');
+        celulaNome.style.padding = '12px 15px';
+        celulaNome.style.backgroundColor = '#16213e';
+        celulaNome.style.border = '1px solid #FF9800';
+        celulaNome.style.textAlign = 'center';
+        celulaNome.style.verticalAlign = 'middle';
+        celulaNome.style.position = 'sticky';
+        celulaNome.style.left = '0';
+        celulaNome.style.backgroundColor = '#16213e';
+        celulaNome.style.zIndex = '1';
+        celulaNome.style.minWidth = '250px';
         
-        const imgDino = document.createElement('img');
-        imgDino.src = gigantes[i].imagem;
-        imgDino.style.width = '70px';
-        imgDino.style.height = '70px';
-        imgDino.style.objectFit = 'cover';
-        imgDino.style.borderRadius = '14px';
-        imgDino.style.border = '2px solid #FF9800';
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.alignItems = 'center';
+        container.style.justifyContent = 'flex-start';
+        container.style.gap = '12px';
         
-        const nomeDino = document.createElement('span');
-        nomeDino.textContent = gigantes[i].nome;
-        nomeDino.style.fontSize = '18px';
-        nomeDino.style.fontWeight = 'bold';
-        nomeDino.style.color = '#FF9800';
+        const img = document.createElement('img');
+        img.src = gigantes[i].imagem;
+        img.style.width = '45px';
+        img.style.height = '45px';
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = '10px';
+        img.style.border = '2px solid #FF9800';
         
-        celulaDino.appendChild(imgDino);
-        celulaDino.appendChild(nomeDino);
-        linha.appendChild(celulaDino);
+        const nome = document.createElement('div');
+        nome.textContent = gigantes[i].nome;
+        nome.style.fontSize = '14px';
+        nome.style.fontWeight = 'bold';
+        nome.style.color = '#FF9800';
+        
+        container.appendChild(img);
+        container.appendChild(nome);
+        celulaNome.appendChild(container);
+        linha.appendChild(celulaNome);
         
         for (let j = 0; j < bandidos.length; j++) {
-            const celulaContador = document.createElement('td');
-            celulaContador.style.padding = '14px';
-            celulaContador.style.border = '1px solid #FF9800';
-            celulaContador.style.textAlign = 'center';
-            celulaContador.style.backgroundColor = '#16213e';
+            const celulaCont = document.createElement('td');
+            celulaCont.style.padding = '8px';
+            celulaCont.style.border = '1px solid #FF9800';
+            celulaCont.style.textAlign = 'center';
+            celulaCont.style.backgroundColor = '#16213e';
             
             const contador = document.createElement('div');
-            const valorInicial = carregarBandido(i, j);
-            
-            contador.textContent = valorInicial;
-            contador.style.width = '80px';
-            contador.style.height = '80px';
+            const valor = carregarBandido(i, j);
+            contador.textContent = valor;
+            contador.style.width = '55px';
+            contador.style.height = '55px';
             contador.style.display = 'flex';
             contador.style.alignItems = 'center';
             contador.style.justifyContent = 'center';
-            contador.style.backgroundColor = valorInicial > 0 ? '#4CAF50' : '#2a2a3a';
-            contador.style.borderRadius = '18px';
-            contador.style.fontSize = '32px';
+            contador.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
+            contador.style.borderRadius = '12px';
+            contador.style.fontSize = '22px';
             contador.style.fontWeight = 'bold';
             contador.style.color = 'white';
             contador.style.cursor = 'pointer';
-            contador.style.border = valorInicial > 0 ? '3px solid #FF9800' : '2px solid #555';
+            contador.style.border = valor > 0 ? '2px solid #FF9800' : '1px solid #555';
             contador.style.margin = '0 auto';
             
             contador.dataset.gigante = i;
@@ -3380,79 +3321,74 @@ function abrirModal() {
             contador.onclick = function() {
                 const g = Number(this.dataset.gigante);
                 const b = Number(this.dataset.bandido);
-                let valor = carregarBandido(g, b);
-                valor++;
-                salvarBandido(g, b, valor);
-                this.textContent = valor;
-                this.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
-                this.style.borderColor = valor > 0 ? '#FF9800' : '#555';
+                let v = carregarBandido(g, b);
+                v++;
+                salvarBandido(g, b, v);
+                this.textContent = v;
+                this.style.backgroundColor = v > 0 ? '#4CAF50' : '#2a2a3a';
+                this.style.borderColor = v > 0 ? '#FF9800' : '#555';
             };
             
             contador.oncontextmenu = function(e) {
                 e.preventDefault();
                 const g = Number(this.dataset.gigante);
                 const b = Number(this.dataset.bandido);
-                let valor = carregarBandido(g, b);
-                if (valor > 0) {
-                    valor--;
-                    salvarBandido(g, b, valor);
-                    this.textContent = valor;
-                    this.style.backgroundColor = valor > 0 ? '#4CAF50' : '#2a2a3a';
-                    this.style.borderColor = valor > 0 ? '#FF9800' : '#555';
+                let v = carregarBandido(g, b);
+                if (v > 0) {
+                    v--;
+                    salvarBandido(g, b, v);
+                    this.textContent = v;
+                    this.style.backgroundColor = v > 0 ? '#4CAF50' : '#2a2a3a';
+                    this.style.borderColor = v > 0 ? '#FF9800' : '#555';
                 }
                 return false;
             };
             
-            celulaContador.appendChild(contador);
-            linha.appendChild(celulaContador);
+            celulaCont.appendChild(contador);
+            linha.appendChild(celulaCont);
         }
         
         tbodyB.appendChild(linha);
     }
     tabelaBandidos.appendChild(tbodyB);
-    modal.appendChild(tabelaBandidos);
+    containerBandidos.appendChild(tabelaBandidos);
+    modal.appendChild(containerBandidos);
     
-    // BOTÕES DO RODAPÉ (MAIORES)
-    const containerBotoes = document.createElement('div');
-    containerBotoes.style.display = 'flex';
-    containerBotoes.style.gap = '20px';
-    containerBotoes.style.marginTop = '40px';
+    const botoes = document.createElement('div');
+    botoes.style.display = 'flex';
+    botoes.style.gap = '15px';
+    botoes.style.marginTop = '30px';
+    botoes.style.marginBottom = '10px';
     
     const btnLimpar = document.createElement('button');
     btnLimpar.textContent = '🗑️ LIMPAR TUDO';
     btnLimpar.style.flex = '1';
-    btnLimpar.style.padding = '18px';
-    btnLimpar.style.borderRadius = '40px';
+    btnLimpar.style.padding = '14px';
+    btnLimpar.style.borderRadius = '30px';
     btnLimpar.style.backgroundColor = '#ff5252';
     btnLimpar.style.color = 'white';
     btnLimpar.style.border = 'none';
-    btnLimpar.style.fontSize = '20px';
+    btnLimpar.style.fontSize = '18px';
     btnLimpar.style.fontWeight = 'bold';
     btnLimpar.style.cursor = 'pointer';
-    btnLimpar.style.transition = 'all 0.2s ease';
-    btnLimpar.onmouseenter = () => btnLimpar.style.opacity = '0.9';
-    btnLimpar.onmouseleave = () => btnLimpar.style.opacity = '1';
     btnLimpar.onclick = limparTodos;
-    containerBotoes.appendChild(btnLimpar);
+    botoes.appendChild(btnLimpar);
     
     const btnFechar = document.createElement('button');
     btnFechar.textContent = '✖️ FECHAR';
     btnFechar.style.flex = '1';
-    btnFechar.style.padding = '18px';
-    btnFechar.style.borderRadius = '40px';
+    btnFechar.style.padding = '14px';
+    btnFechar.style.borderRadius = '30px';
     btnFechar.style.backgroundColor = '#555';
     btnFechar.style.color = 'white';
     btnFechar.style.border = 'none';
-    btnFechar.style.fontSize = '20px';
+    btnFechar.style.fontSize = '18px';
     btnFechar.style.fontWeight = 'bold';
     btnFechar.style.cursor = 'pointer';
-    btnFechar.style.transition = 'all 0.2s ease';
-    btnFechar.onmouseenter = () => btnFechar.style.backgroundColor = '#777';
-    btnFechar.onmouseleave = () => btnFechar.style.backgroundColor = '#555';
     btnFechar.onclick = () => overlay.remove();
-    containerBotoes.appendChild(btnFechar);
+    botoes.appendChild(btnFechar);
     
-    modal.appendChild(containerBotoes);
+    modal.appendChild(botoes);
     overlay.appendChild(modal);
     
     overlay.onclick = (e) => {
@@ -3461,6 +3397,53 @@ function abrirModal() {
     
     document.body.appendChild(overlay);
 }
+
+function salvarGigante(i, v) {
+    let d = JSON.parse(localStorage.getItem('spawns_gigantes')) || {};
+    d[i] = v;
+    localStorage.setItem('spawns_gigantes', JSON.stringify(d));
+}
+function carregarGigante(i) {
+    let d = JSON.parse(localStorage.getItem('spawns_gigantes')) || {};
+    return d[i] || 0;
+}
+function salvarBandido(g, b, v) {
+    let d = JSON.parse(localStorage.getItem('spawns_bandidos')) || {};
+    if (!d[g]) d[g] = {};
+    d[g][b] = v;
+    localStorage.setItem('spawns_bandidos', JSON.stringify(d));
+}
+function carregarBandido(g, b) {
+    let d = JSON.parse(localStorage.getItem('spawns_bandidos')) || {};
+    return (d[g] && d[g][b]) || 0;
+}
+function limparTodos() {
+    if (confirm('⚠️ TEM CERTEZA? Isso vai ZERAR todos os contadores!')) {
+        localStorage.removeItem('spawns_gigantes');
+        localStorage.removeItem('spawns_bandidos');
+        abrirModal();
+    }
+}
+
+const gigantes = [
+    { nome: 'Coelophysis', imagem: 'imagens/coeloc.jpeg' },
+    { nome: 'Centrosaurus', imagem: 'imagens/centroc.jpeg' },
+    { nome: 'Carnotaurus', imagem: 'imagens/carnoc.jpeg' },
+    { nome: 'Paquicefalossauro', imagem: 'imagens/pachyc.jpeg' },
+    { nome: 'Brachiosaurus', imagem: 'imagens/brachyc.jpeg' },
+    { nome: 'Parasaurolophus', imagem: 'imagens/parac.jpeg' },
+    { nome: 'Ankylosaurus', imagem: 'imagens/ankyc.jpeg' },
+    { nome: 'T-rex', imagem: 'imagens/rexc.jpeg' }
+];
+
+const bandidos = [
+    { nome: 'Martelo', imagem: 'imagens/martelos.jpeg' },
+    { nome: 'Colt', imagem: 'imagens/colts.jpeg' },
+    { nome: 'Paci', imagem: 'imagens/pacis.jpeg' },
+    { nome: 'Gat', imagem: 'imagens/gats.jpeg' },
+    { nome: 'Yager', imagem: 'imagens/yagers.jpeg' },
+    { nome: 'Show', imagem: 'imagens/shows.jpeg' }
+];
 
 window.addEventListener('load', criarBotaoFlutuante);
 // ==========================================
