@@ -2525,3 +2525,25 @@ body.light-mode .tempo-restante-gigante.muito-critico,
 body.light-mode .tempo-restante-bandido.muito-critico {
     color: #333333 !important;
 }
+
+/* GLOW NO TEXTO SPAWNOU! */
+.tempo-restante-gigante[data-spawnado="true"] .spawn-texto,
+.tempo-restante-bandido[data-spawnado="true"] .spawn-texto {
+    animation: glow-texto 0.8s ease-in-out infinite !important;
+    display: inline-block;
+}
+
+@keyframes glow-texto {
+    0% {
+        text-shadow: 0 0 2px #ff5252, 0 0 4px #ff5252;
+        color: #ff5252;
+    }
+    50% {
+        text-shadow: 0 0 10px #ff9800, 0 0 20px #ff9800;
+        color: #ff9800;
+    }
+    100% {
+        text-shadow: 0 0 2px #ff5252, 0 0 4px #ff5252;
+        color: #ff5252;
+    }
+}

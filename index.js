@@ -46,6 +46,7 @@ window.addEventListener('load', () => {
 let volumeAtual = parseFloat(localStorage.getItem('volumeAlarme')) || 0.1;
 let ultimoSpawnado = null;
 let paginaCarregada = false; // Bloqueio para o Worker não atropelar no início
+let ultimoSpawnTexto = null;  // ← ADICIONE ESTA LINHA
 
 // ==========================================
 // TIMER PARA SPAWNOU (HÁ QUANTO TEMPO SPAWNOU)
@@ -56,20 +57,16 @@ let timersSpawn = {};
 function iniciarTimerSpawn(celula, mapa, tipo) {
     const chave = `${mapa}-${tipo}`;
     
-    // Se já existe um timer rodando, não cria outro
     if (timersSpawn[chave]) return;
     
-    // Verifica se já tem um horário de spawn salvo (chave ÚNICA por mapa/tipo)
     const spawnTimeKey = `spawn_start_${chave}`;
     let dataSpawn = localStorage.getItem(spawnTimeKey);
     
     if (!dataSpawn) {
-        // Primeira vez: salva o horário atual
         dataSpawn = new Date();
         localStorage.setItem(spawnTimeKey, dataSpawn.toISOString());
     } else {
         dataSpawn = new Date(dataSpawn);
-        // Se a data for inválida, recria
         if (isNaN(dataSpawn.getTime())) {
             console.log(`Data inválida para ${chave}, recriando...`);
             dataSpawn = new Date();
@@ -80,26 +77,32 @@ function iniciarTimerSpawn(celula, mapa, tipo) {
     // Limpa a célula e cria os elementos
     celula.innerHTML = '';
     
+    // Remove o glow do último spawn
+    if (ultimoSpawnTexto) {
+        ultimoSpawnTexto.style.animation = '';
+    }
+    
     const spawnText = document.createElement('div');
     spawnText.textContent = '💥 SPAWNOU!';
+    spawnText.className = 'spawn-texto';
     spawnText.style.fontWeight = 'bold';
     spawnText.style.fontSize = '13px';
     spawnText.style.color = '#ff5252';
     spawnText.style.textAlign = 'center';
+    spawnText.style.animation = 'glow-texto 0.8s ease-in-out infinite';
     celula.appendChild(spawnText);
+    
+    // Salva a referência do último spawn
+    ultimoSpawnTexto = spawnText;
     
     const timerSpan = document.createElement('div');
     timerSpan.className = 'spawn-timer';
     celula.appendChild(timerSpan);
     
-    // Função que atualiza o timer
     const atualizarTimer = () => {
         const agora = new Date();
         const diferencaMs = agora - dataSpawn;
-        
-        // Garante que não fique negativo
         let segundosTotal = Math.max(0, Math.floor(diferencaMs / 1000));
-        
         const horas = Math.floor(segundosTotal / 3600);
         const minutos = Math.floor((segundosTotal % 3600) / 60);
         const segundos = segundosTotal % 60;
@@ -107,7 +110,6 @@ function iniciarTimerSpawn(celula, mapa, tipo) {
         timerSpan.textContent = `⏱️ HÁ ${texto}`;
     };
     
-    // Atualiza imediatamente e cria o intervalo
     atualizarTimer();
     timersSpawn[chave] = setInterval(atualizarTimer, 1000);
 }
@@ -1573,6 +1575,12 @@ worker.onmessage = function() {
                         
                     if (horasPassadas >= 3) {
                         celulaExibicao.innerHTML = '';
+
+                            // ========== ADICIONE AQUI ==========
+    if (ultimoSpawnTexto) {
+        ultimoSpawnTexto.style.animation = '';
+    }
+    // ===================================
                         const spawnText = document.createElement('div');
                         spawnText.textContent = '💥 SPAWNOU!';
                         spawnText.style.fontWeight = 'bold';
@@ -1580,6 +1588,9 @@ worker.onmessage = function() {
                         spawnText.style.color = '#ff5252';
                         spawnText.style.textAlign = 'center';
                         celulaExibicao.appendChild(spawnText);
+                            // ========== ADICIONE AQUI ==========
+    ultimoSpawnTexto = spawnText;
+    // ===================================
                         
                         const msgText = document.createElement('div');
                         msgText.textContent = '⏰ HORÁRIO DA ÚLTIMA ROTAÇÃO/ERRADA!';
@@ -1598,6 +1609,12 @@ worker.onmessage = function() {
                         const tipoLinha = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
                         tr.classList.remove(`linha-vermelha-${tipoLinha}`);
                     } else {
+
+                        // ========== ADICIONE AQUI ==========
+    if (ultimoSpawnTexto) {
+        ultimoSpawnTexto.style.animation = '';
+    }
+    // ===================================
                         const tipoSpawn = spawnKey.endsWith('-G') ? 'G' : 'B';
                         iniciarTimerSpawn(celulaExibicao, mapa, tipoSpawn);
                         const tipo = spawnKey.endsWith('-G') ? 'gigante' : 'bandido';
